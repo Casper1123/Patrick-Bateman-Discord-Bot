@@ -11,15 +11,17 @@ About that, global contents like autoreplies, random things Patrick can say, or 
 This is however not including the local facts, which we of course didn't write.
 
 ## Invite Link
-[Click here to invite a hosted version of Patrick Bateman to your discord server.](*Invite link goes here. If I forgot, please laugh.*) <BR>
+[Click here to invite a hosted version of Patrick Bateman to your discord server.](https://discord.com/oauth2/authorize?client_id=974290109186867260) <BR>
 Permissions rundown: <BR>
-View Channels - Seems pretty obvious.<BR>
-Manage Nicknames - Currently unused, but might be used for a future *optional* feature.<BR>
-Send Messages - Required to interact with things. <BR>
-Send Messages in Threads - The same. <BR>
-Embed Links - Required to properly reply to messages. <BR>
-Attach Files - Required for administrative features and some replies. <BR>
-Read Message History - Required to interact with things. <BR>
+- View Channels - Seems pretty obvious.<BR>
+- Manage Nicknames - Currently unused, but might be used for a future *optional* feature.<BR>
+- Send Messages - Required to interact with things. <BR>
+- Send Messages in Threads - The same. <BR>
+- Embed Links - Required to properly reply to messages. <BR>
+- Attach Files - Required for administrative features and some replies. <BR>
+- Read Message History - Required to interact with things. <BR>
+- Add Reactions - For future feature possibilities.
+
 
 ## Features
 What makes Patrick worth inviting / funny? Honestly, that's a good question. <BR>
@@ -58,15 +60,15 @@ These work only in the server you add them, and there is both a fact count and c
 ### /admin index
 Gives all the 'local' (specific to this server) facts in a file for you to quickly read.
 ### /admin add (fact)
-Adds a fact for this server only. Can use [variables](Todo: link to wiki here).
+Adds a fact for this server only. Can use [variables](https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki).
 ### /admin edit (index) (fact)
 Edits a local fact based on index. Comes with a decently handy index-previewer.
 ### /admin remove (index)
 Removes a local fact based on index. Has the same previewer als /edit.
 ### /admin help
-Gives a large hidden message displaying some documentation you can also find [here](Todo: wiki link here)
+Gives a large hidden message displaying some documentation you can also find [here](https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki)
 ### /admin preview (fact)
-Shows you a preview of how your fact would be processed. Useful for testing out [variables](Todo: wiki link here).
+Shows you a preview of how your fact would be processed. Useful for testing out [variables](https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki).
 # Extra information for people who want to host their own Patrick
 If you're looking to host this bot, there's a couple extra sets of commands and config you're looking at. <BR>
 First of all, you'd need to create a discord application to set up an application account and get a bot token. <BR>
