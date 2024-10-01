@@ -58,16 +58,13 @@ class ReplyManager:
 
         self._write_replies(data)
 
-    def _check_alias(self, alias: str) -> bool:
-        return alias in self._alias_exists(alias)
-
     # Add
     def add_alias(self, alias: str):
-        if not self._check_alias(alias):
+        if not self._alias_exists(alias):
             self._create_alias(alias)
 
     def add_reply(self, alias: str, reply: str, weight: int = None):
-        if not self._check_alias(alias):
+        if not self._alias_exists(alias):
             self._create_alias(alias)
 
         if weight is None:
@@ -86,7 +83,7 @@ class ReplyManager:
             self._write_replies(data)
 
     def add_trigger(self, alias: str, trigger: str):
-        if not self._check_alias(alias):
+        if not self._alias_exists(alias):
             self._create_alias(alias)
 
         data = self._get_replies()
@@ -96,14 +93,14 @@ class ReplyManager:
 
     # Get
     def get_replies(self, alias: str) -> list[ReplyDetails]:
-        if not self._check_alias(alias):
+        if not self._alias_exists(alias):
             self._create_alias(alias)
 
         data = self._get_replies()
         return [ReplyDetails(i["value"], i["weight"]) for i in data[alias.lower()]["replies"]]
 
     def get_triggers(self, alias: str) -> list[str]:
-        if not self._check_alias(alias):
+        if not self._alias_exists(alias):
             self._create_alias(alias)
 
         data = self._get_replies()
@@ -115,7 +112,7 @@ class ReplyManager:
         ]
 
     def get_alias(self, alias: str) -> ReplyData:
-        if not self._check_alias(alias):
+        if not self._alias_exists(alias):
             self._create_alias(alias)
 
         data = self._get_replies()
