@@ -15,8 +15,11 @@ class ReplyData:
         if not self.replies:
             return None
 
-        weight: int = _rd.randint(1, 100)
-        replies: list[str] = [i.value for i in self.replies if i.weight >= weight]
+        replies: list[str] = []
+        for i in self.replies:
+            weight = _rd.randint(1, 100)
+            if i.weight >= weight:
+                replies.append(i.value)
 
         if replies:
             return _rd.choice(replies)
