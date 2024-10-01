@@ -1,5 +1,5 @@
 # Custom gitignore
-/temp_folder
+/hidden_secret_dev_files
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
