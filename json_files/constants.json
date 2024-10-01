@@ -1,0 +1,5 @@
+{
+  "token": "Put your Discord bot token here.",
+  "global_edits_server_id": ["Put server ID's here of servers you want to give admins access to Global commands.", "Ints only, of course."],
+  "super_server_ids": ["Put server ID's here of servers you want to remove fact restrictions off.", "Ints only, of course."]
+}
