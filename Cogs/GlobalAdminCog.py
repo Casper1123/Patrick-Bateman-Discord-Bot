@@ -9,7 +9,7 @@ from Managers.json_tools import load_json
 from Managers.ReplyManager import ReplyData
 
 @app_commands.default_permissions(administrator=True)
-@app_commands.guilds(*[discord.Object(id=i) for i in load_json("json_files/constants.json")["global_edits_server_id"]])
+@app_commands.guilds(*[discord.Object(id=i) for i in load_json("constants.json")["global_edits_server_id"]])
 class GlobalAdminGroup(commands.GroupCog, name="global"):
     def __init__(self, bot: commands.Bot, constants_manager: ConstantsManager) -> None:
         self.bot = bot
