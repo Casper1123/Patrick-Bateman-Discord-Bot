@@ -79,12 +79,9 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
     }
     # Information available in servers
     guild_var_dict: dict = {
-        "user.nick": user.nick,
-
         "randomuser.account": random_user.name,
         "randomuser.id": random_user.id,
         "randomuser.name": random_user.display_name,
-        "randomuser.nick": random_user.nick,
 
         "channel.name": channel.name,
         "channel.id": channel.id,
@@ -95,7 +92,6 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
 
         "guild.owner.id": guild.owner,
         "guild.owner.name": guild.owner.display_name,
-        "guild.owner.nick": guild.owner.nick,
         "guild.owner.account": guild.owner.name,
 
         "self.nick": guild.me.nick,
