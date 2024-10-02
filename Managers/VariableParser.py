@@ -105,7 +105,7 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
     if variable in dm_var_dict.keys():
         return dm_var_dict[variable]
     if variable in guild_var_dict.keys() and in_server:
-        return dm_var_dict[variable]
+        return guild_var_dict[variable]
 
     # Command Variables
     if variable.startswith("rand:"):
