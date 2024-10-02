@@ -173,32 +173,27 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
     @app_commands.command(name="help", description="Gives information on in-fact variables.")
     async def fact_help(self, interaction: discord.Interaction):
         description = \
+            "Refer to [the documentation](https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki/The-Variable-system) for detailed information.\n" \
             "**Regular Variables**\n" \
-            "In-fact variables are little pieces of given information you can access in your facts.\n" \
-            "These are used by adding them in {} into your fact, for example '{randomuser.name} is a silly goober'.\n" \
-            "Preview a fact with variables using /admin preview\n" \
-            "The following will be a quick list of variables usable:\n" \
-            "User (the user that ran the command):\n" \
-            "\tuser.account *the user's account name*\n\tuser.name *the user's display name*\n\tuser.nick *the user's server-nickname*\n\tuser.id\n\n" \
+            "User:\n" \
+            "\tuser.account *the user's account name*\n\tuser.name\n\tuser.id\n\n" \
             "Channel:\n" \
             "\tchannel.name\n\tchannel.id\n\n" \
             "Guild:\n" \
             "\tguild.name\t\nguild.name\n" \
             "\tguild.owner:\n" \
             "\t\tguild.owner.account\n\t\tguild.owner.name\n\t\tguild.owner.nick\n\t\tguild.owner.id\n\n" \
-            "Randomuser: a randomly picked user from the member list. Constant across the fact.\n" \
+            "Randomuser:\n" \
             "\trandomuser.account\n\trandomuser.name\n\trandomuser.nick\n\trandomuser.id\n\n" \
-            "Self: the bot itself:\n" \
+            "Self:\n" \
             "\tself.name\n\tself.nick\n\tself.id\n\n" \
             "General:\n" \
-            "\t{enter} / '\\n' : adds a newline to the fact. Both work (so \\n is usable without {})\n"\
-            "\ttotal_facts  : the sum of total and local facts.\n" \
-            "\tglobal_facts : the total of global facts\n" \
-            "\tlocal_facts  : the total of local facts.\n\n" \
+            "\t{enter} / '\\n'\n"\
+            "\ttotal_facts\n" \
+            "\tglobal_facts\n" \
+            "\tlocal_facts\n\n" \
             "**Command Variables**\n" \
-            "Command Variables are slightly different, because they work more like functions.\n" \
-            "These are a little more complex, so examples will be given.\n\n" \
-            "rand : Generates a random number.\n" \
+            "rand:\n" \
             "The number generated is between the lower and upper, inclusive.\n" \
             "\t\"{rand:lower,upper}\"\n" \
             "\t\"{rand:0,1}\"\n\n" \
