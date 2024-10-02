@@ -176,15 +176,15 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
             "Refer to [the documentation](https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki/The-Variable-system) for detailed information.\n" \
             "**Regular Variables**\n" \
             "User:\n" \
-            "\tuser.account *the user's account name*\n\tuser.name\n\tuser.id\n\n" \
+            "\tuser.account\n\tuser.name\n\tuser.id\n\n" \
             "Channel:\n" \
             "\tchannel.name\n\tchannel.id\n\n" \
             "Guild:\n" \
             "\tguild.name\t\nguild.name\n" \
             "\tguild.owner:\n" \
-            "\t\tguild.owner.account\n\t\tguild.owner.name\n\t\tguild.owner.nick\n\t\tguild.owner.id\n\n" \
-            "Randomuser:\n" \
-            "\trandomuser.account\n\trandomuser.name\n\trandomuser.nick\n\trandomuser.id\n\n" \
+            "\t\tguild.owner.account\n\t\tguild.owner.name\n\t\tguild.owner.id\n\n" \
+            "Randomuser\n" \
+            "\trandomuser.account\n\trandomuser.name\n\trandomuser.id\n\n" \
             "Self:\n" \
             "\tself.name\n\tself.nick\n\tself.id\n\n" \
             "General:\n" \
