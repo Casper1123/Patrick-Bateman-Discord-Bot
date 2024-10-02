@@ -44,8 +44,8 @@ class ListenerCog(commands.Cog):
             return
 
         await self.letter_only_replies(message)
-        await self.number_only_replies(message)
-        await self.bouncer_line_reply(message)
+        await self.number_replies(message)
+        await self.saying_replies(message)
 
     async def letter_only_replies(self, message: discord.Message):
         letterdict = {"a": "b", "b": "c", "c": "d",
@@ -70,7 +70,7 @@ class ListenerCog(commands.Cog):
             letter = letterdict[message.content]
         await message.reply(mention_author=False, content=letter)
 
-    async def number_only_replies(self, message: discord.Message):
+    async def number_replies(self, message: discord.Message):
         message_content = message.content.split()
         if not message_content:
             return
@@ -121,7 +121,7 @@ class ListenerCog(commands.Cog):
 
             await message.reply(mention_author=False, content=number_str)
 
-    async def bouncer_line_reply(self, message: discord.Message):
+    async def saying_replies(self, message: discord.Message):
         if _r.randint(1, 300) != 1:
             return
         await message.reply(mention_author=False, content=process_fact(self.cm.sayings.get_line(None), self.cm.facts_manager, message, self.bot))
