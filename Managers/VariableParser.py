@@ -137,7 +137,7 @@ def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.In
             if fact[i - 1] != "\\":
                 opened -= 1
             if opened == 0:
-                result += process_variable(current_variable, facts_manager, interaction, bot)
+                result += str(process_variable(current_variable, facts_manager, interaction, bot))
                 current_variable = ""
                 continue
 
