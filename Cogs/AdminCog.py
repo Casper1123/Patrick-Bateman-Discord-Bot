@@ -179,15 +179,15 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
             "Preview a fact with variables using /admin preview\n" \
             "The following will be a quick list of variables usable:\n" \
             "User (the user that ran the command):\n" \
-            "\tuser.account *the user's account name*\n\tuser.name *the user's display name*\n\tuser.nick *the user's server-nickname*\n\tuser.id\n\n" \
+            "\tuser.account *the user's account name*\n\tuser.name *the user's display name*\n\tuser.id\n\n" \
             "Channel:\n" \
             "\tchannel.name\n\tchannel.id\n\n" \
             "Guild:\n" \
             "\tguild.name\t\nguild.name\n" \
             "\tguild.owner:\n" \
-            "\t\tguild.owner.account\n\t\tguild.owner.name\n\t\tguild.owner.nick\n\t\tguild.owner.id\n\n" \
+            "\t\tguild.owner.account\n\t\tguild.owner.name\n\t\tguild.owner.id\n\n" \
             "Randomuser: a randomly picked user from the member list. Constant across the fact.\n" \
-            "\trandomuser.account\n\trandomuser.name\n\trandomuser.nick\n\trandomuser.id\n\n" \
+            "\trandomuser.account\n\trandomuser.name\n\trandomuser.id\n\n" \
             "Self: the bot itself:\n" \
             "\tself.name\n\tself.nick\n\tself.id\n\n" \
             "General:\n" \
