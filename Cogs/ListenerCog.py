@@ -1,9 +1,10 @@
-import discord
-from discord.ext import commands
 import random as _r
 
-from Managers.ReplyManager import ReplyData
+import discord
+from discord.ext import commands
+
 from Managers.ConstantsManager import ConstantsManager
+from Managers.ReplyManager import ReplyData
 from Managers.VariableParser import process_fact
 
 
@@ -29,8 +30,10 @@ class ListenerCog(commands.Cog):
             entry: ReplyData
 
             for trigger in entry.triggers:
-                if message.content.lower().__contains__(process_fact(trigger.lower(), self.cm.facts_manager, message, self.bot)):
-                    potential_reply: str | None = process_fact(entry.get_reply(), self.cm.facts_manager, message, self.bot)
+                if message.content.lower().__contains__(
+                        process_fact(trigger.lower(), self.cm.facts_manager, message, self.bot)):
+                    potential_reply: str | None = process_fact(entry.get_reply(), self.cm.facts_manager, message,
+                                                               self.bot)
                     if potential_reply:
                         active_replies.append(potential_reply)
                     break
@@ -124,4 +127,6 @@ class ListenerCog(commands.Cog):
     async def saying_replies(self, message: discord.Message):
         if _r.randint(1, 300) != 1:
             return
-        await message.reply(mention_author=False, content=process_fact(self.cm.sayings.get_line(None), self.cm.facts_manager, message, self.bot))
+        await message.reply(mention_author=False,
+                            content=process_fact(self.cm.sayings.get_line(None), self.cm.facts_manager, message,
+                                                 self.bot))

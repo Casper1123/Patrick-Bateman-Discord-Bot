@@ -1,8 +1,9 @@
+import io
+
 import discord
-from discord.ext import commands
 from discord import app_commands
 from discord.app_commands import Choice
-import io
+from discord.ext import commands
 
 from Managers.ConstantsManager import ConstantsManager
 from Managers.VariableParser import process_fact
@@ -168,7 +169,8 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
             return
 
         await interaction.response.send_message(
-            embed=discord.Embed(description=process_fact(fact, self.cm.facts_manager, interaction, self.bot)), ephemeral=True)
+            embed=discord.Embed(description=process_fact(fact, self.cm.facts_manager, interaction, self.bot)),
+            ephemeral=True)
 
     @app_commands.command(name="help", description="Gives information on in-fact variables.")
     async def fact_help(self, interaction: discord.Interaction):
@@ -188,7 +190,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
             "Self:\n" \
             "\tself.name\n\tself.nick\n\tself.id\n\n" \
             "General:\n" \
-            "\t{enter} / '\\n'\n"\
+            "\t{enter} / '\\n'\n" \
             "\ttotal_facts\n" \
             "\tglobal_facts\n" \
             "\tlocal_facts\n\n" \
@@ -201,7 +203,6 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
             "What's important to know is that these choices can have variables.\n" \
             "\t\"{choice:\"option\",...}\"\n" \
             "\t\"{choice:\"option 1\",\"option with {variable}\"}"
-
 
         embed = discord.Embed(
             title="Fact variables information",

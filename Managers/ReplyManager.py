@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import random as _rd
 
 from . import json_tools as _js
@@ -111,7 +112,8 @@ class ReplyManager:
 
     def get_aliases(self) -> list[ReplyData]:
         return [
-            ReplyData(self, k, v["triggers"], [ReplyDetails(i["value"], i["weight"]) for i in v["replies"]]) for k, v in self._get_replies().items()
+            ReplyData(self, k, v["triggers"], [ReplyDetails(i["value"], i["weight"]) for i in v["replies"]]) for k, v in
+            self._get_replies().items()
         ]
 
     def get_alias(self, alias: str) -> ReplyData:
@@ -120,7 +122,8 @@ class ReplyManager:
 
         data = self._get_replies()
         aliasdata = data[alias.lower()]
-        return ReplyData(self, alias.lower(), aliasdata["triggers"], [ReplyDetails(i["value"], i["weight"]) for i in aliasdata["replies"]])
+        return ReplyData(self, alias.lower(), aliasdata["triggers"],
+                         [ReplyDetails(i["value"], i["weight"]) for i in aliasdata["replies"]])
 
     # Edit
     def edit_reply(self, alias: str, index: int, reply: str = None, weight: int = None):

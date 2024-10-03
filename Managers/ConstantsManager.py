@@ -1,7 +1,7 @@
-from .json_tools import load_json
 from .FactsManager import FactsManager
 from .ReplyManager import ReplyManager
 from .SayingsManager import SayingsManager
+from .json_tools import load_json
 
 
 class ConstantsManager:

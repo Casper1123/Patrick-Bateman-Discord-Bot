@@ -1,7 +1,8 @@
 import random as _rd
 
-from .json_tools import load_json as _lj, write_json as _wj
 from Managers.Exceptions import FactIndexError
+from .json_tools import load_json as _lj, write_json as _wj
+
 
 class FactsManager:
     def __init__(self, filepath: str):
@@ -33,9 +34,10 @@ class FactsManager:
             return _rd.choice(facts)
 
         if not 0 <= index - 1 <= len(facts):
-            raise FactIndexError(f"Index {index} is out of range for the list of facts! Check the amount of stored facts to see which indexes are valid.")
+            raise FactIndexError(
+                f"Index {index} is out of range for the list of facts! Check the amount of stored facts to see which indexes are valid.")
 
-        return facts[index-1]
+        return facts[index - 1]
 
     def add_fact(self, fact: str, guild_id: int = None):
         self._check_guild_entry(guild_id)
@@ -78,10 +80,10 @@ class FactsManager:
 
         private = index > len(facts["public"])
         if not private:
-            facts["public"][index-1] = new_fact
+            facts["public"][index - 1] = new_fact
         else:
             index -= len(facts["public"])
-            facts["private"][str(guild_id)][index-1] = new_fact
+            facts["private"][str(guild_id)][index - 1] = new_fact
         self._write_facts(facts)
 
     def remove_fact(self, guild_id: int, index: int):
@@ -96,5 +98,5 @@ class FactsManager:
             del facts["public"][index - 1]
         else:
             index -= len(facts["public"])
-            del facts["private"][str(guild_id)][index-1]
+            del facts["private"][str(guild_id)][index - 1]
         self._write_facts(facts)
