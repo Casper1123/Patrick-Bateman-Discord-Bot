@@ -281,7 +281,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         except IndexError:
             return []
         return [
-            Choice(name=reply[:10], value=reply.value) for reply in alias.replies if reply.value.lower().__contains__(current)
+            Choice(name=f"{str(reply.weight).ljust(3)}: {reply.value[:10]}", value=reply.value) for reply in alias.replies if reply.value.lower().__contains__(current)
         ][:3]
 
     @replies_remove_trigger.autocomplete("trigger")
