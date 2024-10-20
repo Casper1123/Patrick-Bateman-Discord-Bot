@@ -47,6 +47,8 @@ def process_choice(variable: str, facts_manager: FactsManager, interaction: disc
     if not choices:
         return "{" + variable + "}"
 
+    # todo: fix 'no option' and 'stacking choices'
+
     # Recursively process the choice.
     return process_fact(_rd.choice(choices), facts_manager, interaction, bot)
 
