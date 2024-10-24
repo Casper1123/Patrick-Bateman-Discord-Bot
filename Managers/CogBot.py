@@ -45,7 +45,7 @@ class CogBot(commands.Bot):
                 else:
                     await interaction.edit_original_response(content=f"An error has occurred, Please notify the application developer.\n"
                                                                      f"*{error}*")
-                raise error
+                    raise error
 
         self.tree.on_error = on_tree_error
 
