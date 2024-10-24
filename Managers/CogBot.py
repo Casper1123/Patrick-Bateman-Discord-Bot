@@ -1,18 +1,16 @@
 import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 
-
-from Managers.Exceptions import FactIndexError
-from .ConstantsManager import ConstantsManager
-
+from Cogs.AdminCog import LocalAdminGroup
+from Cogs.AskPatrick import AskPatrick
 # Packages; import setup and run those
 from Cogs.FactsCog import FactsCog
 from Cogs.GlobalAdminCog import GlobalAdminGroup
-from Cogs.AdminCog import LocalAdminGroup
-from Cogs.AskPatrick import AskPatrick
-from Cogs.MainCommandsCog import MainCommandsCog
 from Cogs.ListenerCog import ListenerCog
+from Cogs.MainCommandsCog import MainCommandsCog
+from Managers.Exceptions import FactIndexError
+from .ConstantsManager import ConstantsManager
 
 
 class CogBot(commands.Bot):
@@ -43,8 +41,9 @@ class CogBot(commands.Bot):
                 if isinstance(error, FactIndexError):
                     await interaction.edit_original_response(content=f"{error}")
                 else:
-                    await interaction.edit_original_response(content=f"An error has occurred, Please notify the application developer.\n"
-                                                                     f"*{error}*")
+                    await interaction.edit_original_response(
+                        content=f"An error has occurred, Please notify the application developer.\n"
+                                f"*{error}*")
                     raise error
 
         self.tree.on_error = on_tree_error

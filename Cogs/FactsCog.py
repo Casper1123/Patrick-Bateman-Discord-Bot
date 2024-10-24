@@ -1,9 +1,10 @@
 import discord
-from discord.ext import commands
 from discord import app_commands
+from discord.ext import commands
 
 from Managers.ConstantsManager import ConstantsManager
 from Managers.VariableParser import process_fact
+
 
 class FactsCog(commands.Cog):
     def __init__(self, bot: commands.Bot, constants_manager: ConstantsManager) -> None:
@@ -15,7 +16,8 @@ class FactsCog(commands.Cog):
     async def fact_give(self, interaction: discord.Interaction, index: int = None):
         fact: str = self.cm.facts_manager.get_fact(interaction.guild_id, index)
 
-        await interaction.response.send_message(content=process_fact(fact, self.cm.facts_manager, interaction, self.bot))
+        await interaction.response.send_message(
+            content=process_fact(fact, self.cm.facts_manager, interaction, self.bot))
 
     @app_commands.command(name="fact_index", description="Gives the amount of stored facts.")
     async def fact_index(self, interaction: discord.Interaction):

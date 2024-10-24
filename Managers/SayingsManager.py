@@ -1,7 +1,8 @@
 import random as _rd
 
-from .json_tools import load_json as _lj, write_json as _wj
 from Managers.Exceptions import FactIndexError
+from .json_tools import load_json as _lj, write_json as _wj
+
 
 class SayingsManager:
     def __init__(self, filepath: str):
@@ -23,7 +24,7 @@ class SayingsManager:
             raise FactIndexError(
                 f"Index {index} is out of range for the list of lines! Check the amount of stored facts to see which indexes are valid.")
 
-        return lines[index-1]
+        return lines[index - 1]
 
     def add_line(self, line: str):
         lines = self.get_lines()
@@ -40,7 +41,7 @@ class SayingsManager:
             raise FactIndexError(
                 f"Index {index} is out of range for the list of lines! Check the amount of stored facts to see which indexes are valid.")
 
-        lines[index-1] = line
+        lines[index - 1] = line
         self._write_lines(lines)
 
     def remove_line(self, index: int):
@@ -50,7 +51,7 @@ class SayingsManager:
             raise FactIndexError(
                 f"Index {index} is out of range for the list of lines! Check the amount of stored facts to see which indexes are valid.")
 
-        del lines[index-1]
+        del lines[index - 1]
         self._write_lines(lines)
 
     def get_sayings_words(self) -> list[str]:

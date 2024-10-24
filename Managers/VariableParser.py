@@ -79,7 +79,7 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
         "self.name": bot.user.name,
         "self.id": bot.user.id,
     }
-    
+
     # Information available in servers
     guild_var_dict: dict = {
         "randomuser.account": random_user.name,

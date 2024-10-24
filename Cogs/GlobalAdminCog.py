@@ -1,12 +1,14 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-from discord.app_commands import Choice
 import io
 
+import discord
+from discord import app_commands
+from discord.app_commands import Choice
+from discord.ext import commands
+
 from Managers.ConstantsManager import ConstantsManager
-from Managers.json_tools import load_json
 from Managers.ReplyManager import ReplyData
+from Managers.json_tools import load_json
+
 
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(*[discord.Object(id=i) for i in load_json("constants.json")["global_edits_server_id"]])
@@ -31,11 +33,13 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         await interaction.edit_original_response(content=f"New fact added at index {index}. Enjoy!")
 
     @app_commands.command(name="fact_remove", description="Removes a global fact.")
-    @app_commands.describe(index="The index of the fact you're trying to remove. Shows nearby facts' first 20 characters.")
+    @app_commands.describe(
+        index="The index of the fact you're trying to remove. Shows nearby facts' first 20 characters.")
     async def fact_global_remove(self, interaction: discord.Interaction, index: int):
         await interaction.response.defer(ephemeral=True, thinking=False)
         if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[0]):
-            await interaction.edit_original_response(embed=discord.Embed(title="Index error", description="The given index is out of range."))
+            await interaction.edit_original_response(
+                embed=discord.Embed(title="Index error", description="The given index is out of range."))
             return
 
         fact = self.cm.facts_manager.get_fact(None, index)
@@ -45,12 +49,14 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         await interaction.edit_original_response(embed=embed)
 
     @app_commands.command(name="fact_edit", description="edits a global fact.")
-    @app_commands.describe(index="The index of the fact you're trying to edit. Shows nearby facts' first 20 characters.",
-                           fact="The new fact to go in it's place. Technically it's an edit.")
+    @app_commands.describe(
+        index="The index of the fact you're trying to edit. Shows nearby facts' first 20 characters.",
+        fact="The new fact to go in it's place. Technically it's an edit.")
     async def fact_global_edit(self, interaction: discord.Interaction, index: int, fact: str):
         await interaction.response.defer(ephemeral=True, thinking=False)
         if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[0]):
-            await interaction.edit_original_response(embed=discord.Embed(title="Index error", description="The given index is out of range."))
+            await interaction.edit_original_response(
+                embed=discord.Embed(title="Index error", description="The given index is out of range."))
             return
 
         old_fact = self.cm.facts_manager.get_fact(None, index)
@@ -127,8 +133,9 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
 
     # Replies Global
     @app_commands.command(name="alias_info", description="Gives all global-reply aliases or more detailed information.")
-    @app_commands.describe(alias="Optional parameter that instead displays minor (or complete) information about an alias. If left empty, returns a list of aliases instead",
-                           complete="Whether to include a file containing the complete information of an alias.")
+    @app_commands.describe(
+        alias="Optional parameter that instead displays minor (or complete) information about an alias. If left empty, returns a list of aliases instead",
+        complete="Whether to include a file containing the complete information of an alias.")
     async def replies_global_index(self, interaction: discord.Interaction, alias: str = None, complete: bool = False):
         if alias is None:
             await self.all_alias_list(interaction, complete)
@@ -188,8 +195,9 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
             file_content += "\n\n"
         with io.StringIO(file_content) as text_stream:
             file = discord.File(fp=text_stream, filename="alias_data.txt")
-            await interaction.response.send_message(embed=discord.Embed(title="Alias Information", description="See the attached file for full Alias information"), file=file, ephemeral=True)
-
+            await interaction.response.send_message(embed=discord.Embed(title="Alias Information",
+                                                                        description="See the attached file for full Alias information"),
+                                                    file=file, ephemeral=True)
 
     @app_commands.command(name="add_reply", description="Attach a new reply to an alias.")
     @app_commands.describe(alias="The alias to attach the reply to. Will create a new one if not found.",
@@ -200,7 +208,8 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
             self.cm.reply_manager.add_alias(alias)
         self.cm.reply_manager.add_reply(alias, reply, weight)
 
-        await interaction.response.send_message(ephemeral=True, embed=discord.Embed(title="Reply added", description=f"Alias: {alias}\nReply: **{reply}**"))
+        await interaction.response.send_message(ephemeral=True, embed=discord.Embed(title="Reply added",
+                                                                                    description=f"Alias: {alias}\nReply: **{reply}**"))
 
     @app_commands.command(name="remove_reply", description="Removes a reply")
     @app_commands.describe(alias="The alias you'd like to remove a reply from.",
@@ -235,7 +244,8 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
             self.cm.reply_manager.add_alias(alias)
         self.cm.reply_manager.add_trigger(alias, trigger)
 
-        await interaction.response.send_message(ephemeral=True, embed=discord.Embed(title="Trigger added", description=f"Alias: {alias}\nTrigger: **{trigger}**"))
+        await interaction.response.send_message(ephemeral=True, embed=discord.Embed(title="Trigger added",
+                                                                                    description=f"Alias: {alias}\nTrigger: **{trigger}**"))
 
     @app_commands.command(name="remove_trigger", description="Removes a trigger")
     @app_commands.describe(alias="The alias you'd like to remove a trigger from.",
@@ -277,23 +287,27 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
     @replies_remove_reply.autocomplete("reply")
     async def _autofill_callback_reply(self, interaction: discord.Interaction, current: str):
         try:
-            alias = [entry for entry in self.cm.reply_manager.get_aliases() if entry.alias == interaction.namespace.alias][0]
+            alias = \
+            [entry for entry in self.cm.reply_manager.get_aliases() if entry.alias == interaction.namespace.alias][0]
         except IndexError:
             return []
         return [
-            Choice(name=f"{str(reply.weight).ljust(3)}: {reply.value[:10]}", value=reply.value) for reply in alias.replies if reply.value.lower().__contains__(current)
-        ][:3]
+                   Choice(name=f"{str(reply.weight).ljust(3)}: {reply.value[:10]}", value=reply.value) for reply in
+                   alias.replies if reply.value.lower().__contains__(current)
+               ][:3]
 
     @replies_remove_trigger.autocomplete("trigger")
     async def _autofill_callback_trigger(self, interaction: discord.Interaction, current: str):
         # todo: show weights.
         try:
-            alias = [entry for entry in self.cm.reply_manager.get_aliases() if entry.alias == interaction.namespace.alias][0]
+            alias = \
+            [entry for entry in self.cm.reply_manager.get_aliases() if entry.alias == interaction.namespace.alias][0]
         except IndexError:
             return []
         return [
-            Choice(name=trigger[:10], value=trigger) for trigger in alias.triggers if trigger.lower().__contains__(current)
-        ][:3]
+                   Choice(name=trigger[:10], value=trigger) for trigger in alias.triggers if
+                   trigger.lower().__contains__(current)
+               ][:3]
 
     # Global Bouncerlines
     @app_commands.command(name="line_add", description="Adds a randomly used line.")
