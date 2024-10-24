@@ -30,9 +30,9 @@ class ListenerCog(commands.Cog):
 
             for trigger in entry.triggers:
                 if message.content.lower().__contains__(process_fact(trigger.lower(), self.cm.facts_manager, message, self.bot)):
-                    potential_reply: str | None = process_fact(entry.get_reply(), self.cm.facts_manager, message, self.bot)
+                    potential_reply: str | None = entry.get_reply()
                     if potential_reply:
-                        active_replies.append(potential_reply)
+                        active_replies.append(process_fact(potential_reply, self.cm.facts_manager, message, self.bot))
                     break
 
         if active_replies:
