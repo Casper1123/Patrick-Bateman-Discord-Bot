@@ -87,12 +87,10 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
 
         try:
             current = int(current)
-        except TypeError:
-            current = 1
-        except ValueError:
+        except (TypeError, ValueError):
             current = 1
 
-        if not 0 <= current - 1 <= len(global_facts):
+        if not 0 <= current - 1 < len(global_facts):
             if current < 1:
                 current = 1
             else:
