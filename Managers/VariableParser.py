@@ -42,7 +42,7 @@ def process_choice(variable: str, facts_manager: FactsManager, interaction: disc
 
         if opened:
             current_choice += char
-        # else: add it to.. what?
+        # else: add it to... what?
 
     if not choices:
         return "{" + variable + "}"
@@ -119,7 +119,7 @@ def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.In
                  bot: commands.Bot) -> str:
     result: str = ""
     current_variable = ""
-    opened: int = 0  # determines whether it's actively processing a variable.
+    opened: int = 0  # counts opening curly-brackets.
     for i, char in enumerate(fact):
         # Go through chars and try to separate out any variables.
         if char == "{":
@@ -128,7 +128,7 @@ def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.In
                 continue
             if fact[i - 1] != "\\":  # Separation to not try to access fact[-1] which is impossible.
                 if opened > 0:
-                    current_variable += char
+                    current_variable += char  # Add curly to current variable if already opened, but expects it to be closed as it wasn't a \"
                 opened += 1
                 continue
 
@@ -136,8 +136,8 @@ def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.In
             if fact[i - 1] != "\\":
                 opened -= 1
             if opened == 0:
-                result += str(process_variable(current_variable, facts_manager, interaction, bot))
-                current_variable = ""
+                result += str(process_variable(current_variable, facts_manager, interaction, bot))  # Append current 'result' string after process with current variable contents.
+                current_variable = ""  # reset
                 continue
 
         if opened:
