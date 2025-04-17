@@ -357,58 +357,6 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
                               description=f"Index: {index}\nFrom:\n*{old_line}*\n\nTo:\n*{line}*")
         await interaction.edit_original_response(embed=embed)
 
-    @fact_global_edit.autocomplete("index")
-    @fact_global_remove.autocomplete("index")
-    async def _autofill_callback_line_index(self, interaction: discord.Interaction, current: str):
-        if current == "":
-            current = 1
-
-        lines = self.cm.sayings.get_lines()
-        total_entries = 4  # Total choices to return
-        max_messagelenght = 20
-        try:
-            current = int(current)
-        except TypeError as err:
-            current = 1
-        except ValueError as err:
-            current = 1
-
-        if len(lines) <= total_entries:
-            return [
-                Choice(
-                    name=f"{i + 1} : {f[:max_messagelenght]}",
-                    value=i + 1
-                )
-                for i, f in enumerate(lines)
-            ]
-
-        if not 0 <= current - 1 <= len(lines):
-            if current < 1:
-                current = 1
-            else:
-                current = len(lines)
-
-        half_window = total_entries // 2
-        current -= 1  # convert to list index
-
-        start = current - half_window
-        end = current + half_window
-        if start < 0:
-            end += abs(start)
-            start = 0
-        elif end >= len(lines):
-            temp = len(lines) - end
-            start -= half_window - temp
-
-        output = []
-        for i, f in enumerate(lines[start: end]):
-            output.append(Choice(
-                name=f"{i + start + 1} : {f[:max_messagelenght]}",
-                value=i + start + 1
-            ))
-
-        return output
-
     @app_commands.command(name="line_index", description="Loads all randomly used lines into a file.")
     async def line_listall(self, interaction: discord.Interaction):
         lines: list[str] = self.cm.sayings.get_lines()
