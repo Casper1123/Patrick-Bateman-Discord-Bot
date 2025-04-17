@@ -27,7 +27,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
                                                     ephemeral=True)
             return
 
-        fact_count = len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[1])
+        fact_count = len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[1])
         if fact_count >= 50 and interaction.guild_id not in self.cm.super_server_ids:
             await interaction.response.send_message(
                 embed=discord.Embed(title="Fact not added", description="You have reached your limit of 50 facts."),
@@ -58,13 +58,13 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
     @app_commands.describe(
         index="The index of the fact you're trying to remove. Shows nearby facts' first 20 characters.")
     async def fact_local_remove(self, interaction: discord.Interaction, index: int):
-        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[1]):
+        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[1]):
             await interaction.response.send_message(
                 embed=discord.Embed(title="Index error", description="The given index is out of range."),
                 ephemeral=True)
             return
 
-        global_index = len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[0])
+        global_index = len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0])
         fact = self.cm.facts_manager.get_fact(interaction.guild_id, global_index + index)
         self.cm.facts_manager.remove_fact(interaction.guild_id, global_index + index)
 
@@ -81,13 +81,13 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
                                                                         description="The lenght of your given fact is longer than 200 characters."),
                                                     ephemeral=True)
             return
-        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[1]):
+        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[1]):
             await interaction.response.send_message(
                 embed=discord.Embed(title="Index error", description="The given index is out of range."),
                 ephemeral=True)
             return
 
-        global_index = len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[0])
+        global_index = len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0])
         old_fact = self.cm.facts_manager.get_fact(interaction.guild_id, global_index + index)
         self.cm.facts_manager.edit_fact(interaction.guild_id, global_index + index, fact)
 
@@ -96,7 +96,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
 
     @app_commands.command(name="index", description="Gives a list of all local facts in file form.")
     async def fact_local_listall(self, interaction: discord.Interaction):
-        local_facts: list[str] = self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[1]
+        local_facts: list[str] = self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[1]
         file_content = "\n".join([f"{i}: {fact}" for i, fact in enumerate(local_facts)])
 
         embed = discord.Embed(title="Full data in attached file.")
@@ -112,7 +112,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
         if current == "":
             current = 1
 
-        global_facts, local_facts = self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)
+        global_facts, local_facts = self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)
         total_entries = 4  # Total choices to return
         max_messagelenght = 20
 

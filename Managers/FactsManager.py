@@ -14,14 +14,14 @@ class FactsManager:
     def _write_facts(self, facts_dict: dict[str]):
         _wj(self.filepath, facts_dict)
 
-    def get_facts(self, guild_id: int | None, seperate: bool = False) -> list[str] or (list[str], list[str]):
+    def get_facts(self, guild_id: int | None, separate: bool = False) -> list[str] or (list[str], list[str]):
         self._check_guild_entry(guild_id)
 
         facts = self._get_facts()
         global_facts = facts["public"]
         local_facts = facts["private"][str(guild_id)] if guild_id is not None else []
 
-        if seperate:
+        if separate:
             return global_facts, local_facts
         return global_facts + local_facts
 
@@ -66,7 +66,7 @@ class FactsManager:
             self._add_guild(guild_id)
 
     def get_index(self, guild_id: int | None, fact: str) -> int | None:
-        gl, loc = self.get_facts(guild_id, seperate=True)
+        gl, loc = self.get_facts(guild_id, separate=True)
         if guild_id is not None:
             return loc.index(fact) + 1 if fact in loc else None
         return gl.index(fact) + 1 if fact in gl else None

@@ -37,7 +37,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         index="The index of the fact you're trying to remove. Shows nearby facts' first 20 characters.")
     async def fact_global_remove(self, interaction: discord.Interaction, index: int):
         await interaction.response.defer(ephemeral=True, thinking=False)
-        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[0]):
+        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0]):
             await interaction.edit_original_response(
                 embed=discord.Embed(title="Index error", description="The given index is out of range."))
             return
@@ -54,7 +54,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         fact="The new fact to go in it's place. Technically it's an edit.")
     async def fact_global_edit(self, interaction: discord.Interaction, index: int, fact: str):
         await interaction.response.defer(ephemeral=True, thinking=False)
-        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)[0]):
+        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0]):
             await interaction.edit_original_response(
                 embed=discord.Embed(title="Index error", description="The given index is out of range."))
             return
@@ -72,7 +72,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         if current == "":
             current = 1
 
-        global_facts, local_facts = self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)
+        global_facts, local_facts = self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)
         total_entries = 4  # Total choices to return
         max_messagelenght = 20
 

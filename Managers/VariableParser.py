@@ -72,8 +72,8 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
         "user.name": user.display_name,
 
         "total_facts": str(len(facts_manager.get_facts(guild.id))),
-        "global_facts": str(len(facts_manager.get_facts(guild.id, seperate=True)[0])),
-        "local_facts": str(len(facts_manager.get_facts(guild.id, seperate=True)[1])),
+        "global_facts": str(len(facts_manager.get_facts(guild.id, separate=True)[0])),
+        "local_facts": str(len(facts_manager.get_facts(guild.id, separate=True)[1])),
         "enter": "\n",
 
         "self.name": bot.user.name,

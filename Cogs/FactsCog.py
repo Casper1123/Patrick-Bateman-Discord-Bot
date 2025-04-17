@@ -21,7 +21,7 @@ class FactsCog(commands.Cog):
 
     @app_commands.command(name="fact_index", description="Gives the amount of stored facts.")
     async def fact_index(self, interaction: discord.Interaction):
-        global_facts, local_facts = self.cm.facts_manager.get_facts(interaction.guild_id, seperate=True)
+        global_facts, local_facts = self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)
         embed = discord.Embed(title="Current Facts",
                               description=f"Global: {len(global_facts)}\nLocal: {len(local_facts)}")
         await interaction.response.send_message(embed=embed, ephemeral=True)
