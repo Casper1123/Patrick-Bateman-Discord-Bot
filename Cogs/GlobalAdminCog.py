@@ -43,7 +43,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
             return
 
         fact = self.cm.facts_manager.get_fact(None, index)
-        self.cm.facts_manager.remove_fact(interaction.guild_id, index + index)
+        self.cm.facts_manager.remove_fact(interaction.guild_id, index)
 
         embed = discord.Embed(title="Fact removed", description=f"Index: {index}\nFact:\n*{fact}*")
         await interaction.edit_original_response(embed=embed)
