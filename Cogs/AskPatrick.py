@@ -42,10 +42,10 @@ class AskPatrick(commands.Cog):
 
         # Random number
         try:
-            bouncer_interactible = message.guild.id == 527094373146689546
+            bouncer_interactable = message.guild.id == 527094373146689546
         except:
-            bouncer_interactible = False
-        number = _r.randint(1, 1050 if bouncer_interactible else 1000)
+            bouncer_interactable = False
+        number = _r.randint(1, 1050 if bouncer_interactable else 1000)
 
         # funny supersecret 1%%
         if number == 1:
