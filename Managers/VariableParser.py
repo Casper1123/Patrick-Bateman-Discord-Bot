@@ -20,6 +20,8 @@ def process_rand(variable: str) -> str:
 
 def process_choice(variable: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
                    bot: commands.Bot) -> str:
+    # Example of a choice:
+    # {choice:"a","b","c"}. Quotes and spaces mandatory.
     choices: list[str] = []
     opened: bool = False
     current_choice: str = ""
