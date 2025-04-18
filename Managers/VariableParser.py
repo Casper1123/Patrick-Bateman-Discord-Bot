@@ -24,35 +24,60 @@ def process_choice(variable: str, facts_manager: FactsManager, interaction: disc
     # {choice:"a","b","c"}. Quotes and spaces mandatory.
     choices: list[str] = []
     opened: bool = False
+    var_opened: int = 0
     current_choice: str = ""
+    valid_boundaries = ["'", '"']
 
-    variable = variable.removeprefix("choice:")
+    variable = variable.removeprefix("choice:")  # "{choice:"a","b"}","a"
+    # detect if current choice has an opened variable and close it only when that variable is done.
+
     for i, char in enumerate(variable):
-        if char == "\"" and not opened:  # If not opened, open if it's a valid opener.
-            if i == 0:
-                opened = True
-                continue
-            elif variable[i - 1] != "\\":
-                opened = True
-                continue
-        if char == "\"" and opened:  # If it's opened, close it if it's a valid closer.
-            if variable[i - 1] != "\\":
+        # First character, has to be ", if it's not then... that's a mistake. At least one choice has to be given.
+        if i == 0 and char not in valid_boundaries:
+            return "{choice:}"
+        elif i == 0 and char in valid_boundaries:  # If the first character is an opening boundary, then we're good.
+            opened = True
+            continue  # Next char
+
+        # Handle subsequent characters
+        # First, we check for a non-excluded variable opening or closing character.
+        if char == "{" and variable[i - 1] != "\\":
+            var_opened += 1
+            current_choice += char
+            continue
+        elif char == "}" and variable[i - 1] != "\\":
+            var_opened -= 1
+            current_choice += char
+            continue
+
+        # Variables checked, now for the regular; if we're in a variable, we want to take all the characters.
+        # If we are not, we check for an ending.
+        if var_opened > 0:
+            current_choice += char
+            continue
+
+        if opened:
+            if char in valid_boundaries and variable[i - 1] != "\\":  # it's a valid escape character.
                 opened = False
                 choices.append(current_choice)
                 current_choice = ""
                 continue
-
-        if opened:
+            # If it's not a valid escape character, append character
             current_choice += char
-        # else: add it to... what?
+        else:
+            # Continue until finding a valid opening character.
+            if char in valid_boundaries and variable[i - 1] != "\\":
+                opened = True
 
-    if not choices:
-        return "{" + variable + "}"
-
-    # todo: fix 'no option' and 'stacking choices'
+    # Add leftovers if their choice wasn't finished.
+    if current_choice != "":
+        choices.append(current_choice)
 
     # Recursively process the choice.
-    return process_fact(_rd.choice(choices), facts_manager, interaction, bot)
+    try:
+        return process_fact(_rd.choice(choices), facts_manager, interaction, bot)
+    except IndexError:
+        return "{choice:}"
 
 
 def process_variable(variable: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
