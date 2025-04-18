@@ -43,7 +43,7 @@ Let's go through the commands one-by-one.
 
 ### /ask (question)
 
-*Can also be accessed by messaging 'ask @patrick {question}' into the chat*
+*Can also be accessed by messaging 'ask @patrick {question}' into the chat* <BR>
 Replies to the given question with a yes or a no. Most of the time. <BR>
 There's some surprises in here.
 
@@ -53,8 +53,7 @@ There's some surprises in here.
 
 ### /fact (index)
 
-Gives a random fa
-ct to the user. More information will be down below. <BR>
+Gives a random fact to the user. More information will be down below. <BR>
 The optional parameter 'index' will allow you to select a specific one.
 
 ### /fact_index
