@@ -52,7 +52,7 @@ def process_rand(variable: str) -> str:
         return "{" + variable + "}"
 
     try:
-        return str(_rd.randint(lower, upper))
+        return
     except ValueError:
         return "{" + variable + "}"
 
@@ -173,16 +173,30 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
         return guild_var_dict[variable]
 
     # Command Variables
-    if variable.startswith("rand:"):  # todo: regex
-        return process_rand(variable)
-    elif variable.startswith("choice:"):  # todo: figure out if regex is possible. regex module instead of re? Can just keep current sol just need a good reason to go into this.
-        return process_choice(variable, facts_manager, interaction, bot, shuffled_memlist)
+    # Rand
+    match = _re.match(variable, r"^rand\((?P<a>-?\d+), (?P<b>-?\d+)\)$")
+    a = match.group("a")
+    b = match.group("b")
+    if match and a and b:
+        try:
+            a = int(a)
+            b = int(b)
+        except ValueError:
+            return "{" + variable + "}"
 
+        return str(_rd.randint(a, b))
+
+    # tru
     match = _re.match(variable, r"^tru_(?P<op>\w+)\((?P<num>-?\d+)\)$")
     if match:
         return process_tranduser(match.group("op"), match.group("num"), shuffled_memlist)
 
-    elif variable.startswith("fact("):  # todo: same as choice.
+    # choice
+    if variable.startswith("choice:"):
+        return process_choice(variable, facts_manager, interaction, bot, shuffled_memlist)
+
+    # fact
+    if variable.startswith("fact("):
         return process_fact_cvar(variable, facts_manager, interaction, bot, shuffled_memlist)
 
     return "{" + variable + "}"  # Ugly concatenation because f"" wouldn't work with \{
