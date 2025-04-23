@@ -120,9 +120,9 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
         "guild.created_at": guild.created_at,
         "guild.id": guild.id,
 
-        "guild.owner.id": guild.owner,
-        "guild.owner.name": guild.owner.display_name,
-        "guild.owner.account": guild.owner.name,
+        "owner.id": guild.owner,
+        "owner.name": guild.owner.display_name,
+        "owner.account": guild.owner.name,
 
         "self.nick": guild.me.nick,
     }
