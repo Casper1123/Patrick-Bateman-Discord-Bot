@@ -1,4 +1,5 @@
 import random as _rd
+import os as _os
 
 from Managers.Exceptions import FactIndexError
 from .json_tools import load_json as _lj, write_json as _wj
@@ -8,16 +9,21 @@ class FactsManager:
         self.filepath: str = filepath
 
     def _get_facts(self, guild_id: int | None) -> dict[str] | list[str]:
-        return _lj(f"{self.filepath}/{guild_id if guild_id is not None else 'public'}")
-        # todo: if file does not exist, prepare it accordingly.
+        filepath: str = f"{self.filepath}/{guild_id if guild_id is not None else 'public'}"
+        if not _os.path.exists(filepath):
+            self._add_guild(guild_id)
+            return []
+        return _lj(filepath)
 
     def _write_facts(self, guild_id: int | None, facts_dict: dict[str]):
-        # todo: if file does not exist, prepare it accordingly.
-        _wj(f"{self.filepath}/{guild_id if guild_id is not None else 'public'}", facts_dict)  # Todo: check all usages to see if updated parameter values are passed correctly.
+        filepath: str = f"{self.filepath}/{guild_id if guild_id is not None else 'public'}"
+        if not _os.path.exists(filepath):
+            self._add_guild(guild_id)
+            return
+
+        _wj(filepath, facts_dict)  # Todo: check all usages to see if updated parameter values are passed correctly.
 
     def get_facts(self, guild_id: int | None, separate: bool = False) -> list[str] | (list[str], list[str]):
-        self._check_guild_entry(guild_id)
-
         global_facts = self.get_facts(None)
         local_facts = self.get_facts(guild_id) if guild_id is not None else []
 
@@ -26,9 +32,6 @@ class FactsManager:
         return global_facts + local_facts
 
     def get_fact(self, guild_id: int | None, index: int = None) -> str:
-        self._check_guild_entry(guild_id)
-
-        # If index = None, random
         facts = self.get_facts(guild_id)
         if index is None:
             return _rd.choice(facts)
@@ -40,30 +43,15 @@ class FactsManager:
         return facts[index - 1]
 
     def add_fact(self, fact: str, guild_id: int = None):
-        self._check_guild_entry(guild_id)  # Todo: continue
-
-        facts = self._get_facts()
-        facts["private"][str(guild_id)].append(fact)
-        self._write_facts(facts)
+        facts = self._get_facts(guild_id)
+        facts.append(fact)
+        self._write_facts(guild_id, facts)
 
     def add_global_fact(self, fact):
-        facts = self._get_facts()
-        facts["public"].append(fact)
-        self._write_facts(facts)
+        self.add_fact(fact, None)
 
     def _add_guild(self, guild_id: int):
-        facts = self._get_facts()
-        facts["private"][str(guild_id)] = []
-        self._write_facts(facts)
-
-    def _has_private_entry(self, guild_id: int | None) -> bool:
-        if guild_id is None:
-            return True  # Act as if it does for DM purposes.
-        return str(guild_id) in self._get_facts()["private"].keys()
-
-    def _check_guild_entry(self, guild_id: int | None):
-        if not self._has_private_entry(guild_id):
-            self._add_guild(guild_id)
+        _wj(f"{self.filepath}/{guild_id if guild_id is not None else 'public'}", [])
 
     def get_index(self, guild_id: int | None, fact: str) -> int | None:
         gl, loc = self.get_facts(guild_id, separate=True)
@@ -72,31 +60,18 @@ class FactsManager:
         return gl.index(fact) + 1 if fact in gl else None
 
     def edit_fact(self, guild_id: int, index: int, new_fact: str):
-        facts = self._get_facts()
-        local_facts = self.get_facts(guild_id)
-        if not 0 <= index - 1 < len(local_facts):
+        facts = self.get_facts(guild_id)
+        if not 0 <= index - 1 < len(facts):
             raise IndexError(
                 f"Index {index} is out of range for the list of facts! Check the amount of stored facts to see which indexes are valid.")
-
-        private = index > len(facts["public"])
-        if not private:
-            facts["public"][index - 1] = new_fact
-        else:
-            index -= len(facts["public"])
-            facts["private"][str(guild_id)][index - 1] = new_fact
-        self._write_facts(facts)
+        facts[index - 1] = new_fact
+        self._write_facts(guild_id, facts)
 
     def remove_fact(self, guild_id: int, index: int):
-        facts = self._get_facts()
-        local_facts = self.get_facts(guild_id)
-        if not 0 <= index - 1 < len(local_facts):
+        facts = self._get_facts(guild_id)
+        if not 0 <= index - 1 < len(facts):  # todo: ensure global calls call with guild_id set to None.
             raise FactIndexError(
                 f"Index {index} is out of range for the list of facts! Check the amount of stored facts to see which indexes are valid.")
 
-        private = index > len(facts["public"])
-        if not private:
-            del facts["public"][index - 1]
-        else:
-            index -= len(facts["public"])
-            del facts["private"][str(guild_id)][index - 1]
-        self._write_facts(facts)
+        del facts["public"][index - 1]
+        self._write_facts(guild_id, facts)
