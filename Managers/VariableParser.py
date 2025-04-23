@@ -11,6 +11,8 @@ def process_fact_cvar(variable: str, facts_manager: FactsManager, interaction: d
     if not variable.endswith(')'):
         return "{" + variable + "}"
     variable = variable.removesuffix('fact(').removesuffix(")")
+    if not variable:
+        return facts_manager.get_fact(interaction.guild_id, None)
 
     try:
         num = int(variable)
