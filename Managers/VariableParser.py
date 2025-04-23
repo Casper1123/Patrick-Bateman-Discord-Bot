@@ -43,20 +43,6 @@ def process_tranduser(op: str, num: int, shuffled_memlist: list[discord.Member])
     except KeyError:
         return "{invalid tru operation.}"
 
-
-def process_rand(variable: str) -> str:
-    # todo: regex
-    try:
-        lower, upper = [int(i) for i in variable.removeprefix("rand:").split(",")]
-    except ValueError:
-        return "{" + variable + "}"
-
-    try:
-        return
-    except ValueError:
-        return "{" + variable + "}"
-
-
 def process_choice(variable: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
                    bot: commands.Bot, shuffled_memlist: list[discord.Member] | None) -> str:
     # Example of a choice:
