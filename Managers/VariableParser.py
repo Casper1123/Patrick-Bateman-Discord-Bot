@@ -205,7 +205,7 @@ def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.In
             if fact[i - 1] != "\\":
                 opened -= 1
             if opened == 0:
-                result += str(process_variable(current_variable, facts_manager, interaction, bot))  # Append current 'result' string after process with current variable contents.
+                result += str(process_variable(current_variable, facts_manager, interaction, bot, shuffled_memlist))  # Append current 'result' string after process with current variable contents.
                 current_variable = ""  # reset
                 continue
 
