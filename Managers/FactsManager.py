@@ -9,23 +9,23 @@ class FactsManager:
         self.folderpath: str = filepath
 
     def _get_facts(self, guild_id: int | None) -> dict[str] | list[str]:
-        filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}"
+        filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json"
         if not _os.path.exists(filepath):
             self._add_guild(guild_id)
             return []
         return _lj(filepath)
 
     def _write_facts(self, guild_id: int | None, facts_dict: dict[str]):
-        filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}"
+        filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json"
         if not _os.path.exists(filepath):
             self._add_guild(guild_id)
             return
 
         _wj(filepath, facts_dict)  # Todo: check all usages to see if updated parameter values are passed correctly.
 
-    def get_facts(self, guild_id: int | None, separate: bool = False) -> list[str] | (list[str], list[str]):
-        global_facts = self.get_facts(None)
-        local_facts = self.get_facts(guild_id) if guild_id is not None else []
+    def get_facts(self, guild_id: int | None, separate: bool = False) -> list[str] or (list[str], list[str]):
+        global_facts = self._get_facts(None)
+        local_facts = self._get_facts(guild_id) if guild_id is not None else []
 
         if separate:
             return global_facts, local_facts
@@ -48,7 +48,7 @@ class FactsManager:
         self._write_facts(guild_id, facts)
 
     def _add_guild(self, guild_id: int):
-        _wj(f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}", [])
+        _wj(f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json", [])
 
     def get_index(self, guild_id: int | None, fact: str) -> int | None:
         gl, loc = self.get_facts(guild_id, separate=True)
