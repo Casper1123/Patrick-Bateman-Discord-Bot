@@ -1,6 +1,6 @@
 import random as _rd
 
-from Managers.Exceptions import FactIndexError
+from Managers.Exceptions import SayingIndexError
 from .json_tools import load_json as _lj, write_json as _wj
 
 
@@ -21,8 +21,7 @@ class SayingsManager:
             return _rd.choice(lines)
 
         if not 0 <= index - 1 <= len(lines):
-            raise FactIndexError(
-                f"Index {index} is out of range for the list of lines! Check the amount of stored facts to see which indexes are valid.")
+            raise SayingIndexError(index)
 
         return lines[index - 1]
 
@@ -38,8 +37,7 @@ class SayingsManager:
     def edit_line(self, index: int, line: str):
         lines = self.get_lines()
         if not 0 <= index - 1 < len(lines):
-            raise FactIndexError(
-                f"Index {index} is out of range for the list of lines! Check the amount of stored facts to see which indexes are valid.")
+            raise SayingIndexError(index)
 
         lines[index - 1] = line
         self._write_lines(lines)
@@ -48,8 +46,7 @@ class SayingsManager:
         lines = self.get_lines()
 
         if not 0 <= index - 1 < len(lines):
-            raise FactIndexError(
-                f"Index {index} is out of range for the list of lines! Check the amount of stored facts to see which indexes are valid.")
+            raise SayingIndexError(index)
 
         del lines[index - 1]
         self._write_lines(lines)

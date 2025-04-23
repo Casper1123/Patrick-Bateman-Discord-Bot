@@ -37,8 +37,7 @@ class FactsManager:
             return _rd.choice(facts)
 
         if not 0 <= index - 1 <= len(facts):
-            raise FactIndexError(
-                f"Index {index} is out of range for the list of facts! Check the amount of stored facts to see which indexes are valid.")
+            raise FactIndexError(index)
 
         return facts[index - 1]
 
@@ -67,8 +66,7 @@ class FactsManager:
     def remove_fact(self, guild_id: int, index: int):
         facts = self._get_facts(guild_id)
         if not 0 <= index - 1 < len(facts):  # todo: ensure global calls call with guild_id set to None.
-            raise FactIndexError(
-                f"Index {index} is out of range for the list of facts! Check the amount of stored facts to see which indexes are valid.")
+            raise FactIndexError(index)
 
         del facts["public"][index - 1]
         self._write_facts(guild_id, facts)
