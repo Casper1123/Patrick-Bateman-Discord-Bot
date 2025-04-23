@@ -3,23 +3,23 @@ import random as _rd
 from Managers.Exceptions import FactIndexError
 from .json_tools import load_json as _lj, write_json as _wj
 
-
 class FactsManager:
     def __init__(self, filepath: str):
         self.filepath: str = filepath
 
-    def _get_facts(self) -> dict[str] | list[str]:
-        return _lj(self.filepath)
+    def _get_facts(self, guild_id: int | None) -> dict[str] | list[str]:
+        return _lj(f"{self.filepath}/{guild_id if guild_id is not None else 'public'}")
+        # todo: if file does not exist, prepare it accordingly.
 
-    def _write_facts(self, facts_dict: dict[str]):
-        _wj(self.filepath, facts_dict)
+    def _write_facts(self, guild_id: int | None, facts_dict: dict[str]):
+        # todo: if file does not exist, prepare it accordingly.
+        _wj(f"{self.filepath}/{guild_id if guild_id is not None else 'public'}", facts_dict)  # Todo: check all usages to see if updated parameter values are passed correctly.
 
-    def get_facts(self, guild_id: int | None, separate: bool = False) -> list[str] or (list[str], list[str]):
+    def get_facts(self, guild_id: int | None, separate: bool = False) -> list[str] | (list[str], list[str]):
         self._check_guild_entry(guild_id)
 
-        facts = self._get_facts()
-        global_facts = facts["public"]
-        local_facts = facts["private"][str(guild_id)] if guild_id is not None else []
+        global_facts = self.get_facts(None)
+        local_facts = self.get_facts(guild_id) if guild_id is not None else []
 
         if separate:
             return global_facts, local_facts
@@ -40,7 +40,7 @@ class FactsManager:
         return facts[index - 1]
 
     def add_fact(self, fact: str, guild_id: int = None):
-        self._check_guild_entry(guild_id)
+        self._check_guild_entry(guild_id)  # Todo: continue
 
         facts = self._get_facts()
         facts["private"][str(guild_id)].append(fact)
