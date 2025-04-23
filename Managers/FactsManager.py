@@ -10,14 +10,14 @@ class FactsManager:
 
     def _get_facts(self, guild_id: int | None) -> dict[str] | list[str]:
         filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json"
-        if not _os.path.exists(filepath):
+        if not _os.path.exists(f"json_files/{filepath}"):
             self._add_guild(guild_id)
             return []
         return _lj(filepath)
 
     def _write_facts(self, guild_id: int | None, facts_dict: dict[str]):
         filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json"
-        if not _os.path.exists(filepath):
+        if not _os.path.exists(f"json_files/{filepath}"):
             self._add_guild(guild_id)
             return
 
