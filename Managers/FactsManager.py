@@ -47,9 +47,6 @@ class FactsManager:
         facts.append(fact)
         self._write_facts(guild_id, facts)
 
-    def add_global_fact(self, fact):
-        self.add_fact(fact, None)
-
     def _add_guild(self, guild_id: int):
         _wj(f"{self.filepath}/{guild_id if guild_id is not None else 'public'}", [])
 
@@ -59,7 +56,7 @@ class FactsManager:
             return loc.index(fact) + 1 if fact in loc else None
         return gl.index(fact) + 1 if fact in gl else None
 
-    def edit_fact(self, guild_id: int, index: int, new_fact: str):
+    def edit_fact(self, guild_id: int | None, index: int, new_fact: str):
         facts = self.get_facts(guild_id)
         if not 0 <= index - 1 < len(facts):
             raise IndexError(

@@ -6,6 +6,7 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from Managers.ConstantsManager import ConstantsManager
+from Managers.Exceptions import FactIndexError
 from Managers.ReplyManager import ReplyData
 from Managers.json_tools import load_json
 
@@ -24,7 +25,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
     async def fact_global_add(self, interaction: discord.Interaction, fact: str):
         await interaction.response.defer(ephemeral=True, thinking=False)
 
-        self.cm.facts_manager.add_global_fact(fact)
+        self.cm.facts_manager.add_fact(fact, None)
         index = self.cm.facts_manager.get_index(None, fact)
 
         if index is None:
@@ -37,13 +38,13 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         index="The index of the fact you're trying to remove. Shows nearby facts' first 20 characters.")
     async def fact_global_remove(self, interaction: discord.Interaction, index: int):
         await interaction.response.defer(ephemeral=True, thinking=False)
-        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0]):
-            await interaction.edit_original_response(
-                embed=discord.Embed(title="Index error", description="The given index is out of range."))
-            return
-
         fact = self.cm.facts_manager.get_fact(None, index)
-        self.cm.facts_manager.remove_fact(interaction.guild_id, index)
+        try:
+            self.cm.facts_manager.remove_fact(interaction.guild_id, index)
+        except FactIndexError as err:
+            await interaction.edit_original_response(
+                embed=discord.Embed(title="Index error", description=err.message))
+            return
 
         embed = discord.Embed(title="Fact removed", description=f"Index: {index}\nFact:\n*{fact}*")
         await interaction.edit_original_response(embed=embed)
@@ -54,13 +55,14 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         fact="The new fact to go in it's place. Technically it's an edit.")
     async def fact_global_edit(self, interaction: discord.Interaction, index: int, fact: str):
         await interaction.response.defer(ephemeral=True, thinking=False)
-        if not 0 <= index - 1 < len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0]):
-            await interaction.edit_original_response(
-                embed=discord.Embed(title="Index error", description="The given index is out of range."))
-            return
 
         old_fact = self.cm.facts_manager.get_fact(None, index)
-        self.cm.facts_manager.edit_fact(interaction.guild_id, index, fact)
+        try:
+            self.cm.facts_manager.edit_fact(None, index, fact)
+        except FactIndexError as err:
+            await interaction.edit_original_response(
+                embed=discord.Embed(title="Index error", description=err.message))
+            return
 
         embed = discord.Embed(title="Fact edited",
                               description=f"Index: {index}\nFrom:\n*{old_fact}*\n\nTo:\n*{fact}*")
