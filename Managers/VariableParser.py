@@ -1,4 +1,5 @@
 import random as _rd
+import re as _re
 
 import discord
 from discord.ext import commands
@@ -16,7 +17,7 @@ def process_fact_cvar(variable: str, facts_manager: FactsManager, interaction: d
 
     try:
         num = int(variable)
-    except ValueError:
+    except ValueError:  # Unfortunately cannot just regex this as easily. Seems you cannot just.. have multiple function calls inside boowomp.
         try:
             # Try parsing it as a variable.
             num = int(process_variable(variable, facts_manager, interaction, bot, shuffled_memlist))
@@ -27,27 +28,9 @@ def process_fact_cvar(variable: str, facts_manager: FactsManager, interaction: d
     except FactIndexError as e:
         return "{" + f"fact index error; index {e.index}" + "}"
 
-def process_tranduser(variable: str, shuffled_memlist: list[discord.Member]) -> str:
-    """
-    Processed the tru command var.
-    :param variable: input var, form of tru_{op}({num}). op in [acc, name, id], num is int.
-    :param shuffled_memlist: A shuffled member list to be indexed from
-    :return: operator value on user in num position in shuffled memlist.
-    """
-    # todo: regex.
-    if not variable.endswith(")"):  # Yes I'm picky like that.
-        return "{invalid trand syntax.}"
-    variable = variable.removeprefix("tru_").removesuffix(")")
-    # account, name, id
-    variable = variable.split("(")
-    if not len(variable) == 2:
-        return "{invalid trand syntax.}"
-    op, num = variable
-    try:
-        num = int(num) % len(shuffled_memlist)  # Standardise into a member index.
-    except ValueError:
-        return "{invalid number.}"
-
+def process_tranduser(op: str, num: int, shuffled_memlist: list[discord.Member]) -> str:
+    # pattern = r"^tru_(?P<op>\w+)\((?P<num>-?\d+)\)$"  # starts with tru, gets some op chars till (, then some optionally neg digits and then checks for string end.
+    num = int(num) % len(shuffled_memlist)  # Standardise into a member index.
     member: discord.Member = shuffled_memlist[num]
 
     op_dict = {
@@ -55,11 +38,10 @@ def process_tranduser(variable: str, shuffled_memlist: list[discord.Member]) -> 
         "id": member.id,
         "name": member.display_name,
     }
-
     try:
         return op_dict[op]
     except KeyError:
-        return "{invalid trand operation.}"
+        return "{invalid tru operation.}"
 
 
 def process_rand(variable: str) -> str:
@@ -191,13 +173,16 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
         return guild_var_dict[variable]
 
     # Command Variables
-    if variable.startswith("rand:"):
+    if variable.startswith("rand:"):  # todo: regex
         return process_rand(variable)
-    elif variable.startswith("choice:"):
+    elif variable.startswith("choice:"):  # todo: figure out if regex is possible. regex module instead of re? Can just keep current sol just need a good reason to go into this.
         return process_choice(variable, facts_manager, interaction, bot, shuffled_memlist)
-    elif variable.startswith("tru_"):
-        return process_tranduser(variable, shuffled_memlist)
-    elif variable.startswith("fact("):
+
+    match = _re.match(variable, r"^tru_(?P<op>\w+)\((?P<num>-?\d+)\)$")
+    if match:
+        return process_tranduser(match.group("op"), match.group("num"), shuffled_memlist)
+
+    elif variable.startswith("fact("):  # todo: same as choice.
         return process_fact_cvar(variable, facts_manager, interaction, bot, shuffled_memlist)
 
     return "{" + variable + "}"  # Ugly concatenation because f"" wouldn't work with \{
