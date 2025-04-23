@@ -5,8 +5,43 @@ from discord.ext import commands
 
 from .FactsManager import FactsManager
 
+def process_tranduser(variable: str, shuffled_memlist: list[discord.Member]) -> str:
+    """
+    Processed the tru command var.
+    :param variable: input var, form of tru_{op}({num}). op in [acc, name, id], num is int.
+    :param shuffled_memlist: A shuffled member list to be indexed from
+    :return: operator value on user in num position in shuffled memlist.
+    """
+    # todo: regex.
+    if not variable.endswith(")"):  # Yes I'm picky like that.
+        return "{invalid trand syntax.}"
+    variable = variable.removeprefix("tru_").removesuffix(")")
+    # account, name, id
+    variable = variable.split("(")
+    if not len(variable) == 2:
+        return "{invalid trand syntax.}"
+    op, num = variable
+    try:
+        num = int(num) % len(shuffled_memlist)  # Standardise into a member index.
+    except ValueError:
+        return "{invalid number.}"
+
+    member: discord.Member = shuffled_memlist[num]
+
+    op_dict = {
+        "acc": member.name,
+        "id": member.id,
+        "name": member.display_name,
+    }
+
+    try:
+        return op_dict[op]
+    except KeyError:
+        return "{invalid trand operation.}"
+
 
 def process_rand(variable: str) -> str:
+    # todo: regex
     try:
         lower, upper = [int(i) for i in variable.removeprefix("rand:").split(",")]
     except ValueError:
@@ -19,7 +54,7 @@ def process_rand(variable: str) -> str:
 
 
 def process_choice(variable: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
-                   bot: commands.Bot) -> str:
+                   bot: commands.Bot, shuffled_memlist: list[discord.Member] | None) -> str:
     # Example of a choice:
     # {choice:"a","b","c"}. Quotes and spaces mandatory.
     choices: list[str] = []
@@ -75,13 +110,13 @@ def process_choice(variable: str, facts_manager: FactsManager, interaction: disc
 
     # Recursively process the choice.
     try:
-        return process_fact(_rd.choice(choices), facts_manager, interaction, bot)
+        return process_fact(_rd.choice(choices), facts_manager, interaction, bot, shuffled_memlist)
     except IndexError:
         return "{choice:}"
 
 
 def process_variable(variable: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
-                     bot: commands.Bot) -> str:
+                     bot: commands.Bot, shuffled_memlist: list[discord.Member] | None) -> str:
     if isinstance(interaction, discord.Interaction):
         user = interaction.user
     else:
@@ -137,13 +172,20 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
     if variable.startswith("rand:"):
         return process_rand(variable)
     elif variable.startswith("choice:"):
-        return process_choice(variable, facts_manager, interaction, bot)
+        return process_choice(variable, facts_manager, interaction, bot, shuffled_memlist)
+    elif variable.startswith("tru_"):
+        return process_tranduser(variable, shuffled_memlist)
 
     return "{" + variable + "}"  # Ugly concatenation because f"" wouldn't work with \{
 
 
 def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
-                 bot: commands.Bot) -> str:
+                 bot: commands.Bot, shuffled_memlist: list[discord.Member] | None = None) -> str:
+
+    if shuffled_memlist is None and interaction.guild is not None:
+        shuffled_memlist = [i for i in interaction.guild.members]
+        _rd.shuffle(shuffled_memlist)
+
     result: str = ""
     current_variable = ""
     opened: int = 0  # counts opening curly-brackets.
