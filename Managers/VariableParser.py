@@ -3,7 +3,27 @@ import random as _rd
 import discord
 from discord.ext import commands
 
+from .Exceptions import FactIndexError
 from .FactsManager import FactsManager
+
+def process_fact_cvar(variable: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
+                 bot: commands.Bot, shuffled_memlist: list[discord.Member] | None = None) -> str:
+    if not variable.endswith(')'):
+        return "{" + variable + "}"
+    variable = variable.removesuffix('fact(').removesuffix(")")
+
+    try:
+        num = int(variable)
+    except ValueError:
+        try:
+            # Try parsing it as a variable.
+            num = int(process_variable(variable, facts_manager, interaction, bot, shuffled_memlist))
+        except ValueError:
+            return "{" + variable + "}"
+    try:
+        return facts_manager.get_fact(interaction.guild_id, num)
+    except FactIndexError as e:
+        return "{" + f"fact index error; index {e.index}" + "}"
 
 def process_tranduser(variable: str, shuffled_memlist: list[discord.Member]) -> str:
     """
@@ -175,6 +195,8 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
         return process_choice(variable, facts_manager, interaction, bot, shuffled_memlist)
     elif variable.startswith("tru_"):
         return process_tranduser(variable, shuffled_memlist)
+    elif variable.startswith("fact("):
+        return process_fact_cvar(variable, facts_manager, interaction, bot, shuffled_memlist)
 
     return "{" + variable + "}"  # Ugly concatenation because f"" wouldn't work with \{
 
@@ -182,7 +204,7 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
 def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
                  bot: commands.Bot, shuffled_memlist: list[discord.Member] | None = None) -> str:
 
-    if shuffled_memlist is None and interaction.guild is not None and fact.__contains__("{tru_"):  # todo: test conditional statement. Intends to save time when not required on a larger server.
+    if shuffled_memlist is None and interaction.guild is not None and fact.__contains__("{tru_"):
         shuffled_memlist = [i for i in interaction.guild.members]
         _rd.shuffle(shuffled_memlist)
 
