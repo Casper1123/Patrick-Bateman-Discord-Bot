@@ -182,7 +182,7 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
 def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
                  bot: commands.Bot, shuffled_memlist: list[discord.Member] | None = None) -> str:
 
-    if shuffled_memlist is None and interaction.guild is not None:
+    if shuffled_memlist is None and interaction.guild is not None and fact.__contains__("{tru_"):  # todo: test conditional statement. Intends to save time when not required on a larger server.
         shuffled_memlist = [i for i in interaction.guild.members]
         _rd.shuffle(shuffled_memlist)
 
