@@ -201,7 +201,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
             "What's important to know is that these choices can have variables.\n" \
             "\t\"{choice:\"option\",...}\"\n" \
             "\t\"{choice:\"option 1\",\"option with {variable}\"}"
-
+        # todo: a better solution to this and update for tru
         embed = discord.Embed(
             title="Fact variables information",
             description=description

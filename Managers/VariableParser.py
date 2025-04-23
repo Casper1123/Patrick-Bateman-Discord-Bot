@@ -109,7 +109,7 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
 
     # Information available in servers
     guild_var_dict: dict = {
-        "randomuser.account": random_user.name,
+        "randomuser.account": random_user.name,  # Deprecated, use tru instead.
         "randomuser.id": random_user.id,
         "randomuser.name": random_user.display_name,
 
