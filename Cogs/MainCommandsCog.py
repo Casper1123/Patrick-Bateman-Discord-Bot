@@ -31,9 +31,10 @@ class MainCommandsCog(commands.Cog):
         await interaction.response.send_message("Yeah, no.")
 
     @app_commands.command(name="throwback", description="Replies to a random message in this channel's history.")
-    async def throwback_command(self, interaction: discord.Interaction):
+    @app_commands.describe(ephemeral="Hide the response; sneaky private throwback")
+    async def throwback_command(self, interaction: discord.Interaction, ephemeral: bool = False):
         await interaction.response.send_message("Finding random message in channel history. This might take some time.",
-                                                ephemeral=True)
+                                                ephemeral=ephemeral)
         # Get current last message date
         newest: datetime.datetime = \
         [message async for message in interaction.channel.history(limit=1, oldest_first=False)][0].created_at
@@ -59,5 +60,6 @@ class MainCommandsCog(commands.Cog):
         if attempts >= 100:
             await interaction.edit_original_response(content="Could not find a message within a reasonable timeframe.")
 
+        # todo: turn into embed, can be kept ephemeral
         await interaction.delete_original_response()
         await random_message.reply(content="Here is your throwback!", mention_author=False)
