@@ -6,6 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from Managers.ConstantsManager import ConstantsManager
+from Managers.MessageEmbedding import embedify
 
 
 class MainCommandsCog(commands.Cog):
@@ -61,5 +62,5 @@ class MainCommandsCog(commands.Cog):
             await interaction.edit_original_response(content="Could not find a message within a reasonable timeframe.")
 
         # todo: turn into embed, can be kept ephemeral
-        await interaction.delete_original_response()
-        await random_message.reply(content="Here is your throwback!", mention_author=False)
+        embeds: list[discord.Embed] = await embedify(self.bot, random_message, reply=True, message_jump_link=True)
+        await interaction.edit_original_response(embeds=embeds)
