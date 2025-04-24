@@ -61,6 +61,5 @@ class MainCommandsCog(commands.Cog):
         if attempts >= 100:
             await interaction.edit_original_response(content="Could not find a message within a reasonable timeframe.")
 
-        # todo: turn into embed, can be kept ephemeral
         embeds: list[discord.Embed] = await embedify(self.bot, random_message, reply=True, message_jump_link=True)
         await interaction.edit_original_response(embeds=embeds)
