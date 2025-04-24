@@ -8,7 +8,7 @@ class ConstantsManager:
     def __init__(self):
         constants = load_json("constants.json")
         self._bot_token: str = constants["token"]
-        self.facts_manager: FactsManager = FactsManager("facts.json")
+        self.facts_manager: FactsManager = FactsManager("facts")
         self.reply_manager: ReplyManager = ReplyManager("autoreplies.json")
         self.sayings: SayingsManager = SayingsManager("sayings.json")
 
