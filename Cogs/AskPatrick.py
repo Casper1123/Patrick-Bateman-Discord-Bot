@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from Managers.ConstantsManager import ConstantsManager
-from Managers.VariableParser import process_fact
+from Managers.VariableParser import process_variables
 
 
 class AskPatrick(commands.Cog):
@@ -64,7 +64,7 @@ class AskPatrick(commands.Cog):
         # Random bouncerline 50%%
         elif number <= 951:
             await ask_reply(message,
-                            process_fact(self.cm.sayings.get_line(None), self.cm.facts_manager, message, self.bot))
+                            process_variables(self.cm.sayings.get_line(None), self.cm.facts_manager, message, self.bot))
         # Drunk too much, random bouncerwords 49%%
         elif number <= 1000:
             await ask_reply(message, "*He's drank too many beers.*")

@@ -6,7 +6,7 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from Managers.ConstantsManager import ConstantsManager
-from Managers.VariableParser import process_fact
+from Managers.VariableParser import process_variables
 
 
 @app_commands.guild_only()
@@ -167,7 +167,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
             return
 
         await interaction.response.send_message(
-            embed=discord.Embed(description=process_fact(fact, self.cm.facts_manager, interaction, self.bot)),
+            embed=discord.Embed(description=process_variables(fact, self.cm.facts_manager, interaction, self.bot)),
             ephemeral=True)
 
     @app_commands.command(name="help", description="Gives information on in-fact variables.")

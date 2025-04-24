@@ -5,7 +5,7 @@ from discord.ext import commands
 
 from Managers.ConstantsManager import ConstantsManager
 from Managers.ReplyManager import ReplyData
-from Managers.VariableParser import process_fact
+from Managers.VariableParser import process_variables
 
 
 class ListenerCog(commands.Cog):
@@ -31,10 +31,10 @@ class ListenerCog(commands.Cog):
 
             for trigger in entry.triggers:
                 if message.content.lower().__contains__(
-                        process_fact(trigger.lower(), self.cm.facts_manager, message, self.bot)):
+                        process_variables(trigger.lower(), self.cm.facts_manager, message, self.bot)):
                     potential_reply: str | None = entry.get_reply()
                     if potential_reply:
-                        active_replies.append(process_fact(potential_reply, self.cm.facts_manager, message, self.bot))
+                        active_replies.append(process_variables(potential_reply, self.cm.facts_manager, message, self.bot))
                     break
 
         if active_replies:
@@ -127,5 +127,5 @@ class ListenerCog(commands.Cog):
         if _r.randint(1, 300) != 1:
             return
         await message.reply(mention_author=False,
-                            content=process_fact(self.cm.sayings.get_line(None), self.cm.facts_manager, message,
-                                                 self.bot))
+                            content=process_variables(self.cm.sayings.get_line(None), self.cm.facts_manager, message,
+                                                      self.bot))

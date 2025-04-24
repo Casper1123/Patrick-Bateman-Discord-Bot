@@ -7,6 +7,10 @@ from discord.ext import commands
 from .Exceptions import FactIndexError
 from .FactsManager import FactsManager
 
+def process_variables(fact: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
+                 bot: commands.Bot) -> str:
+    return process_fact(fact, facts_manager, interaction, bot)
+
 def process_fact_cvar(variable: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
                  bot: commands.Bot, shuffled_memlist: list[discord.Member] | None = None) -> str:
     if not variable.endswith(')'):
@@ -100,7 +104,7 @@ def process_choice(variable: str, facts_manager: FactsManager, interaction: disc
 
     # Recursively process the choice.
     try:
-        return process_fact(_rd.choice(choices), facts_manager, interaction, bot, shuffled_memlist)
+        return process_variables(_rd.choice(choices), facts_manager, interaction, bot, shuffled_memlist)
     except IndexError:
         return "{choice:}"
 
@@ -160,20 +164,21 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
 
     # Command Variables
     # Rand
-    match = _re.match(variable, r"^rand\((?P<a>-?\d+), (?P<b>-?\d+)\)$")
-    a = match.group("a")
-    b = match.group("b")
-    if match and a and b:
+    match = _re.match(r"^rand\((?P<a>-?\d+), (?P<b>-?\d+)\)$", variable)
+    if match:
         try:
-            a = int(a)
-            b = int(b)
+            a = int(match.group("a"))
+            b = int(match.group("b"))
         except ValueError:
             return "{" + variable + "}"
 
-        return str(_rd.randint(a, b))
+        if a < b:
+            return str(_rd.randint(a, b))
+        else:
+            return "{a >= b}"
 
     # tru
-    match = _re.match(variable, r"^tru_(?P<op>\w+)\((?P<num>-?\d+)\)$")
+    match = _re.match(r"^tru_(?P<op>\w+)\((?P<num>-?\d+)\)$", variable)
     if match:
         return process_tranduser(match.group("op"), match.group("num"), shuffled_memlist)
 
@@ -189,7 +194,7 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
 
 
 def process_fact(fact: str, facts_manager: FactsManager, interaction: discord.Interaction | discord.Message,
-                 bot: commands.Bot, shuffled_memlist: list[discord.Member] | None = None) -> str:
+                      bot: commands.Bot, shuffled_memlist: list[discord.Member] | None = None) -> str:
 
     if shuffled_memlist is None and interaction.guild is not None and fact.__contains__("{tru_"):
         shuffled_memlist = [i for i in interaction.guild.members]
