@@ -34,10 +34,10 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
                 ephemeral=True)
             return
 
-        # Back out if the fact is empty. Cannot send empty messages.
-        if fact == "":
+        # Back out if the fact is empty. Cannot send empty messages.  # todo: add regex expression to ensure it's not entirely spaces.
+        if fact == "" or fact == " ":
             await interaction.response.send_message(
-                embed=discord.Embed(title="Fact not added", description="Sadly the new fact was not added. Weird."),
+                embed=discord.Embed(title="Fact not added", description="Your fact cannot be empty."),
                 ephemeral=True)
             return
 
@@ -64,9 +64,8 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
                 ephemeral=True)
             return
 
-        global_index = len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0])
-        fact = self.cm.facts_manager.get_fact(interaction.guild_id, global_index + index)
-        self.cm.facts_manager.remove_fact(interaction.guild_id, global_index + index)
+        fact = self.cm.facts_manager.get_fact(interaction.guild_id, index)
+        self.cm.facts_manager.remove_fact(interaction.guild_id, index)
 
         embed = discord.Embed(title="Fact removed", description=f"Index: {index}\nFact:\n*{fact}*")
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -87,9 +86,8 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
                 ephemeral=True)
             return
 
-        global_index = len(self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)[0])
-        old_fact = self.cm.facts_manager.get_fact(interaction.guild_id, global_index + index)
-        self.cm.facts_manager.edit_fact(interaction.guild_id, global_index + index, fact)
+        old_fact = self.cm.facts_manager.get_fact(interaction.guild_id, index)
+        self.cm.facts_manager.edit_fact(interaction.guild_id, index, fact)
 
         embed = discord.Embed(title="Fact edited", description=f"Index: {index}\nFrom:\n*{old_fact}*\n\nTo:\n*{fact}*")
         await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -130,7 +128,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
         except (TypeError, ValueError):
             current = 1
 
-        if not 0 <= current - 1 <= len(global_facts) + len(local_facts):
+        if not 0 <= current - 1 <= len(local_facts):
             if current < 1:
                 current = 1
             else:
@@ -162,7 +160,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
     async def fact_preview(self, interaction: discord.Interaction, fact: str):
         if len(fact) > 200 and interaction.guild_id not in self.cm.super_server_ids:
             await interaction.response.send_message(embed=discord.Embed(title="Fact error",
-                                                                        description="The lenght of your given fact is longer than 200 characters."),
+                                                                        description="The length of your given fact is longer than 200 characters."),
                                                     ephemeral=True)
             return
 
