@@ -104,7 +104,7 @@ def process_choice(variable: str, facts_manager: FactsManager, interaction: disc
 
     # Recursively process the choice.
     try:
-        return process_variables(_rd.choice(choices), facts_manager, interaction, bot, shuffled_memlist)
+        return process_fact(_rd.choice(choices), facts_manager, interaction, bot, shuffled_memlist)
     except IndexError:
         return "{choice:}"
 
