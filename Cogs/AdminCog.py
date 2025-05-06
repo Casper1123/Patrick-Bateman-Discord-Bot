@@ -170,38 +170,11 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
 
     @app_commands.command(name="help", description="Gives information on in-fact variables.")
     async def fact_help(self, interaction: discord.Interaction):
-        description = \
-            "Refer to [the documentation](https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki/The-Variable-system) for detailed information.\n" \
-            "**Regular Variables**\n" \
-            "User:\n" \
-            "\tuser.account\n\tuser.name\n\tuser.id\n\n" \
-            "Channel:\n" \
-            "\tchannel.name\n\tchannel.id\n\n" \
-            "Guild:\n" \
-            "\tguild.name\t\nguild.name\n" \
-            "\tguild.owner:\n" \
-            "\t\tguild.owner.account\n\t\tguild.owner.name\n\t\tguild.owner.id\n\n" \
-            "Randomuser\n" \
-            "\trandomuser.account\n\trandomuser.name\n\trandomuser.id\n\n" \
-            "Self:\n" \
-            "\tself.name\n\tself.nick\n\tself.id\n\n" \
-            "General:\n" \
-            "\t{enter} / '\\n'\n" \
-            "\ttotal_facts\n" \
-            "\tglobal_facts\n" \
-            "\tlocal_facts\n\n" \
-            "**Command Variables**\n" \
-            "rand:\n" \
-            "The number generated is between the lower and upper, inclusive.\n" \
-            "\t\"{rand:lower,upper}\"\n" \
-            "\t\"{rand:0,1}\"\n\n" \
-            "choice: picks a random option of the strings given.\n" \
-            "What's important to know is that these choices can have variables.\n" \
-            "\t\"{choice:\"option\",...}\"\n" \
-            "\t\"{choice:\"option 1\",\"option with {variable}\"}"
-        # todo: a better solution to this and update for tru
+        with open("admin_help.md", "r", encoding="utf-8") as f:
+            markdown_content = f.read()
+        description = f"```md\n{markdown_content[:4000]}\n```"
         embed = discord.Embed(
             title="Fact variables information",
             description=description
-        )
+        ) # todo: test :)
         await interaction.response.send_message(embed=embed, ephemeral=True)
