@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 async def embedify(bot: commands.Bot, message: discord.Message, reply: bool = True, message_jump_link: bool = True) -> list[discord.Embed]:
     embed = discord.Embed()
     embed.set_author(
-        name=f"{message.author.nick if message.author.nick else message.author.global_name} in {message.channel.name}",
+        name=f"{message.author.name if message.author.name else message.author.global_name} in {message.channel.name}",
         icon_url=message.author.avatar.url)
 
     attachment: discord.Attachment = _has_media_attachment(message)
