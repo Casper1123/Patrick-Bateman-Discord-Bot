@@ -206,7 +206,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
     async def replies_add_reply(self, interaction: discord.Interaction, alias: str, reply: str, weight: int = None):
         if alias not in [e.alias for e in self.cm.reply_manager.get_aliases()]:
             self.cm.reply_manager.add_alias(alias)
-        self.cm.reply_manager.add_reply(alias, reply, weight)
+        self.cm.reply_manager.add_reply(alias, reply, weight)  # todo: for some reason doesn't insert Weight properly
 
         await interaction.response.send_message(ephemeral=True, embed=discord.Embed(title="Reply added",
                                                                                     description=f"Alias: {alias}\nReply: **{reply}**"))
