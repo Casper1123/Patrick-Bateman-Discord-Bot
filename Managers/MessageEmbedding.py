@@ -9,7 +9,7 @@ async def embedify(bot: commands.Bot, message: discord.Message, reply: bool = Tr
     embed = discord.Embed()
     embed.set_author(
         name=f"{message.author.name if message.author.name else message.author.global_name} in {message.channel.name}",
-        icon_url=message.author.avatar.url)
+        icon_url=message.author.avatar.url if message.author.avatar else message.author.default_avatar.url)
 
     attachment: discord.Attachment = _has_media_attachment(message)
     embed.description = ""
