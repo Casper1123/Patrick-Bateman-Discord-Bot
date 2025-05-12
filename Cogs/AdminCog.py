@@ -23,7 +23,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
     async def fact_local_add(self, interaction: discord.Interaction, fact: str):
         if len(fact) > 200 and interaction.guild_id not in self.cm.super_server_ids:
             await interaction.response.send_message(embed=discord.Embed(title="Fact not added",
-                                                                        description="The lenght of your given fact is longer than 200 characters."),
+                                                                        description="The length of your given fact is longer than 200 characters."),
                                                     ephemeral=True)
             return
 
