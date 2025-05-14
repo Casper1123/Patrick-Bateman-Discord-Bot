@@ -121,15 +121,18 @@ def process_variable(variable: str, facts_manager: FactsManager, interaction: di
     in_server: bool = guild is not None
     random_user: discord.Member = None if not in_server else _rd.choice(guild.members)
 
+    # fact counts
+    local_fact_count: int = len(facts_manager.get_facts(guild.id))
+    global_fact_count: int = len(facts_manager.get_facts(None))
     # Information available in DMs
     dm_var_dict: dict = {
         "user.account": user.name,
         "user.id": user.id,
         "user.name": user.display_name,
 
-        "total_facts": str(len(facts_manager.get_facts(guild.id))),
-        "global_facts": str(len(facts_manager.get_facts(guild.id, separate=True)[0])),
-        "local_facts": str(len(facts_manager.get_facts(guild.id, separate=True)[1])),
+        "total_facts": str(global_fact_count + local_fact_count),
+        "global_facts": str(global_fact_count),
+        "local_facts": str(local_fact_count),
         "enter": "\n",
 
         "self.name": bot.user.name,

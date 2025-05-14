@@ -32,7 +32,7 @@ class FactsManager:
         return global_facts + local_facts
 
     def get_fact(self, guild_id: int | None, index: int = None) -> str:
-        facts = self.get_facts(guild_id)
+        facts = self.get_facts(None) + self.get_facts(guild_id) if guild_id is not None else self.get_facts(None)
         if index is None:
             return _rd.choice(facts)
 
@@ -50,7 +50,7 @@ class FactsManager:
         _wj(f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json", [])
 
     def get_index(self, guild_id: int | None, fact: str) -> int | None:
-        gl, loc = self.get_facts(guild_id, separate=True)
+        gl, loc = self.get_facts(None), self.get_facts(guild_id)
         if guild_id is not None:
             return loc.index(fact) + 1 if fact in loc else None
         return gl.index(fact) + 1 if fact in gl else None

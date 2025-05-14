@@ -74,7 +74,7 @@ class GlobalAdminGroup(commands.GroupCog, name="global"):
         if current == "":
             current = 1
 
-        global_facts, local_facts = self.cm.facts_manager.get_facts(interaction.guild_id, separate=True)
+        global_facts, local_facts = self.cm.facts_manager.get_facts(None), self.cm.facts_manager.get_facts(interaction.guild_id)
         total_entries = 4  # Total choices to return
         max_messagelenght = 20
 
