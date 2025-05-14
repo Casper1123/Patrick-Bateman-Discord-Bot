@@ -8,14 +8,14 @@ class FactsManager:
     def __init__(self, filepath: str):
         self.folderpath: str = filepath
 
-    def _get_facts(self, guild_id: int | None) -> dict[str] | list[str]:
+    def _get_facts(self, guild_id: int | None) -> list[str]:
         filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json"
         if not _os.path.exists(f"json_files/{filepath}"):
             self._add_guild(guild_id)
             return []
         return _lj(filepath)
 
-    def _write_facts(self, guild_id: int | None, facts_dict: dict[str]):
+    def _write_facts(self, guild_id: int | None, facts_dict: list[str]):
         filepath: str = f"{self.folderpath}/{guild_id if guild_id is not None else 'public'}.json"
         if not _os.path.exists(f"json_files/{filepath}"):
             self._add_guild(guild_id)
@@ -23,13 +23,9 @@ class FactsManager:
 
         _wj(filepath, facts_dict)  # Todo: check all usages to see if updated parameter values are passed correctly.
 
-    def get_facts(self, guild_id: int | None, separate: bool = False) -> list[str] or (list[str], list[str]):
-        global_facts = self._get_facts(None)
-        local_facts = self._get_facts(guild_id) if guild_id is not None else []
-
-        if separate:
-            return global_facts, local_facts
-        return global_facts + local_facts
+    def get_facts(self, guild_id: int | None) -> list[str]:
+        facts = self._get_facts(guild_id)
+        return facts
 
     def get_fact(self, guild_id: int | None, index: int = None) -> str:
         facts = self.get_facts(None) + self.get_facts(guild_id) if guild_id is not None else self.get_facts(None)
@@ -65,8 +61,8 @@ class FactsManager:
 
     def remove_fact(self, guild_id: int, index: int):
         facts = self._get_facts(guild_id)
-        if not 0 <= index - 1 < len(facts):  # todo: ensure global calls call with guild_id set to None.
+        if not 0 <= index - 1 < len(facts):
             raise FactIndexError(index)
 
-        del facts["public"][index - 1]
+        del facts[index - 1]
         self._write_facts(guild_id, facts)
