@@ -64,7 +64,8 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
                 ephemeral=True)
             return
 
-        fact = self.cm.facts_manager.get_fact(interaction.guild_id, index)
+        global_fact_count: int = len(self.cm.facts_manager.get_facts(None))
+        fact = self.cm.facts_manager.get_fact(interaction.guild_id, index + global_fact_count)
         self.cm.facts_manager.remove_fact(interaction.guild_id, index)
 
         embed = discord.Embed(title="Fact removed", description=f"Index: {index}\nFact:\n*{fact}*")
@@ -86,7 +87,8 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
                 ephemeral=True)
             return
 
-        old_fact = self.cm.facts_manager.get_fact(interaction.guild_id, index)
+        global_fact_count: int = len(self.cm.facts_manager.get_facts(None))
+        old_fact = self.cm.facts_manager.get_fact(interaction.guild_id, index + global_fact_count)
         self.cm.facts_manager.edit_fact(interaction.guild_id, index, fact)
 
         embed = discord.Embed(title="Fact edited", description=f"Index: {index}\nFrom:\n*{old_fact}*\n\nTo:\n*{fact}*")
