@@ -1,3 +1,6 @@
+import aiohttp
+import socket
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -40,6 +43,9 @@ class CogBot(commands.Bot):
             finally:
                 if isinstance(error, FactIndexError):
                     await interaction.edit_original_response(content=f"{error}")
+                elif isinstance(error, aiohttp.client_exceptions.ClientConnectorDNSError) or isinstance(error,
+                                                                                                        socket.gaierror):
+                    return
                 else:
                     await interaction.edit_original_response(
                         content=f"An error has occurred, Please notify the application developer.\n"
