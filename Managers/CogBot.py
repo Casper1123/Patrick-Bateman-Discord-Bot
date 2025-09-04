@@ -7,7 +7,7 @@ from discord.ext import commands
 
 from Cogs.AdminCog import LocalAdminGroup
 from Cogs.AskPatrick import AskPatrick
-# Packages; import setup and run those
+
 from Cogs.FactsCog import FactsCog
 from Cogs.GlobalAdminCog import GlobalAdminGroup
 from Cogs.ListenerCog import ListenerCog
