@@ -1,0 +1,1 @@
+Will contain files related to logging and stuff I think. Idk man.

@@ -16,3 +16,6 @@ Does NOT know about client token.
 - More expansive logging, including to master server for important logs.
 - More control over settings, including server-specific
 - Opt-out features for servers, or restricted usage.
+
+# Do not
+- Restrict usage of commands or command locations, as that's configurable by server admins in the respective panels.
