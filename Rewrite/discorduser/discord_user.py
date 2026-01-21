@@ -5,6 +5,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from Rewrite.utilities.exceptions import exception_as_embed
+
 
 class CogBot(commands.Bot):
     def __init__(self) -> None:
@@ -28,9 +30,7 @@ class CogBot(commands.Bot):
                     # Idk why, but for some reason my host device seems to lose connection at unknown intervals for short periods of time.
                     # So this is temporary glue fix.
                 else:
-                    await interaction.edit_original_response(
-                        content=f"An error has occurred, Please notify the application developer.\n"
-                                f"*{error}*")
+                    await interaction.edit_original_response(embed=exception_as_embed(error))
                     raise error
 
         self.tree.on_error = on_tree_error
