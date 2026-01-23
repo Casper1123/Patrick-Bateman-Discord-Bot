@@ -56,3 +56,4 @@ def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> Parse
     # Anyways, what is the fallback in case max depth is reached?
 
     # make sure to create an instruction to send at the end, but not after other non-message things.
+    # precompute memory usage if possible to set an upper limit.
