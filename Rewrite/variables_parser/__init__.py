@@ -22,6 +22,7 @@ class InstructionType(Enum):
 
     # Can involve memory
     DEFINE = 50 # define new var or overwrite value of.
+        # THINK ABOUT MULTIVARIABLE DEFINITION a, b := c, d !!!
     # SUM, SUB, *, /, //, %, ^, ( parenthesis ), log.
     # matrices? function definitions?
     # iterative sum, mult, etc?
@@ -160,3 +161,5 @@ def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> Parse
                 continue
         else:
             build += char
+
+    return ParsedVariables(instructions)
