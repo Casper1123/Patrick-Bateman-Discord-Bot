@@ -11,15 +11,26 @@ MAX_RECUSION_DEPTH = 5
 
 
 class InstructionType(Enum):
+    # Active actions
+    PUSH = -1  # send built output.
+    SLEEP = -2
+    WRITING = -3  # async with message.channel.typing(): {}
+
+    # Primary text
     BUILD = 0 # basic instruction, append content to next message.
-    PUSH = 1 # send built output.
+    BASIC_REPLACE = 2  # basic data replacement. Takes in a single argument, which is the key to the dictionary.
 
-    DEFINE = 2 # define new var or overwrite value of.
+    # Can involve memory
+    DEFINE = 50 # define new var or overwrite value of.
+    # SUM, SUB, *, /, //, %, ^, ( parenthesis ), log.
+    # matrices? function definitions?
+    # iterative sum, mult, etc?
+    # random number or something
 
-    BASIC_REPLACE = 3 # basic data replacement. Takes in a single argument, which is the key to the dictionary.
-
-
-    # SUM --> appended to built output
+    RANDOMUSER = 25  # TRU - True Random User, todo: port this over.
+    CHOICE = 26
+    FACT = 27  # fact(index) call. Do push in depth!
+        # todo: figure out better numbering
 
 # fixme: unsupported: total_facts, global_facts, local_facts
 class BasicReplaceOptions(Enum):
@@ -65,6 +76,7 @@ class Instruction:
         raise NotImplementedError()
         # note: use Regex to pattern match if possible. Should be easy, no?
         # how the fuck does one do c := a + b
+        # --> check for memory references too, though that example was supposed to be 'how do I parse stuff'
 
 
 class ParsedExecutionFailure(CustomDiscordException):
