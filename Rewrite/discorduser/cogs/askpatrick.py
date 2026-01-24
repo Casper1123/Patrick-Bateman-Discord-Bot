@@ -14,10 +14,11 @@ class AskPatrick(commands.Cog):
     async def ask_patrick_listener(self, message: discord.Message):
         if not message.content.lower().startswith(f"ask <@{self.client.user.id}>"):
             return
-        if len(message.content.split()) < 3:
+        split_content = message.content.split()
+        if len(split_content) < 3:
             return # Ignore if no question asked.
 
-        await self.ask_patrick(message, " ".join(message.content.split()[3:]))
+        await self.ask_patrick(message, " ".join(split_content[3:]))
 
     @app_commands.command(name="ask", description="A command-type shortcut to 'ask @botname <question>'.")
     @app_commands.describe(question="The question to ask.")
