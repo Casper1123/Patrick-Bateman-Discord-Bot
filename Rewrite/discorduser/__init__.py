@@ -8,7 +8,7 @@ from discord.ext import commands
 from Rewrite.utilities.exceptions import exception_as_embed
 
 
-class CogBot(commands.Bot):
+class BotClient(commands.Bot):
     def __init__(self) -> None:
         intents = discord.Intents.default()
         intents.message_content = True
