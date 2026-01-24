@@ -9,8 +9,8 @@ from Managers.MessageEmbedding import embedify
 
 
 class MainCommandsCog(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+    def __init__(self, client: commands.Bot) -> None:
+        self.client = client
 
     @app_commands.command(name="chinesenukelaunchcodes",
                           description="速度与激情早上好中国现在我有冰激淋 我很喜欢冰激淋但是《速度与激情9》比冰激淋……🍦")
@@ -59,5 +59,5 @@ class MainCommandsCog(commands.Cog):
         if attempts >= 100:
             await interaction.edit_original_response(content="Could not find a message within a reasonable timeframe.")
 
-        embeds: list[discord.Embed] = await embedify(self.bot, random_message, reply=True, message_jump_link=True)
+        embeds: list[discord.Embed] = await embedify(self.client, random_message, reply=True, message_jump_link=True)
         await interaction.edit_original_response(embeds=embeds)

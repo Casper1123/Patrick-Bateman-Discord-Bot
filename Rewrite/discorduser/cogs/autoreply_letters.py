@@ -3,8 +3,8 @@ from discord.ext import commands
 
 
 class LetterAutoreplyCog(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+    def __init__(self, client: commands.Bot) -> None:
+        self.client = client
 
     @commands.Cog.listener("on_message")
     async def letter_only_replies(self, message: discord.Message):

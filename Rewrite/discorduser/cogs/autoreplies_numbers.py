@@ -3,8 +3,8 @@ from discord.ext import commands
 
 
 class NumberAutoreplyCog(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+    def __init__(self, client: commands.Bot) -> None:
+        self.client = client
 
     @commands.Cog.listener("on_message")
     async def number_autoreplies(self, message: discord.Message):

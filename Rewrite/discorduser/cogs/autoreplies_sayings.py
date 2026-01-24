@@ -4,11 +4,9 @@ from discord.ext import commands
 import random as _r
 
 
-
-
 class RandomAutoreplyCog(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+    def __init__(self, client: commands.Bot) -> None:
+        self.client = client
 
     @commands.Cog.listener("on_message")
     async def random_saying_replies(self, message: discord.Message): # todo: rename 'saying', like what the fuck is this dude.
@@ -21,4 +19,4 @@ class RandomAutoreplyCog(commands.Cog):
         raise NotImplementedError()
         await message.reply(mention_author=False,
                             content=process_variables(self.cm.sayings.get_line(None), self.cm.facts_manager, message,
-                                                      self.bot))
+                                                      self.client))
