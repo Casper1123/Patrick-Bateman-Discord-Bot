@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from ...data.data_interface_abstracts import DataInterface
-from ...variables_parser import parse_variables, ParsedVariables
+from ...variables_parser import parse_variables, Instruction
 
 
 class FactsCog(commands.Cog):
@@ -22,7 +22,7 @@ class FactsCog(commands.Cog):
             fact: str = f"Given index {index} is out of range." # todo: embed nicely
             await interaction.response.send_message(fact, ephemeral=True)
         else:
-            fact: ParsedVariables = parse_variables(fact_raw)
+            fact: list[Instruction] = parse_variables(fact_raw)
             raise NotImplementedError()
 
 
