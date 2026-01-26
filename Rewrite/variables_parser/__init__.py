@@ -73,10 +73,15 @@ class Instruction:
         :param depth: The current recusion depth, in case a sub-instruction requires recursion.
         :return: Instructions from Build
         """
-        raise NotImplementedError()
         # note: use Regex to pattern match if possible. Should be easy, no?
         # how the fuck does one do c := a + b
         # --> check for memory references too, though that example was supposed to be 'how do I parse stuff'
+
+        # Figure out what instruction it is
+
+
+        # Default
+        return [Instruction(InstructionType.BUILD, content='{ Instruction of unknown type failed Parsing: \'' + build + '\'}'),]
 
 def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> list[Instruction]:
     # To prevent infinite recursion but also limit memory usage, install a max depth limit. TODO: configurable.
