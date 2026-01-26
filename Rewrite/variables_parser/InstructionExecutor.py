@@ -54,3 +54,9 @@ class InstructionExecutor:
 class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient):
         super().__init__(client)
+
+    async def send_output(self, out: str):
+        raise NotImplementedError()
+
+    async def sleep(self, time: int | float):
+        raise NotImplementedError()
