@@ -59,9 +59,11 @@ class BasicReplaceOptions(Enum):
 
 class Instruction:
     def __init__(self, instruction_type: InstructionType, **options):
-        raise NotImplementedError()
         self.type: InstructionType = instruction_type
         self.options: dict[str, object] = options  # todo: define exact types allowed to be saved.
+
+    def __str__(self):
+        return str(self.type) + "\n" + str(self.options)
 
     @staticmethod
     def from_string(build: str, depth: int = 0) -> list[Instruction]:
