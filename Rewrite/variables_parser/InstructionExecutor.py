@@ -41,9 +41,11 @@ class InstructionExecutor:
                     await self.send_output(build)
                     build = ""
                 elif instruction.type == InstructionType.DEFINE:
-                    mem[str(instruction.options['name'])] = instruction.options['content']
+                    mem[str(instruction.options['name'])] = instruction.options['value']
                 elif instruction.type == InstructionType.SLEEP:
-                    await self.sleep(instruction.options['content'])
+                    await self.sleep(instruction.options['time'])
+                elif instruction.type == InstructionType.BASIC_REPLACE:
+                    build += self.basic_replace(interaction, instruction.options['key'])
                 else:
                     raise NotImplementedError()
             except NotImplementedError:

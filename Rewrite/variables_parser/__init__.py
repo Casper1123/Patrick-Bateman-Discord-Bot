@@ -70,14 +70,15 @@ class Instruction:
         """
         Determines instruction type(s) and creates instructions using their parameters.
         :param build: Input string
-        :param depth: The current recusion depth, in case a sub-instruction requires recursion.
+        :param depth: The current recursion depth, in case a sub-instruction requires recursion.
         :return: Instructions from Build
         """
         # note: use Regex to pattern match if possible. Should be easy, no?
         # how the fuck does one do c := a + b
         # --> check for memory references too, though that example was supposed to be 'how do I parse stuff'
 
-        # Figure out what instruction it is
+        # Case 1: Easy substitution.
+        # todo: cannot have more than one of these in a single block, so make sure to write a proper error for it.
 
 
         # Default
