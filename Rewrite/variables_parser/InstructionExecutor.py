@@ -1,11 +1,11 @@
 import asyncio as _asyncio
 
-import discord
+from discord import AllowedMentions, Message, Interaction
 from discord.ext import commands
 
 from Rewrite.utilities.exceptions import CustomDiscordException
 from Rewrite.discorduser import BotClient
-from . import Instruction, InstructionType
+from . import Instruction, InstructionType, MentionOptions
 
 
 class ParsedExecutionFailure(CustomDiscordException):
@@ -27,7 +27,7 @@ class InstructionExecutor:
     def __init__(self, client: BotClient):
         self.client = client
 
-    async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple(str | None, bool):
+    async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
         if not interaction.guild.id:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
         depth: int = depth + 1 if depth else 0
@@ -78,36 +78,44 @@ class InstructionExecutor:
             i += 1
 
         if build and push_final_build:
-            await self.send_output(build, interaction, fresh=first_reply)
+            await self.send_output(build, interaction, fresh=first_reply, mention=MentionOptions.NONE) # Defaults to not mentioning. Should have PUSHed beforehand.
             return None, first_reply
         else:
             return build, first_reply
 
-    async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, fresh: bool = True) -> None:
-        ...  # todo: implement sending data.
-        if isinstance(interaction, discord.Message):
-            ... # case Message
-            # reply
-            interaction.reply(out, mention_author=..., allowed_mentions=...)
-            # not reply
-            interaction.channel.send(out, mention_author=..., allowed_mentions=...)
-            # Allowed mentions notes, see constructor:
-            discord.AllowedMentions(everyone= False, users = False, roles = False, replied_user=False) # users & roles can be collections as well.
-            discord.AllowedMentions.all() # also an option
+    async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE) -> None:
+        """
+        Sends the given string into the interaction output channel.
+        :param out: Message content string.
+        :param interaction: The Interaction or Message.
+        :param fresh: If fresh, will send a new message into the channel. This is not returned.
+        :param mention: MentionOptions enum to specify what is pingable/pinged.
+        """
+        if not isinstance(out, str):
+            raise TypeError(f'Instruction of type PUSH received an output object of type {type(out)}, which is not supported.')
+        allowed_mentions = AllowedMentions.all() if mention.ALL else (AllowedMentions(everyone=False, roles=False, users=False, replied_user=True) if mention.AUTHOR else AllowedMentions.none())
+        if isinstance(interaction, Message):
+            if fresh:
+                await interaction.channel.send(content=out, allowed_mentions=allowed_mentions)
+            else:
+                await interaction.reply(content=out, allowed_mentions=allowed_mentions)
+        elif isinstance(interaction, Interaction):
+            if fresh:
+                await interaction.response.send_message(content=out, allowed_mentions=allowed_mentions)
+            else:
+                await interaction.followup.send(content=out, allowed_mentions=allowed_mentions)
         else:
-            ... # case Interaction
-            interaction.edit_original_response(out, allowed_mentions=...) # delete after...?
-            interaction.followup.send(content=out, allowed_mentions=...)
+            raise TypeError(f'PUSH instruction received an Interaction of type {type(interaction)}, which is not supported.')
 
 
 
     async def sleep(self, time: int | float):
         await _asyncio.sleep(time)
 
-    def basic_replace(self, interaction: discord.Interaction | discord.Message, key: str) -> str:
+    def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
         raise NotImplementedError()
 
-    async def is_writing(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+    async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         async with interaction.channel.typing():
             return await self.run(instructions, interaction, depth, build, False, fresh, memstack)
 
@@ -119,21 +127,21 @@ class DebugInstructionExecutor(InstructionExecutor):
     def _instruction_log(self, itype: str, extra: str = None):
         self.output += '{ ' + itype + '; ' + extra if extra else '' + ' }'
 
-    async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
-        # fixme: determine if any initialization needs to be done here for memory evaluation.
+    async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
+        # todo: determine if any initialization needs to be done here for memory evaluation.
         out = await super().run(instructions, interaction, depth, build, push_final_build, fresh, memstack)
         return out
 
-    async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, fresh: bool = True):
-        self._instruction_log('PUSH', f'fr={fresh}')
+    async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE):
+        self._instruction_log('PUSH', f'fr={fresh},mention={mention}')
 
     async def sleep(self, time: int | float):
         self._instruction_log('SLEEP', f'time={time}')
 
-    async def basic_replace(self, interaction: discord.Interaction | discord.Message, key: str) -> str:
+    async def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
         return '{ BASIC_REPLACE; ' + key + ' }'
 
-    async def is_writing(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+    async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         build += '{ WRITING; Start {'
         build_out, first_reply = await self.run(instructions, interaction, depth, build, False, fresh, memstack)
         build += build_out if build_out else ''

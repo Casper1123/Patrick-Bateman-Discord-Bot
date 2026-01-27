@@ -30,6 +30,11 @@ class InstructionType(Enum):
     FACT = 27  # fact(index) call. Do push in depth!
         # todo: figure out better numbering
 
+class MentionOptions(Enum):
+    NONE = 0
+    AUTHOR = 1
+    ALL = 2
+
 # fixme: unsupported: total_facts, global_facts, local_facts
 class BasicReplaceOptions(Enum):
     NEWLINE = -1
