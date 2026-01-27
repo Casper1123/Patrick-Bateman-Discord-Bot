@@ -27,15 +27,17 @@ class InstructionExecutor:
     def __init__(self, client: BotClient):
         self.client = client
 
-    async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True) -> tuple(str | None, bool):
-        # TODO: make fail if not ran in guild context. Do not let DM context make things more complicated. Get this to work first.
+    async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple(str | None, bool):
+        if not interaction.guild.id:
+            raise PermissionError('Cannot execute instructions outside of Guild context.')
         depth: int = depth + 1 if depth else 0
         if depth > MAX_EXECUTION_RECUSION_DEPTH:
             raise ParsedExecutionRecursionDepthLimit(instructions, depth)
         first_reply = fresh
         i: int = 0
-        build: str = build if build else "" # expanded until finished or message sends, then reset.
+        build: str = build if build else "" # expanded until finished or message sends, then reset. Highest scope is first.
         mem: dict[str, ...] = {}
+        memstack = memstack if memstack else [] # outer scope memory. Initialize here for now.
         while i < len(instructions):
             instruction = instructions[i]
             try:
@@ -44,17 +46,27 @@ class InstructionExecutor:
                 elif instruction.type == InstructionType.PUSH:
                     # todo: settings for message. Assuming it's sent right now.
                     if build == "": raise ValueError('Instruction of type PUSH did not receive content to push.')
-                    await self.send_output(build, interaction, first_reply=first_reply)
+                    await self.send_output(build, interaction, fresh=first_reply)
                     build = ""
                     first_reply = False
                 elif instruction.type == InstructionType.DEFINE:
-                    mem[str(instruction.options['name'])] = instruction.options['value']
+                    # fixme: match with banlist for other things? Or handle this properly with the parser.
+                    name: str = str(instruction.options['name'])
+                    value: object = instruction.options['value']
+                    assigned: bool = False
+                    for scope in memstack:
+                        if name in scope.keys():
+                            assigned = True
+                            scope[name] = value
+                    if not assigned:
+                        mem[name] = value
+
                 elif instruction.type == InstructionType.SLEEP:
                     await self.sleep(instruction.options['time'])
                 elif instruction.type == InstructionType.BASIC_REPLACE:
                     build += self.basic_replace(interaction, instruction.options['key'])
                 elif instruction.type == InstructionType.WRITING:
-                    build, first_reply = await self.is_writing(instruction.options['instructions'], interaction, depth, build)
+                    build, first_reply = await self.is_writing(instruction.options['instructions'], interaction, depth, build, fresh, memstack)
                     if build is None:
                         raise TypeError('Instruction of type WRITING returned None value instead of String.')
                 else:
@@ -66,25 +78,26 @@ class InstructionExecutor:
             i += 1
 
         if build and push_final_build:
-            await self.send_output(build, interaction, first_reply=first_reply)
+            await self.send_output(build, interaction, fresh=first_reply)
             return None, first_reply
         else:
             return build, first_reply
 
-    async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, first_reply: bool = True) -> None:
+    async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, fresh: bool = True) -> None:
         ...  # todo: implement sending data.
         if isinstance(interaction, discord.Message):
             ... # case Message
             # reply
-            interaction.reply(out, delete_after=..., mention_author=..., allowed_mentions=...)
+            interaction.reply(out, mention_author=..., allowed_mentions=...)
             # not reply
-            interaction.channel.send(out, delete_after=..., mention_author=..., allowed_mentions=...)
-            # Allowed mentions notes, see contructor:
+            interaction.channel.send(out, mention_author=..., allowed_mentions=...)
+            # Allowed mentions notes, see constructor:
             discord.AllowedMentions(everyone= False, users = False, roles = False, replied_user=False) # users & roles can be collections as well.
             discord.AllowedMentions.all() # also an option
         else:
             ... # case Interaction
-            interaction.edit_original_response(out, allowed_mentions=...)
+            interaction.edit_original_response(out, allowed_mentions=...) # delete after...?
+            interaction.followup.send(content=out, allowed_mentions=...)
 
 
 
@@ -94,9 +107,9 @@ class InstructionExecutor:
     def basic_replace(self, interaction: discord.Interaction | discord.Message, key: str) -> str:
         raise NotImplementedError()
 
-    async def is_writing(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int, build: str) -> tuple[str | None, bool]:
+    async def is_writing(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         async with interaction.channel.typing():
-            return await self.run(instructions, interaction, depth, build, False)
+            return await self.run(instructions, interaction, depth, build, False, fresh, memstack)
 
 class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient):
@@ -106,13 +119,13 @@ class DebugInstructionExecutor(InstructionExecutor):
     def _instruction_log(self, itype: str, extra: str = None):
         self.output += '{ ' + itype + '; ' + extra if extra else '' + ' }'
 
-    async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True) -> tuple(str | None, bool):
-        depth = depth if depth else -1 # init -1 as it will increment to 0 in first call to super().run
-        out = await super().run(instructions, interaction, depth, build, push_final_build)
+    async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
+        # fixme: determine if any initialization needs to be done here for memory evaluation.
+        out = await super().run(instructions, interaction, depth, build, push_final_build, fresh, memstack)
         return out
 
-    async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, first_reply: bool = True):
-        self._instruction_log('PUSH', f'fr={first_reply}')
+    async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, fresh: bool = True):
+        self._instruction_log('PUSH', f'fr={fresh}')
 
     async def sleep(self, time: int | float):
         self._instruction_log('SLEEP', f'time={time}')
@@ -120,9 +133,9 @@ class DebugInstructionExecutor(InstructionExecutor):
     async def basic_replace(self, interaction: discord.Interaction | discord.Message, key: str) -> str:
         return '{ BASIC_REPLACE; ' + key + ' }'
 
-    async def is_writing(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int, build: str) -> tuple[str | None, bool]:
+    async def is_writing(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         build += '{ WRITING; Start {'
-        build_out, first_reply = await self.run(instructions, interaction, depth, build, False)
+        build_out, first_reply = await self.run(instructions, interaction, depth, build, False, fresh, memstack)
         build += build_out if build_out else ''
         build += '} WRITING; End }'
         return build, first_reply
