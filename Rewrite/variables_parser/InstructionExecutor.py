@@ -17,7 +17,7 @@ class ParsedExecutionRecursionDepthLimit(CustomDiscordException):
         super().__init__(f'Maximum recursion depth of {depth} exceeded maximal value when executing Instructions.\n'
                          f'{"\n".join(str(i) for i in instructions)}')
 
-MAX_EXECUTION_RECUSION_DEPTH = 5 # todo: into config file you go.
+MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.
 
 class InstructionExecutor:
     """
@@ -31,7 +31,7 @@ class InstructionExecutor:
         if not interaction.guild.id:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
         depth: int = depth + 1 if depth else 0
-        if depth > MAX_EXECUTION_RECUSION_DEPTH:
+        if depth > MAX_EXECUTION_RECURSION_DEPTH:
             raise ParsedExecutionRecursionDepthLimit(instructions, depth)
         first_reply = fresh
         i: int = 0
