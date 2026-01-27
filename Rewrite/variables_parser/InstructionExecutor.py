@@ -100,8 +100,11 @@ class DebugInstructionExecutor(InstructionExecutor):
 
     async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True) -> tuple(str | None, bool):
         # todo: init (or reference) temporary output storage, which should be appended to in DebugInstructionExecutor.send_output
-        await super().run(instructions, interaction, depth, build, push_final_build)
-        # todo: deinit
+        depth = depth if depth else -1 # init -1 as it will increment to 0 in first call to super().run
+        initial: bool = depth == -1
+        out = await super().run(instructions, interaction, depth, build, push_final_build)
+        # todo: deinit using initial
+        return out
 
     async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, first_reply: bool = True):
         raise NotImplementedError() # push to some string
