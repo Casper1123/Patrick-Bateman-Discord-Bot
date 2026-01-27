@@ -20,6 +20,10 @@ class ParsedExecutionRecursionDepthLimit(CustomDiscordException):
 MAX_EXECUTION_RECUSION_DEPTH = 5 # todo: into config file you go.
 
 class InstructionExecutor:
+    """
+    One call per instance, in part to be compatible with the debugger.
+    todo: pass around the constructor as a method to call from a global scope or nah?
+    """
     def __init__(self, client: BotClient):
         self.client = client
 
@@ -96,28 +100,29 @@ class InstructionExecutor:
 
 class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient):
+        self.output: str = ''
         super().__init__(client)
 
+    def _instruction_log(self, itype: str, extra: str = None):
+        self.output += '{ ' + itype + '; ' + extra if extra else '' + ' }'
+
     async def run(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True) -> tuple(str | None, bool):
-        # todo: init (or reference) temporary output storage, which should be appended to in DebugInstructionExecutor.send_output
         depth = depth if depth else -1 # init -1 as it will increment to 0 in first call to super().run
-        initial: bool = depth == -1
         out = await super().run(instructions, interaction, depth, build, push_final_build)
-        # todo: deinit using initial
         return out
 
     async def send_output(self, out: str, interaction: discord.Interaction | discord.Message, first_reply: bool = True):
-        raise NotImplementedError() # push to some string
+        self._instruction_log('PUSH', f'fr={first_reply}')
 
     async def sleep(self, time: int | float):
-        raise NotImplementedError()
+        self._instruction_log('SLEEP', f'time={time}')
 
     async def basic_replace(self, interaction: discord.Interaction | discord.Message, key: str) -> str:
-        raise NotImplementedError()
+        return '{ BASIC_REPLACE; ' + key + ' }'
 
     async def is_writing(self, instructions: list[Instruction], interaction: discord.Interaction | discord.Message, depth: int, build: str) -> tuple[str | None, bool]:
-        build += '{ As writing; Start }'
+        build += '{ WRITING; Start {'
         build_out, first_reply = await self.run(instructions, interaction, depth, build, False)
         build += build_out if build_out else ''
-        build += '{ As writing; End }'
+        build += '} WRITING; End }'
         return build, first_reply
