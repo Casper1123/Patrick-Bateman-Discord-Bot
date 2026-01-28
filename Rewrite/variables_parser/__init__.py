@@ -26,7 +26,7 @@ class InstructionType(Enum):
     # random number or something
 
     RANDOMUSER = 25  # TRU - True Random User, todo: port this over.
-    CHOICE = 26
+    CHOICE = 26 # recursively iterates over given choices on execution.
     FACT = 27  # fact(index) call. Do push in depth!
         # todo: figure out better numbering
 

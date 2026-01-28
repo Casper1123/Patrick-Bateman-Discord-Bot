@@ -1,4 +1,5 @@
 import asyncio as _asyncio
+import random as _r
 
 from discord import AllowedMentions, Message, Interaction
 from discord.ext import commands
@@ -69,6 +70,8 @@ class InstructionExecutor:
                     build, first_reply = await self.is_writing(instruction.options['instructions'], interaction, depth, build, fresh, memstack)
                     if build is None:
                         raise TypeError('Instruction of type WRITING returned None value instead of String.')
+                elif instruction.type == InstructionType.CHOICE:
+                    build, first_reply = await self.choice(instruction.options['options'], interaction, depth, build, fresh, memstack)
                 else:
                     raise NotImplementedError()
             except NotImplementedError:
@@ -107,17 +110,27 @@ class InstructionExecutor:
         else:
             raise TypeError(f'PUSH instruction received an Interaction of type {type(interaction)}, which is not supported.')
 
-
-
     async def sleep(self, time: int | float):
         await _asyncio.sleep(time)
 
-    def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
-        raise NotImplementedError()
+    def basic_replace(self, memdict: list[dict[str, ...]], key: str) -> str:
+        # merge memdict into a single dict:
+        mem: dict[str, ...] = {}
+        for frame in reversed(memdict): # reversed so, if somehow duplicates exist, the top-framed one takes precedence
+            for k, v in frame.items():
+                mem[k] = v
+
+        if key not in mem.keys():
+            raise MemoryError(f'Cannot access memory entry \'{key}\'.')
+        return str(mem[key])
 
     async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         async with interaction.channel.typing():
             return await self.run(instructions, interaction, depth, build, False, fresh, memstack)
+
+    async def choice(self, options: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+        chosen: Instruction = _r.choice(options)
+        return await self.run([chosen], interaction, depth, build, False, fresh, memstack)
 
 class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient):
@@ -133,6 +146,7 @@ class DebugInstructionExecutor(InstructionExecutor):
         return out
 
     async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE):
+        self.output += out
         self._instruction_log('PUSH', f'fr={fresh},mention={mention}')
 
     async def sleep(self, time: int | float):
@@ -147,3 +161,11 @@ class DebugInstructionExecutor(InstructionExecutor):
         build += build_out if build_out else ''
         build += '} WRITING; End }'
         return build, first_reply
+
+    async def choice(self, options: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+        index: int = _r.randint(0, len(options) - 1)
+        chosen: Instruction = options[index]
+        build += '{ CHOICE ['+str(index)+'] START; {'
+        out, first_message =  await self.run([chosen], interaction, depth, build, False, fresh, memstack)
+        out += '} CHOICE ['+str(index)+'] END }'
+        return out, first_message
