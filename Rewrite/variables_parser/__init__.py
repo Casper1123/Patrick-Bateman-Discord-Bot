@@ -8,14 +8,24 @@ MAX_RECUSION_DEPTH = 5
 
 
 class InstructionType(Enum):
+    # Syntax descriptors:
+    # a: any of the below
+    # [a, ...]: a (limited) set of option types
+    # *a: any (including none at all) number of parameters
+    # a = ... : Default value, making parameter optional
+    # b: boolean, 0, 1, t, f
+    # n: natural number, optional range
+    # s: string, optional options/max length
+    # i: Parsable instructions. May include regular text and need their own escaping symbols.
+
     # Active actions
-    PUSH = -1  # send built output.
-    SLEEP = -2
-    WRITING = -3  # async with message.channel.typing(): {}
+    PUSH = -1  # send(n[0,1,2] = 0) ; n: pingable: 0: None, 1: Interaction author, 2: All ; send built output.
+    SLEEP = -2 # sleep(n = 1) ; Async sleep execution for n seconds.
+    WRITING = -3  # writing(*i) ; async with message.channel.typing(): {i}
 
     # Primary text
-    BUILD = 0 # basic instruction, append content to next message.
-    BASIC_REPLACE = 2  # basic data replacement. Takes in a single argument, which is the key to the dictionary.
+    BUILD = 0 # Not directly callable ; basic instruction, append content to next message.
+    BASIC_REPLACE = 2  # Callable by calling an unknown instruction who's key is known by the memory ;
 
     # Can involve memory
     DEFINE = 50 # define new var or overwrite value of.
@@ -27,8 +37,8 @@ class InstructionType(Enum):
     CALCULATE = 51
 
     RANDOMUSER = 25  # TRU - True Random User, todo: port this over.
-    CHOICE = 26 # recursively iterates over given choices on execution.
-    FACT = 27  # fact(index) call. Do push in depth!
+    CHOICE = 26 # choice('i', 'i', *('i') ; Options i, where the first two are mandatory.  Enclosed in ' or ".
+    FACT = 27  # fact(n = None) ; n: index, can be left out for truly random.
         # todo: figure out better numbering
 
 class MentionOptions(Enum):

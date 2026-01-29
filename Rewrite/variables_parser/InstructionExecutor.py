@@ -45,7 +45,6 @@ class InstructionExecutor:
                 if instruction.type == InstructionType.BUILD:
                     build += instruction.options['content']
                 elif instruction.type == InstructionType.PUSH:
-                    # todo: settings for message. Assuming it's sent right now.
                     if build == "": raise ValueError('Instruction of type PUSH did not receive content to push.')
                     await self.send_output(build, interaction, fresh=first_reply)
                     build = ""
