@@ -24,6 +24,7 @@ class InstructionType(Enum):
     # matrices? function definitions?
     # iterative sum, mult, etc?
     # random number or something
+    CALCULATE = 51
 
     RANDOMUSER = 25  # TRU - True Random User, todo: port this over.
     CHOICE = 26 # recursively iterates over given choices on execution.

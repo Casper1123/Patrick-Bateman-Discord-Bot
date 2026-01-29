@@ -72,6 +72,8 @@ class InstructionExecutor:
                         raise TypeError('Instruction of type WRITING returned None value instead of String.')
                 elif instruction.type == InstructionType.CHOICE:
                     build, first_reply = await self.choice(instruction.options['options'], interaction, depth, build, fresh, memstack)
+                elif instruction.type == InstructionType.CALCULATE:
+                    self.calculate(instruction.options, memstack)
                 else:
                     raise NotImplementedError()
             except NotImplementedError:
@@ -131,6 +133,9 @@ class InstructionExecutor:
     async def choice(self, options: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         chosen: Instruction = _r.choice(options)
         return await self.run([chosen], interaction, depth, build, False, fresh, memstack)
+
+    def calculate(self, options: dict[str, ...], memstack: list[dict[str, ...]]) -> None:
+        ... # todo how in the world should calculations be performed? 
 
 class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient):
