@@ -211,7 +211,7 @@ class InstructionExecutor:
         mem: dict[str, ...] = {}
         for frame in reversed(memdict):  # reversed so, if somehow duplicates exist, the top-framed one takes precedence
             for k, v in frame.items():
-                mem[k] = v
+                mem[k] = v # todo: do I set this up such that it's returned from a function, that way I can also make other merged-mem functions (like keys)
 
         memkeys = mem.keys()
         return { key: mem[key] if key in memkeys else None for key in keys }
