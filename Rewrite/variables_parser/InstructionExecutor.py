@@ -200,6 +200,22 @@ class InstructionExecutor:
         except Exception as e:
             raise CustomDiscordException('Initial Instruction Memory failed to build.', e, 'InstructionMemoryError')
 
+    def mem_fetch(self, memdict: list[dict[str, ...]], keys: list[str]) -> dict[str, ... | None]:
+        """
+        Gets the given variables from memory.
+        :param memdict: The given variable stack.
+        :param keys: The keys to look up.
+        :return: A { key: value } dictionary for each key in keys. None if no value found.
+        """
+        # merge memdict into a single dict:
+        mem: dict[str, ...] = {}
+        for frame in reversed(memdict):  # reversed so, if somehow duplicates exist, the top-framed one takes precedence
+            for k, v in frame.items():
+                mem[k] = v
+
+        memkeys = mem.keys()
+        return { key: mem[key] if key in memkeys else None for key in keys }
+
     async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE) -> None:
         """
         Sends the given string into the interaction output channel.
@@ -228,15 +244,10 @@ class InstructionExecutor:
         await _asyncio.sleep(time)
 
     def basic_replace(self, memdict: list[dict[str, ...]], key: str) -> str:
-        # merge memdict into a single dict:
-        mem: dict[str, ...] = {}
-        for frame in reversed(memdict): # reversed so, if somehow duplicates exist, the top-framed one takes precedence
-            for k, v in frame.items():
-                mem[k] = v
-
-        if key not in mem.keys():
+        result = self.mem_fetch(memdict, [key])[key]
+        if not result:
             raise MemoryError(f'Cannot access memory entry \'{key}\'.')
-        return str(mem[key])
+        return str(result)
 
     async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         async with interaction.channel.typing():
