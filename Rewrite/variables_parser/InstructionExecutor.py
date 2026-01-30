@@ -1,6 +1,8 @@
 import asyncio as _asyncio
 import random as _r
+import datetime as _datetime
 
+import discord
 from discord import AllowedMentions, Message, Interaction
 from discord.ext import commands
 
@@ -37,7 +39,7 @@ class InstructionExecutor:
         first_reply = fresh
         i: int = 0
         build: str = build if build else "" # expanded until finished or message sends, then reset. Highest scope is first.
-        mem: dict[str, ...] = {}
+        mem: dict[str, ...] = {} if memstack else self.init_memory(interaction)
         memstack = memstack if memstack else [] # outer scope memory. Initialize here for now.
         while i < len(instructions):
             instruction = instructions[i]
@@ -86,6 +88,117 @@ class InstructionExecutor:
             return None, first_reply
         else:
             return build, first_reply
+
+    def init_memory_types(self) -> dict[str, type]:
+        """
+        Used for type checking in available variables in instruction parsing.
+        Genuinely only in here because I wanted a way to get the types of objects that could never be declared and did not know another way to do things.
+        Look, I'll think of something to replace this properly okay. I just wanted this information available now so I can work on the Parser
+        :return: The types of variables declared by default by InstructionExecutor.init_memory
+        """
+        return {
+                '\\n': str,
+
+                # interaction target
+                'user.id': int,
+                'user': str,
+                'user.name': str,
+                'user.created_at': _datetime.datetime,
+                'user.account': str,
+                'user.status': str,
+                'user.mutual_guilds': int,
+                'user.roles': int,  # role count, not the actual roles.
+
+                'self.id': int,
+                'self': str,
+                'self.name': str,
+                'self.created_at': _datetime.datetime,
+                'self.account': str,
+                'self.roles': int,
+
+                'channel': str,
+                'channel.id': int,
+                'channel.name': str,
+                'channel.created_at': _datetime.datetime,
+                'channel.jump_url': str,
+
+                'guild': str,
+                'guild.id': int,
+                'guild.name': str,
+                'guild.created_at': _datetime.datetime,
+                'guild.members': int, # member count
+                'guild.roles': int, # still, role count.
+
+                # guild owner
+                'owner.id': int,
+                'owner': str,
+                'owner.name': str,
+                'owner.created_at': _datetime.datetime,
+                'owner.account': str,
+                'owner.roles': int,
+
+                'message': int,
+                'message.jump_url': str,
+            }
+    async def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
+        user: discord.User = interaction.user
+        member: discord.Member = interaction.guild.get_member(interaction.user.id)
+        me: discord.ClientUser = self.client.user
+        me_member: discord.Member = interaction.guild.get_member(me.id)
+
+        channel: discord.TextChannel = interaction.channel
+        guild: discord.Guild = interaction.guild
+        owner: discord.Member = guild.owner  # guild owner
+
+        if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
+            raise ValueError('Cannot prepare memory data, missing required data to construct initial memory.')
+        try:
+            return {
+                '\\n': '\n',
+
+                # interaction target
+                'user.id': user.id,
+                'user': user.display_name,
+                'user.name': user.display_name,
+                'user.created_at': user.created_at,
+                'user.account': user.name,
+                'user.status': str(member.client_status) if member.client_status not in [discord.Status.dnd, discord.Status.do_not_disturb] else 'do not disturb',
+                'user.mutual_guilds': len(member.mutual_guilds),
+                'user.roles': len(member.roles),
+
+                'self.id': me.id,
+                'self': me.display_name,
+                'self.name': me.display_name,
+                'self.created_at': me.created_at,
+                'self.account': me.name,
+                'self.roles': len(me_member.roles) if me_member else 0,
+
+                'channel': channel.name,
+                'channel.id': channel.id,
+                'channel.name': channel.name,
+                'channel.created_at': channel.created_at,
+                'channel.jump_url': channel.jump_url,
+
+                'guild': guild.name,
+                'guild.id': guild.id,
+                'guild.name': guild.name,
+                'guild.created_at': guild.created_at,
+                'guild.members': guild.member_count,
+                'guild.roles': len(guild.roles),
+
+                # guild owner
+                'owner.id': owner.id,
+                'owner': owner.display_name,
+                'owner.name': owner.display_name,
+                'owner.created_at': owner.created_at,
+                'owner.account': owner.name,
+                'owner.roles': len(owner.roles) if owner else 0,
+
+                'message': interaction.message.id,
+                'message.jump_url': interaction.message.jump_url,
+            }
+        except Exception as e:
+            raise CustomDiscordException('Initial Instruction Memory failed to build.', e, 'InstructionMemoryError')
 
     async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE) -> None:
         """
@@ -173,3 +286,49 @@ class DebugInstructionExecutor(InstructionExecutor):
         out, first_message =  await self.run([chosen], interaction, depth, build, False, fresh, memstack)
         out += '} CHOICE ['+str(index)+'] END }'
         return out, first_message
+
+    def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
+        now: _datetime.datetime = _datetime.datetime.now()
+        return {
+            '\\n': '\n',
+
+            'user.id': 0,
+            'user': 'user',
+            'user.name': 'user',
+            'user.created_at': now,
+            'user.account': 'useraccount',
+            'user.status': 'userstatus',
+            'user.mutual_guilds': 0,
+            'user.roles': 0,
+
+            'self.id': 0,
+            'self': 'self',
+            'self.name': 'self',
+            'self.created_at': now,
+            'self.account': 'selfaccount',
+            'self.roles': 0,
+
+            'channel': 'channel',
+            'channel.id': 0,
+            'channel.name': 'channel',
+            'channel.created_at': now,
+            'channel.jump_url': 'channelurl',
+
+            'guild': 'guild',
+            'guild.id': 0,
+            'guild.name': 'guild',
+            'guild.created_at': now,
+            'guild.members': 0,
+            'guild.roles': 0,
+
+            # guild owner
+            'owner.id': 0,
+            'owner': 'owner',
+            'owner.name': 'owner',
+            'owner.created_at': now,
+            'owner.account': 'owneraccount',
+            'owner.roles': 0,
+
+            'message': 0,
+            'message.jump_url': 'messageurl',
+        }

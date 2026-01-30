@@ -4,10 +4,14 @@ from enum import Enum
 
 
 # todo: move to config, somehow.
-MAX_RECUSION_DEPTH = 5
+MAX_RECURSION_DEPTH = 5
 
 
 class InstructionType(Enum):
+    # fixme: unsupported: total_facts, global_facts, local_facts
+    # todo: implement math,
+    # todo: implement conditional branches
+
     # Syntax descriptors:
     # a: any of the below
     # [a, ...]: a (limited) set of option types
@@ -30,6 +34,7 @@ class InstructionType(Enum):
     # Can involve memory
     DEFINE = 50 # define new var or overwrite value of.
         # THINK ABOUT MULTIVARIABLE DEFINITION a, b := c, d !!!
+    # todo: how the fuck do I fetch a value from this properly?
     # SUM, SUB, *, /, //, %, ^, ( parenthesis ), log.
     # matrices? function definitions?
     # iterative sum, mult, etc?
@@ -46,9 +51,11 @@ class MentionOptions(Enum):
     AUTHOR = 1
     ALL = 2
 
-# fixme: unsupported: total_facts, global_facts, local_facts
 class BasicReplaceOptions(Enum):
-    NEWLINE = -1
+    # fixme: remove this entirely. Might as well use mem keys directly who cares about this. Prepare the right mem keys though.
+    # annotation describes key.
+    MEMORY = -2 # index key directly
+    NEWLINE = -1 # nl
 
     # interaction target
     USERACCOUNT = 0
@@ -106,7 +113,7 @@ def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> list[
 
     # make sure to create an instruction to send at the end, but not after other non-message things.
     # precompute memory usage if possible to set an upper limit.
-    if depth > MAX_RECUSION_DEPTH:
+    if depth > MAX_RECURSION_DEPTH:
         return [Instruction(InstructionType.BUILD, content='{ Maximum recursion depth reached. }')]
 
     # Iterate through string, take out {} and send contents inside to Instruction parser.
