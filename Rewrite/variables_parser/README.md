@@ -12,3 +12,25 @@ In-placed variables may never be named equal to one of these registered values. 
 
 'This is regular text {guild.id}{push}{sleep(5)}'
 '{a = 5; b = 5; c = a*b; c}'
+
+# Comprehension notes
+## Operation Heirarchy
+Operations ordered by heirarchy (if brackets omitted, which one goes first)
+
+### -1
+- % ; Modulus operator.  Cyclic group style.
+
+### 0
+- \+
+- \-
+
+### 1
+- \*
+- \/
+- \// ; Integer division
+
+### 2
+- Function call go here
+
+### 3
+- ()
