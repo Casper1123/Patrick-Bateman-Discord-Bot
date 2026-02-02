@@ -29,12 +29,12 @@ class BotClient(commands.Bot):
                     return # Skip 'connection lost' exceptions, also removing them from the logging.
                     # Idk why, but for some reason my host device seems to lose connection at unknown intervals for short periods of time.
                     # So this is temporary glue fix.
-                if isinstance(error, CustomDiscordException):
-                    await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
-                    raise error
-                else:
-                    await interaction.edit_original_response(embed=exception_as_embed(error))
-                    raise error
+                if not isinstance(error, CustomDiscordException):
+                    error_old = error
+                    error: CustomDiscordException = CustomDiscordException(cause=error_old, error_type=type(error).__name__) # todo: test
+
+                await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
+                raise error
 
 
         self.tree.on_error = on_tree_error
