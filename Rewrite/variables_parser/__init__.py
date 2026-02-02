@@ -1,6 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 import datetime as _datetime
+import re as _re
 
 from Rewrite.utilities.exceptions import CustomDiscordException
 
@@ -48,13 +49,13 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
                 'message': int,
                 'message.jump_url': str,
             }
-
+LEGAL_VARIABLE_NAME_CHARACTERS: str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'
 
 class InstructionParseError(CustomDiscordException):
     def __init__(self, bad_var: str, reason: str = None):
         self.bad_var: str = bad_var
         self.reason: str = reason
-        super().__init__(f'Could not parse **{bad_var}**{f"\n**Reason:** {reason}" if reason else ""}')
+        super().__init__(f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}')
 
 # todo: move to config, somehow.
 MAX_RECURSION_DEPTH = 5
@@ -72,12 +73,13 @@ class InstructionType(Enum):
     # a = ... : Default value, making parameter optional
     # b: boolean, 0, 1, t, f
     # n: natural number, optional range
+    # f: floating point, supported using . as decimal point (I am european and use , all the time but it's also a variable separator so who gives)
     # s: string, optional options/max length
     # i: Parsable instructions. May include regular text and need their own escaping symbols.
 
     # Active actions
-    PUSH = -1  # send(n[0,1,2] = 0) ; n: pingable: 0: None, 1: Interaction author, 2: All ; send built output.
-    SLEEP = -2 # sleep(n = 1) ; Async sleep execution for n seconds.
+    PUSH = -1  # push(n[0,1,2] = 0) ; n: pingable: 0: None, 1: Interaction author, 2: All ; send built output.
+    SLEEP = -2 # sleep(f = 1) ; Async sleep execution for f seconds. f max decimals = 2
     WRITING = -3  # writing(*i) ; async with message.channel.typing(): {i}
 
     # Primary text
@@ -175,7 +177,7 @@ class Instruction:
                 subbuild += char
             elif char == terminator:
                 if len(layer_stack) == 0:
-                    subsections.append(subbuild)
+                    subsections.append(subbuild.strip())
                     subbuild = ''
                 else:
                     expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
@@ -199,13 +201,34 @@ class Instruction:
             expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
             raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(expected))
         else:
-            subsections.append(subbuild)
-            subbuild = '' # just in case.
-
+            subsections.append(subbuild.strip())
         # Step 2: Go through individual instructions and see if they are valid. If so, append them to the result output.
+
         instructions: list[Instruction] = []
-        for instruction in subsections:
-            ...
+        memtypes = INITIAL_MEMORY_TYPES.copy()
+        i = 0
+        while i < len(subsections):
+            subsection = subsections[i]
+
+            # Case 1: mem access for Build instruction. Has to be
+            if subsection.replace(' ', '') in memtypes.keys():
+                if i < len(subsections) - 1:
+                    raise InstructionParseError(subsection, f'Encountered BUILD Instruction before end of block.\n'
+                                                            f'Position: **{i}**. Expected: **{len(subsections)}**.\n'
+                                                            f'In block {build}\n'
+                                                            f'\n'
+                                                            f'To fix: Move your BUILD instruction to the end of your block. Blocks cannot contain more than one BUILD instruction to force you to format. Open a new block to include a new BUILD instruction.')
+                else:
+                    instructions.append(Instruction(InstructionType.BUILD, content=subsection.replace(' ', ''))) # can be used regardless of type.
+            # Case 2: Instruction is of one of the predefined functions, incompatible with comprehensions.
+            # Defining regex for each specified syntax up above.
+            # PUSH = push(n[0,1,2] = 0) ; n: pingable: 0: None, 1: Interaction author, 2: All ; send built output.
+            # SLEEP = sleep(n = 1) ; Async sleep execution for n seconds.
+            # WRITING = writing(*i) ; async with message.channel.typing(): {i}
+            # sleep: optional 0-2 decimal float number.
+            # otherwise try to use mem.
+            SLEEP_CONST = r"sleep((?P<time>(\d+(?:\.\d{1,2})))"
+            SLEEP_VAR = rf"sleep((?P<time>({LEGAL_VARIABLE_NAME_CHARACTERS})+))"
 
 
 
