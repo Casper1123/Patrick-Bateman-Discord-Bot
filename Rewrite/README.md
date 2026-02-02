@@ -1,3 +1,7 @@
+Hey if you're reading this and you know what you're doing; Yes, I should've used a branche for this but I forgot they existed.
+Deal with it for now, okay.
+
+
 TODO: Write more descriptive stuff about the Patrick rewrite. List of target features down below.
 Everything here is just notes to self for now.
 
