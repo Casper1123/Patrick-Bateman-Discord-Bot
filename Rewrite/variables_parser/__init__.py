@@ -6,49 +6,49 @@ import re as _re
 from Rewrite.utilities.exceptions import CustomDiscordException
 
 INITIAL_MEMORY_TYPES: dict[str, type] = {
-                '\\n': str,
+    '\\n': str,
 
-                # interaction target
-                'user.id': int,
-                'user': str,
-                'user.name': str,
-                'user.created_at': _datetime.datetime,
-                'user.account': str,
-                'user.status': str,
-                'user.mutual_guilds': int,
-                'user.roles': int,  # role count, not the actual roles.
+    # interaction target
+    'user.id': int,
+    'user': str,
+    'user.name': str,
+    'user.created_at': _datetime.datetime,
+    'user.account': str,
+    'user.status': str,
+    'user.mutual_guilds': int,
+    'user.roles': int,  # role count, not the actual roles.
 
-                'self.id': int,
-                'self': str,
-                'self.name': str,
-                'self.created_at': _datetime.datetime,
-                'self.account': str,
-                'self.roles': int,
+    'self.id': int,
+    'self': str,
+    'self.name': str,
+    'self.created_at': _datetime.datetime,
+    'self.account': str,
+    'self.roles': int,
 
-                'channel': str,
-                'channel.id': int,
-                'channel.name': str,
-                'channel.created_at': _datetime.datetime,
-                'channel.jump_url': str,
+    'channel': str,
+    'channel.id': int,
+    'channel.name': str,
+    'channel.created_at': _datetime.datetime,
+    'channel.jump_url': str,
 
-                'guild': str,
-                'guild.id': int,
-                'guild.name': str,
-                'guild.created_at': _datetime.datetime,
-                'guild.members': int, # member count
-                'guild.roles': int, # still, role count.
+    'guild': str,
+    'guild.id': int,
+    'guild.name': str,
+    'guild.created_at': _datetime.datetime,
+    'guild.members': int, # member count
+    'guild.roles': int, # still, role count.
 
-                # guild owner
-                'owner.id': int,
-                'owner': str,
-                'owner.name': str,
-                'owner.created_at': _datetime.datetime,
-                'owner.account': str,
-                'owner.roles': int,
+    # guild owner
+    'owner.id': int,
+    'owner': str,
+    'owner.name': str,
+    'owner.created_at': _datetime.datetime,
+    'owner.account': str,
+    'owner.roles': int,
 
-                'message': int,
-                'message.jump_url': str,
-            }
+    'message': int,
+    'message.jump_url': str,
+}
 LEGAL_VARIABLE_NAME_CHARACTERS: str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'
 
 class InstructionParseError(CustomDiscordException):
