@@ -1,7 +1,60 @@
 from __future__ import annotations
 from enum import Enum
+import datetime as _datetime
+
+from Rewrite.utilities.exceptions import CustomDiscordException
+
+INITIAL_MEMORY_TYPES: dict[str, type] = {
+                '\\n': str,
+
+                # interaction target
+                'user.id': int,
+                'user': str,
+                'user.name': str,
+                'user.created_at': _datetime.datetime,
+                'user.account': str,
+                'user.status': str,
+                'user.mutual_guilds': int,
+                'user.roles': int,  # role count, not the actual roles.
+
+                'self.id': int,
+                'self': str,
+                'self.name': str,
+                'self.created_at': _datetime.datetime,
+                'self.account': str,
+                'self.roles': int,
+
+                'channel': str,
+                'channel.id': int,
+                'channel.name': str,
+                'channel.created_at': _datetime.datetime,
+                'channel.jump_url': str,
+
+                'guild': str,
+                'guild.id': int,
+                'guild.name': str,
+                'guild.created_at': _datetime.datetime,
+                'guild.members': int, # member count
+                'guild.roles': int, # still, role count.
+
+                # guild owner
+                'owner.id': int,
+                'owner': str,
+                'owner.name': str,
+                'owner.created_at': _datetime.datetime,
+                'owner.account': str,
+                'owner.roles': int,
+
+                'message': int,
+                'message.jump_url': str,
+            }
 
 
+class InstructionParseError(CustomDiscordException):
+    def __init__(self, bad_var: str, reason: str = None):
+        self.bad_var: str = bad_var
+        self.reason: str = reason
+        super().__init__(f'Could not parse **{bad_var}**{f"\n**Reason:** {reason}" if reason else ""}')
 
 # todo: move to config, somehow.
 MAX_RECURSION_DEPTH = 5
@@ -100,12 +153,64 @@ class Instruction:
         # how the fuck does one do c := a + b
         # --> check for memory references too, though that example was supposed to be 'how do I parse stuff'
 
-        # Case 1: Easy substitution.
-        # todo: cannot have more than one of these in a single block, so make sure to write a proper error for it.
+        # Step 1: separate into instruction subsections.
+        bounds: list[str] = ['{', '[', '(', '\''] # Opens another subsection. Input is already stripped of containing {}
+        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')', '\'': '\''}
+        escapes: list[str] = list(be_map.values())  # convert to list, makes it easier to work with.
+        layer_stack: list[str] = []  # Keeps track of layers open as we need to distinguish in characters here.
+        subsections: list[str] = []  # Keep track of every single operation, separated by ; terminator.
+        subbuild: str = ''
+        terminator: str = ';'
+
+        i: int = 0
+        while i < len(build):
+            char: str = build[i]
+            # we are inside a string.
+            in_string: bool = layer_stack and layer_stack[-1] == '\''
+            # escaped character
+            escaped: bool = i > 0 and build[i-1] == '\\'
+
+            # case 1: character is escaped
+            if escaped:
+                subbuild += char
+            elif char == terminator:
+                if len(layer_stack) == 0:
+                    subsections.append(subbuild)
+                    subbuild = ''
+                else:
+                    expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
+                    raise InstructionParseError(subbuild + char,
+                        reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(expected))
+            elif char in bounds:
+                subbuild += char
+                layer_stack.append(char)
+            elif char in escapes:
+                top = layer_stack[-1]
+                top_escape = be_map[top]
+                if char == top_escape:
+                    subbuild += char
+                    layer_stack.pop()
+                else:
+                    raise InstructionParseError(subbuild + char, reason=f'Encountered unescaped {char} before encountering {top_escape}')
+            else:
+                subbuild += char
+            i += 1
+        if len(layer_stack) > 0:
+            expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
+            raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(expected))
+        else:
+            subsections.append(subbuild)
+            subbuild = '' # just in case.
+
+        # Step 2: Go through individual instructions and see if they are valid. If so, append them to the result output.
+        instructions: list[Instruction] = []
+        for instruction in subsections:
+            ...
+
 
 
         # Default
-        return [Instruction(InstructionType.BUILD, content='{ Instruction of unknown type failed Parsing: \'' + build + '\'}'),]
+        return [Instruction(InstructionType.BUILD, content='{ Instruction of unknown type failed Parsing: \'' + build + '\'}'),] if not instructions else instructions
 
 def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> list[Instruction]:
     # To prevent infinite recursion but also limit memory usage, install a max depth limit. TODO: configurable.

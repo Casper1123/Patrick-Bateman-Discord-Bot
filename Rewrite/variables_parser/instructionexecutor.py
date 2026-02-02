@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from Rewrite.utilities.exceptions import CustomDiscordException
 from Rewrite.discorduser import BotClient
-from . import Instruction, InstructionType, MentionOptions
+from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES
 
 
 class ParsedExecutionFailure(CustomDiscordException):
@@ -89,57 +89,6 @@ class InstructionExecutor:
         else:
             return build, first_reply
 
-    def init_memory_types(self) -> dict[str, type]:
-        """
-        Used for type checking in available variables in instruction parsing.
-        Genuinely only in here because I wanted a way to get the types of objects that could never be declared and did not know another way to do things.
-        Look, I'll think of something to replace this properly okay. I just wanted this information available now so I can work on the Parser
-        :return: The types of variables declared by default by InstructionExecutor.init_memory
-        """
-        return {
-                '\\n': str,
-
-                # interaction target
-                'user.id': int,
-                'user': str,
-                'user.name': str,
-                'user.created_at': _datetime.datetime,
-                'user.account': str,
-                'user.status': str,
-                'user.mutual_guilds': int,
-                'user.roles': int,  # role count, not the actual roles.
-
-                'self.id': int,
-                'self': str,
-                'self.name': str,
-                'self.created_at': _datetime.datetime,
-                'self.account': str,
-                'self.roles': int,
-
-                'channel': str,
-                'channel.id': int,
-                'channel.name': str,
-                'channel.created_at': _datetime.datetime,
-                'channel.jump_url': str,
-
-                'guild': str,
-                'guild.id': int,
-                'guild.name': str,
-                'guild.created_at': _datetime.datetime,
-                'guild.members': int, # member count
-                'guild.roles': int, # still, role count.
-
-                # guild owner
-                'owner.id': int,
-                'owner': str,
-                'owner.name': str,
-                'owner.created_at': _datetime.datetime,
-                'owner.account': str,
-                'owner.roles': int,
-
-                'message': int,
-                'message.jump_url': str,
-            }
     async def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
         user: discord.User = interaction.user
         member: discord.Member = interaction.guild.get_member(interaction.user.id)
@@ -153,7 +102,7 @@ class InstructionExecutor:
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
             raise ValueError('Cannot prepare memory data, missing required data to construct initial memory.')
         try:
-            return {
+            out = {  # fixme: reflection in __init__.py for type checking.
                 '\\n': '\n',
 
                 # interaction target
@@ -162,7 +111,6 @@ class InstructionExecutor:
                 'user.name': user.display_name,
                 'user.created_at': user.created_at,
                 'user.account': user.name,
-                'user.status': str(member.client_status) if member.client_status not in [discord.Status.dnd, discord.Status.do_not_disturb] else 'do not disturb',
                 'user.mutual_guilds': len(member.mutual_guilds),
                 'user.roles': len(member.roles),
 
@@ -197,6 +145,20 @@ class InstructionExecutor:
                 'message': interaction.message.id,
                 'message.jump_url': interaction.message.jump_url,
             }
+            # check for safety if all keys from parser specification are present.
+            for key in out.keys():
+                if not key in INITIAL_MEMORY_TYPES.keys():
+                    raise CustomDiscordException(message='Initial Instruction Memory is missing entries as specified by the parser.\n'
+                                                         'This is an implementation error and has to be fixed by developers manually.\n'
+                                                         'Aborting execution to preserve memory safety.', error_type='InstructionMemoryError')
+                elif type(out[key]) != INITIAL_MEMORY_TYPES[key]:
+                    val = out[key]
+                    raise CustomDiscordException(error_type='InstructionMemoryError', message=f'Initial Instruction Memory has a typing mismatch from parser specification at key:value **{key}:{val} ({type(val)}** *(expected {INITIAL_MEMORY_TYPES[key]})*.\n'
+                                                                                              f'This is probably an implementation error. Please raise this issue to the developers **if not reported already**.\n'
+                                                                                              f'Aborting execution to preserve memory safety.')
+            return out
+        except CustomDiscordException as e:
+            raise e # Pass pre-constructed Exceptions up to user layer.
         except Exception as e:
             raise CustomDiscordException('Initial Instruction Memory failed to build.', e, 'InstructionMemoryError')
 
