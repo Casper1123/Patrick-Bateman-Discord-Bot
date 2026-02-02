@@ -162,7 +162,7 @@ class InstructionExecutor:
         except Exception as e:
             raise CustomDiscordException('Initial Instruction Memory failed to build.', e, 'InstructionMemoryError')
 
-    def mem_fetch(self, memdict: list[dict[str, ...]], keys: list[str]) -> dict[str, ... | None]:
+    def mem_fetch(self, memdict: list[dict[str, ...]], keys: list[str]) -> dict[str, ...]:
         """
         Gets the given variables from memory.
         :param memdict: The given variable stack.
