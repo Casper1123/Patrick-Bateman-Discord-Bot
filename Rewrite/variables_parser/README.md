@@ -13,15 +13,32 @@ In-placed variables may never be named equal to one of these registered values. 
 'This is regular text {guild.id}{push}{sleep(5)}'
 '{a = 5; b = 5; c = a*b; c}'
 
-# Comprehension notes
-## Operation Heirarchy
-Operations ordered by heirarchy (if brackets omitted, which one goes first)
+
+# Idea notes
+Don't you like the endless random ass rambling and things I write down for next to no reason?
+## Expression types:
+### Predicates
+name(par: type)
+### Functions:
+name(par: type): 
+
+## Operation Hierarchy
+Operations ordered by hierarchy (if brackets omitted, which one goes first)
+- symbol ; return, input
+
+todo: logic operators (simple; and, or, complicated; Quantifiers (exists, forall, to query a collection), implication)
+### -2
+- == ; bool, (any, any)
+- \>= ; bool, (any, any)
+- \> ; bool, (any, any)
+- <= ; bool, (any, any)
+- < ; bool, (any, any)
 
 ### -1
-- % ; Modulus operator.  Cyclic group style.
+- % ; int, (int, int) ; Modulus operator.  Cyclic group style.
 
 ### 0
-- \+
+- \+ ; 
 - \-
 
 ### 1
@@ -30,7 +47,7 @@ Operations ordered by heirarchy (if brackets omitted, which one goes first)
 - \// ; Integer division
 
 ### 2
-- Function call go here
+- Function calls
 
 ### 3
 - ()
