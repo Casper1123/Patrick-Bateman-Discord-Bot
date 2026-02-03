@@ -50,6 +50,8 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'message.jump_url': str,
 }
 LEGAL_VARIABLE_NAME_CHARACTERS: str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_'
+SLEEP_TIMER_UPPER_BOUND: float = 3600 # in seconds
+SLEEP_TIMER_LOWER_BOUND: float = 0.25
 
 class InstructionParseError(CustomDiscordException):
     def __init__(self, bad_var: str, reason: str = None):
@@ -144,13 +146,17 @@ class Instruction:
         return str(self.type) + ": " + str(self.options)
 
     @staticmethod
-    def from_string(build: str, depth: int = 0) -> list[Instruction]:
+    def from_string(build: str, depth: int = 0, memstack: list[dict[str, type]] = None) -> list[Instruction]:
         """
         Determines instruction type(s) and creates instructions using their parameters.
         :param build: Input string
         :param depth: The current recursion depth, in case a sub-instruction requires recursion.
+        :param memstack: The memory stack, layered on scope, of the current scope. Defines variable types for type checking.
         :return: Instructions from Build
         """
+        if depth > MAX_RECURSION_DEPTH:
+            raise InstructionParseError(build,'Maximum recursion depth exceeded. Lower the complexity of your input.')
+
         # note: use Regex to pattern match if possible. Should be easy, no?
         # how the fuck does one do c := a + b
         # --> check for memory references too, though that example was supposed to be 'how do I parse stuff'
@@ -205,13 +211,32 @@ class Instruction:
         # Step 2: Go through individual instructions and see if they are valid. If so, append them to the result output.
 
         instructions: list[Instruction] = []
-        memtypes = INITIAL_MEMORY_TYPES.copy()
+        mem: dict[str, type] = {} # local memory
+        memstack = [INITIAL_MEMORY_TYPES.copy()] if not memstack else memstack + [mem]
+
+        def fetch(key: str) -> type | None:
+            _mem: dict[str, ...] = {}
+            for frame in reversed(memstack):
+                for k, v in frame.items():
+                    _mem[k] = v
+            return _mem[key] if key in mem.keys() else None
+
+        def assign(key: str, val: type):
+            assigned: bool = False
+            for _frame in memstack:
+                if key in _frame.keys():
+                    _frame[key] = val
+                    assigned = True
+                    break
+            if not assigned:
+                mem[key] = val
+
         i = 0
         while i < len(subsections):
             subsection = subsections[i]
 
-            # Case 1: mem access for Build instruction. Has to be
-            if subsection.replace(' ', '') in memtypes.keys():
+            # Case 1: mem access for Build instruction.
+            if fetch(subsection) is not None:
                 if i < len(subsections) - 1:
                     raise InstructionParseError(subsection, f'Encountered BUILD Instruction before end of block.\n'
                                                             f'Position: **{i}**. Expected: **{len(subsections)}**.\n'
@@ -219,16 +244,52 @@ class Instruction:
                                                             f'\n'
                                                             f'To fix: Move your BUILD instruction to the end of your block. Blocks cannot contain more than one BUILD instruction to force you to format. Open a new block to include a new BUILD instruction.')
                 else:
-                    instructions.append(Instruction(InstructionType.BUILD, content=subsection.replace(' ', ''))) # can be used regardless of type.
+                    instructions.append(Instruction(InstructionType.BUILD, content=subsection)) # can be used regardless of type.
             # Case 2: Instruction is of one of the predefined functions, incompatible with comprehensions.
             # Defining regex for each specified syntax up above.
             # PUSH = push(n[0,1,2] = 0) ; n: pingable: 0: None, 1: Interaction author, 2: All ; send built output.
             # SLEEP = sleep(n = 1) ; Async sleep execution for n seconds.
             # WRITING = writing(*i) ; async with message.channel.typing(): {i}
-            # sleep: optional 0-2 decimal float number.
-            # otherwise try to use mem.
-            SLEEP_CONST = r"sleep((?P<time>(\d+(?:\.\d{1,2})))"
-            SLEEP_VAR = rf"sleep((?P<time>({LEGAL_VARIABLE_NAME_CHARACTERS})+))"
+
+            SLEEP_CONST = _re.match(r'sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)', subsection) # a.bc digits, a mandatory, .b option if a, c option if b, up to 2 digit decimal
+            SLEEP_CONST_MATCH = SLEEP_CONST is not None
+            SLEEP_VAR = _re.match(rf'sleep\((?P<time>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # just taking contents if they consist of characters to try memory.
+
+            PUSH_CONST = _re.match(r'push\((?P<pingable>(\d?))\)', subsection)  # digit 0,1,2, default to 0
+            PUSH_VAR = _re.match(rf'push\((?P<pingable>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # check for var.
+
+            WRITING = _re.match(r'writing\((?P<instr>(.*))\)', subsection) # just extract and see if output has at least one instruction.
+
+            if SLEEP_CONST_MATCH:
+                time = SLEEP_CONST.group('time')
+                if not time:  # default value use as no parameter was passed in
+                    instructions.append(Instruction(InstructionType.SLEEP, time=1))
+                    continue
+                try:
+                    time = float(time)
+                    if time < SLEEP_TIMER_LOWER_BOUND:
+                        raise InstructionParseError(subsection, 'SLEEP Instruction time is below lower bound.\n'
+                                                                f'Received: **{time}**. Minimal: **{SLEEP_TIMER_LOWER_BOUND}**')
+                    elif time > SLEEP_TIMER_UPPER_BOUND:
+                        raise InstructionParseError(subsection, f'SLEEP Instruction time exceeds upper bound.\n'
+                                                                f'Received: **{time}**. Maximum: **{SLEEP_TIMER_UPPER_BOUND}**.')
+                    instructions.append(Instruction(InstructionType.SLEEP, time=time))
+                    continue
+                except ValueError:
+                    SLEEP_CONST_MATCH = False
+            if not SLEEP_CONST_MATCH and SLEEP_VAR:
+                time = SLEEP_VAR.group('time')
+                # Check memory
+                val = fetch(time)
+                if not val:
+                    raise InstructionParseError(subsection, f'Could not find time variable \'{time}\' in memory.')
+                if not val in [float, int]:
+                    raise InstructionParseError(subsection, f'SLEEP Instruction requires parameter of type *float, int*, received {time} of type {val}.')
+                instructions.append(Instruction(InstructionType.SLEEP, time=time))
+                continue
+            
+
+
 
 
 
@@ -242,7 +303,7 @@ def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> list[
     # make sure to create an instruction to send at the end, but not after other non-message things.
     # precompute memory usage if possible to set an upper limit.
     if depth > MAX_RECURSION_DEPTH:
-        return [Instruction(InstructionType.BUILD, content='{ Maximum recursion depth reached. }')]
+        raise InstructionParseError(parse_string, 'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
     # Iterate through string, take out {} and send contents inside to Instruction parser.
     instructions: list[Instruction] = []

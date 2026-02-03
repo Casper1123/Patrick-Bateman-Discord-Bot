@@ -41,6 +41,7 @@ class InstructionExecutor:
         build: str = build if build else "" # expanded until finished or message sends, then reset. Highest scope is first.
         mem: dict[str, ...] = {} if memstack else self.init_memory(interaction)
         memstack = memstack if memstack else [] # outer scope memory. Initialize here for now.
+        local_scope = memstack + [mem]
         while i < len(instructions):
             instruction = instructions[i]
             try:
@@ -48,7 +49,7 @@ class InstructionExecutor:
                     build += instruction.options['content']
                 elif instruction.type == InstructionType.PUSH:
                     if build == "": raise ValueError('Instruction of type PUSH did not receive content to push.')
-                    await self.send_output(build, interaction, fresh=first_reply)
+                    await self.send_output(build, interaction, fresh=first_reply, mention=instruction.options['pingable'])
                     build = ""
                     first_reply = False
                 elif instruction.type == InstructionType.DEFINE:
@@ -64,9 +65,12 @@ class InstructionExecutor:
                         mem[name] = value
 
                 elif instruction.type == InstructionType.SLEEP:
-                    await self.sleep(instruction.options['time'])
+                    time = instruction.options['time']
+                    if isinstance(time, str):
+                        time = self.mem_fetch(local_scope, time)
+                    await self.sleep(time=time)
                 elif instruction.type == InstructionType.BASIC_REPLACE:
-                    build += self.basic_replace(interaction, instruction.options['key'])
+                    build += self.basic_replace(local_scope, instruction.options['key'])
                 elif instruction.type == InstructionType.WRITING:
                     build, first_reply = await self.is_writing(instruction.options['instructions'], interaction, depth, build, fresh, memstack)
                     if build is None:
