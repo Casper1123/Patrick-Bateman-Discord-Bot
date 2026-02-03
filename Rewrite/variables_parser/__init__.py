@@ -54,10 +54,10 @@ SLEEP_TIMER_UPPER_BOUND: float = 3600 # in seconds
 SLEEP_TIMER_LOWER_BOUND: float = 0.25
 
 class InstructionParseError(CustomDiscordException):
-    def __init__(self, bad_var: str, reason: str = None):
+    def __init__(self, bad_var: str, reason: str = None, refer_wiki: bool = True):
         self.bad_var: str = bad_var
         self.reason: str = reason
-        super().__init__(f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}')
+        super().__init__(f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}', refer_wiki=refer_wiki)
 
 # todo: move to config, somehow.
 MAX_RECURSION_DEPTH = 5
@@ -182,6 +182,9 @@ class Instruction:
             if escaped:
                 subbuild += char
             elif char == terminator:
+                # inside of (i*) arguments of some function. required for, for example, Writing compat. fixme: figure this out properly.
+                if len(layer_stack) > 0 and layer_stack[-1] == '(':
+                    subbuild += char
                 if len(layer_stack) == 0:
                     subsections.append(subbuild.strip())
                     subbuild = ''
@@ -256,6 +259,7 @@ class Instruction:
             SLEEP_VAR = _re.match(rf'sleep\((?P<time>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # just taking contents if they consist of characters to try memory.
 
             PUSH_CONST = _re.match(r'push\((?P<pingable>(\d?))\)', subsection)  # digit 0,1,2, default to 0
+            PUSH_CONST_MATCH = PUSH_CONST is not None
             PUSH_VAR = _re.match(rf'push\((?P<pingable>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # check for var.
 
             WRITING = _re.match(r'writing\((?P<instr>(.*))\)', subsection) # just extract and see if output has at least one instruction.
@@ -284,10 +288,31 @@ class Instruction:
                 if not val:
                     raise InstructionParseError(subsection, f'Could not find time variable \'{time}\' in memory.')
                 if not val in [float, int]:
-                    raise InstructionParseError(subsection, f'SLEEP Instruction requires parameter of type *float, int*, received {time} of type {val}.')
+                    raise InstructionParseError(subsection, f'SLEEP Instruction requires parameter of type **float** or **int**, received **{time}** of type **{val}**.')
                 instructions.append(Instruction(InstructionType.SLEEP, time=time))
                 continue
-            
+
+            if PUSH_CONST_MATCH:
+                pingable = PUSH_CONST_MATCH.group('pingable')
+                if not pingable:
+                    instructions.append(Instruction(InstructionType.PUSH, pingable=MentionOptions.NONE))
+                    continue
+                try:
+                    pingable_val = int(pingable)
+                except ValueError:
+                    raise InstructionParseError(subsection, f'Could not parse {pingable} into an Integer.')
+                if not pingable_val in [0, 1, 2]:
+                    raise InstructionParseError(subsection, f'Pingable option **{pingable_val}** not in **[0, 1, 2]**.')
+                pingable: MentionOptions
+                if pingable_val == 0:
+                    pingable = MentionOptions.NONE
+                elif pingable_val == 1:
+                    pingable = MentionOptions.AUTHOR
+                elif pingable_val == 2:
+                    pingable = MentionOptions.ALL
+
+                instructions.append(Instruction(InstructionType.PUSH, pingable=pingable))
+                continue
 
 
 
