@@ -140,8 +140,6 @@ class Instruction:
         i: int = 0
         while i < len(build):
             char: str = build[i]
-            # we are inside a string.
-            in_string: bool = layer_stack and layer_stack[-1] == '\''
             # escaped character
             escaped: bool = i > 0 and build[i-1] == '\\'
 
@@ -152,7 +150,7 @@ class Instruction:
                 # inside of (i*) arguments of some function. required for, for example, Writing compat. fixme: figure this out properly.
                 if len(layer_stack) > 0 and layer_stack[-1] == '(':
                     subbuild += char
-                if len(layer_stack) == 0:
+                elif len(layer_stack) == 0:
                     subsections.append(subbuild.strip())
                     subbuild = ''
                 else:
