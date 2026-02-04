@@ -1,0 +1,94 @@
+BotClient:
+- Holds Config state
+- Holds DB interface
+- Holds Logger
+- Launchable after in main.
+
+User features: (Each disableable by config) todo: figure out how to do per-server usability
+- Ask Patrick a question
+    1. User asks Patrick a question (command or message)
+    2. Question Decision:
+        - Regex
+        - Keywords
+        - Data predicate
+            - name, id, role count, permissions, etc. todo: figure out more
+    3. Answer decision:
+        - Specific answers, with an (optional) weight
+            > Given the conditions of the decision above, the specific answer pool is taken
+            > Then, the selected answer's weight is checked, it may be discarded.
+        - Global answers, with a given weight
+            > Weight defines probability of occurrence todo: define properly how to decide between answers
+- Ask Patrick for a fact
+    # trivial
+
+Autoreplies:
+    - Regex
+    - Keywords
+    - Weight-based answer selection
+Random Replies:
+    - todo: config probability
+
+Admin features:
+    Some servers Super Servers (ignore restrictions on Facts and char limit)
+Toggle availability on:
+    - Letter replies
+    - Number replies
+    - Random replies
+    - Content replies
+    - Ask Patrick (chat using ask @Patrick)
+
+    - Access encoding help
+    - Test fact input using the compiler + debugger tool.
+    - Add facts for the server
+        > Only up to a given character limit todo: configurable, optionally include or exclude non-build text to give more room for blocks.
+        > Only up to a given local fact amount todo: configurable
+        > Addition is logged todo: logged
+    - Edit facts for the server
+        > See details adding facts
+    - Remove facts for the server
+        > Only if it exists
+        > todo: logged
+
+Global features:
+    - Ban/Unban Servers/Users
+        > Mutual ban --> ban all people with command access in a banned server from all servers.
+        todo: quickban button from logger output, with confirmation.
+    - Add Super Servers
+    - Remove Super Servers
+    - List Super Servers
+
+    - Add global facts
+    - Remove global facts
+    - Edit global facts
+    - List global facts
+
+    # accessible through server ID
+    - Add local facts
+    - Remove local facts
+    - Edit local facts
+    - List local facts
+
+    # bound to each other by a connector of sorts todo: figure out a proper technical name.
+    - Add content replies
+    - Edit content replies
+    - Remove content replies
+    # regex, keywords, can be bound to multiple output buckets
+    - Add content triggers
+    - Edit content triggers
+    - Remove content triggers
+
+    # output, probability/message
+    - Add autoreplies
+    - Edit autoreplies
+    - Remove autoreplies
+
+Logger:
+    - Local fact alterations
+        > todo: configurable channel
+        > Include Guild, content, datetime, author information
+        > Quickban button with confirmation. Removes data associated to guild/user, attaching a backup.
+    - Global fact alterations
+        > Undo button
+
+
+Procedural Instruction String Sequence (PISS)
