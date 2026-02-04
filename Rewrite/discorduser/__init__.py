@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from Rewrite.utilities.exceptions import exception_as_embed, CustomDiscordException
+from Rewrite.utilities.exceptions import CustomDiscordException
 
 
 class BotClient(commands.Bot):
