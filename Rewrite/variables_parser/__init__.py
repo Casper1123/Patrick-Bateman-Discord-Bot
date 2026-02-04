@@ -120,12 +120,13 @@ class Instruction:
         return str(self)
 
     @staticmethod
-    def from_string(build: str, depth: int = 0, memstack: list[dict[str, type]] = None) -> list[Instruction]:
+    def from_string(build: str, depth: int = 0, memstack: list[dict[str, type]] = None, writing=False) -> list[Instruction]:
         """
         Determines instruction type(s) and creates instructions using their parameters.
         :param build: Input string
         :param depth: The current recursion depth, in case a sub-instruction requires recursion.
         :param memstack: The memory stack, layered on scope, of the current scope. Defines variable types for type checking.
+        :param writing: The given build string would be parsed as if it is inside a writing(*i) operand.
         :return: Instructions from Build
         """
         if depth > MAX_RECURSION_DEPTH:
@@ -251,9 +252,11 @@ class Instruction:
                 continue
 
             WRITING = _re.match(r'^writing\((?P<instr>(.*))\)$', subsection)  # just extract and see if output has at least one instruction.
-            if WRITING:
+            if WRITING: # fixme: can currently layer writing in writing, this should probably not happen.
+                if writing:
+                    raise InstructionParseError(subsection, f'WRITING Instruction cannot be used inside of a WRITING instruction')
                 content = WRITING.group('instr')
-                content_instr: list[Instruction] = Instruction.from_string(content, depth + 1, memstack)
+                content_instr: list[Instruction] = Instruction.from_string(content, depth + 1, memstack, writing=True)
                 if not content_instr:
                     raise InstructionParseError(subsection, f'WRITING instruction did not receive any instructions (received **{content}**).')
                 instructions.append(Instruction(InstructionType.WRITING, instructions=content_instr)) # fixme: this isn't like, safe. right?
@@ -310,7 +313,15 @@ class Instruction:
 
         return instructions
 
-def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, ...]] = None) -> list[Instruction]:
+def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, ...]] = None, writing: bool = False) -> list[Instruction]:
+    """
+    Parses string containing variable blocks into Instruction objects, with non-block text being converted into BUILD Instructions.
+    :param parse_string: Input string containing variable blocks.
+    :param depth: Recursion depth.
+    :param memstack: Current given memory stack.
+    :param writing: If the current `parse_string` would be executed inside of a writing(*i) environment.
+    :return: `parse_string` converted into its composing Instructions.
+    """
     if depth > MAX_RECURSION_DEPTH:
         raise InstructionParseError(parse_string, 'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
@@ -339,7 +350,7 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
                 depth -= 1
 
             if depth == 0:
-                instructions += Instruction.from_string(build, depth=depth, memstack=memstack)
+                instructions += Instruction.from_string(build, depth=depth, memstack=memstack, writing=writing)
                 build = ""
         else:
             build += char
