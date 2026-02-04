@@ -10,4 +10,6 @@ class ListenerCog(commands.Cog):
     async def on_ready_gaming(self):
         await self.bot.change_presence(activity=discord.Game(name="you like a fiddle"), status=discord.Status.idle) # TODO: configurable in config file bc why not.
         print(f"Bot ready in {len(self.bot.guilds)} servers")
+        for guild in self.bot.guilds:
+            print(f"\t{guild.name} : {len(guild.members)} members")
         # todo: log
