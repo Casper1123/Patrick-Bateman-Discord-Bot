@@ -31,8 +31,6 @@ class InstructionExecutor:
         self.client = client
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
-        if not interaction.guild_id:
-            raise PermissionError('Cannot execute instructions outside of Guild context.')
         depth: int = depth + 1 if depth else 0
         if depth > MAX_EXECUTION_RECURSION_DEPTH:
             raise ParsedExecutionRecursionDepthLimit(instructions, depth)
@@ -83,13 +81,15 @@ class InstructionExecutor:
             return build, first_reply
 
     async def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
+        guild: discord.Guild = interaction.guild
+        if not guild:
+            raise PermissionError('Cannot execute instructions outside of Guild context.')
         user: discord.User = interaction.user
         member: discord.Member = interaction.guild.get_member(interaction.user.id)
         me: discord.ClientUser = self.client.user
         me_member: discord.Member = interaction.guild.get_member(me.id)
 
         channel: discord.TextChannel = interaction.channel
-        guild: discord.Guild = interaction.guild
         owner: discord.Member = guild.owner  # guild owner
 
         local_facts: int = 0 # todo: actually put a number in here.
@@ -244,7 +244,7 @@ class DebugInstructionExecutor(InstructionExecutor):
         super().__init__(client)
 
     def _instruction_log(self, itype: str, extra: str = None):
-        self.output += '{ ' + itype + '; ' + extra if extra else '' + ' }'
+        self.output += '{' + itype + ';' + (extra if extra else '') + '}'
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
         # todo: determine if any initialization needs to be done here for memory evaluation.
@@ -258,22 +258,22 @@ class DebugInstructionExecutor(InstructionExecutor):
     async def sleep(self, time: int | float):
         self._instruction_log('SLEEP', f'time={time}')
 
-    async def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
-        return '{ BASIC_REPLACE; ' + key + ' }'
+    def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
+        return '{BASIC_REPLACE;' + key + '}'
 
     async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
-        build += '{ WRITING; Start {'
+        build += '{WRITING;Start {'
         build_out, first_reply = await self.run(instructions, interaction, depth, build, False, fresh, memstack)
         build += build_out if build_out else ''
-        build += '} WRITING; End }'
+        build += '} WRITING;End}'
         return build, first_reply
 
     async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         index: int = _r.randint(0, len(options) - 1)
         chosen: list[Instruction] = options[index]
-        build += '{ CHOICE ['+str(index)+'] START; {'
+        build += '{CHOICE['+str(index)+'] START; {'
         out, first_message =  await self.run(chosen, interaction, depth, build, False, fresh, memstack)
-        out += '} CHOICE ['+str(index)+'] END }'
+        out += '} CHOICE['+str(index)+'] END}'
         return out, first_message
 
     def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:

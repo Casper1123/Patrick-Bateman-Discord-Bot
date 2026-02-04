@@ -5,11 +5,16 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from Rewrite.data.data_interface_abstracts import DataInterface
+from Rewrite.discorduser.logger.logger import Logger
 from Rewrite.utilities.exceptions import CustomDiscordException
 
 
 class BotClient(commands.Bot):
-    def __init__(self) -> None:
+    def __init__(self, db: DataInterface, logger: Logger) -> None:
+        self.db: DataInterface = db
+        self.logger: Logger = logger
+
         intents = discord.Intents.default()
         intents.message_content = True
         intents.members = True

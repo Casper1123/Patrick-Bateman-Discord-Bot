@@ -8,6 +8,6 @@ output: list[Instruction] = parse_variables(fact)
 for i in output:
     print(i)
 
-executor: DebugInstructionExecutor = DebugInstructionExecutor(BotClient())
-asyncio.run(executor.run(output, interaction=DebugInteraction()))
+executor: DebugInstructionExecutor = DebugInstructionExecutor(BotClient(None, None))
+asyncio.run(executor.run(output, interaction=None))
 print(executor.output)

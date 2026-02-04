@@ -10,7 +10,7 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-from Rewrite.discorduser import BotClient
+# from Rewrite.discorduser import BotClient # fixme: circular import
 
 
 class LoggerConfiguration:
