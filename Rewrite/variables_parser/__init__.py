@@ -157,7 +157,7 @@ class Instruction:
                     subbuild = ''
                 else:
                     expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
-                    raise InstructionParseError(subbuild + char,
+                    raise InstructionParseError(subbuild,
                         reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(expected))
             elif char in bounds:
                 subbuild += char
