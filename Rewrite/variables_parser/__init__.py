@@ -86,7 +86,7 @@ class InstructionType(Enum):
 
     # Primary text
     BUILD = 0 # Not directly callable ; basic instruction, append content to next message.
-    BASIC_REPLACE = 2  # Callable by calling an unknown instruction who's key is known by the memory ;
+    BASIC_REPLACE = 2
 
     # Can involve memory
     DEFINE = 50 # define new var or overwrite value of.
@@ -97,11 +97,18 @@ class InstructionType(Enum):
     # iterative sum, mult, etc?
     # random number or something
     CALCULATE = 51
+    RANDOM = 52
 
     RANDOMUSER = 25  # TRU - True Random User, todo: port this over.
     CHOICE = 26 # choice('i', 'i', *('i') ; Options i, where the first two are mandatory.  Enclosed in ' or ".
     FACT = 27  # fact(n = None) ; n: index, can be left out for truly random.
         # todo: figure out better numbering
+
+    LOCAL_FACTS = 28
+    GLOBAL_FACTS = 29
+    TOTAL_FACTS = 30
+    RANDOM_REPL = 31
+
 
 class MentionOptions(Enum):
     NONE = 0
@@ -224,15 +231,15 @@ class Instruction:
                     _mem[k] = v
             return _mem[key] if key in mem.keys() else None
 
-        def assign(key: str, val: type):
+        def assign(key: str, _val: type):
             assigned: bool = False
             for _frame in memstack:
                 if key in _frame.keys():
-                    _frame[key] = val
+                    _frame[key] = _val
                     assigned = True
                     break
             if not assigned:
-                mem[key] = val
+                mem[key] = _val
 
         i = 0
         while i < len(subsections):
@@ -248,21 +255,11 @@ class Instruction:
                                                             f'To fix: Move your BUILD instruction to the end of your block. Blocks cannot contain more than one BUILD instruction to force you to format. Open a new block to include a new BUILD instruction.')
                 else:
                     instructions.append(Instruction(InstructionType.BUILD, content=subsection)) # can be used regardless of type.
+
             # Case 2: Instruction is of one of the predefined functions, incompatible with comprehensions.
-            # Defining regex for each specified syntax up above.
-            # PUSH = push(n[0,1,2] = 0) ; n: pingable: 0: None, 1: Interaction author, 2: All ; send built output.
-            # SLEEP = sleep(n = 1) ; Async sleep execution for n seconds.
-            # WRITING = writing(*i) ; async with message.channel.typing(): {i}
-
-            SLEEP_CONST = _re.match(r'sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)', subsection) # a.bc digits, a mandatory, .b option if a, c option if b, up to 2 digit decimal
+            SLEEP_CONST = _re.match(r'^sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)$', subsection) # a.bc digits, a mandatory, .b option if a, c option if b, up to 2 digit decimal
             SLEEP_CONST_MATCH = SLEEP_CONST is not None
-            SLEEP_VAR = _re.match(rf'sleep\((?P<time>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # just taking contents if they consist of characters to try memory.
-
-            PUSH_CONST = _re.match(r'push\((?P<pingable>(\d?))\)', subsection)  # digit 0,1,2, default to 0
-            PUSH_VAR = _re.match(rf'push\((?P<pingable>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # check for var.
-
-            WRITING = _re.match(r'writing\((?P<instr>(.*))\)', subsection) # just extract and see if output has at least one instruction.
-
+            SLEEP_VAR = _re.match(rf'^sleep\((?P<time>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)$', subsection) # just taking contents if they consist of characters to try memory.
             if SLEEP_CONST_MATCH:
                 time = SLEEP_CONST.group('time')
                 if not time:  # default value use as no parameter was passed in
@@ -291,6 +288,8 @@ class Instruction:
                 instructions.append(Instruction(InstructionType.SLEEP, time=time))
                 continue
 
+            PUSH_CONST = _re.match(r'^push\((?P<pingable>(\d?))\)$', subsection)  # digit 0,1,2, default to 0
+            PUSH_VAR = _re.match(rf'^push\((?P<pingable>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)$', subsection)
             if PUSH_CONST:
                 pingable = PUSH_CONST.group('pingable')
                 if not pingable:
@@ -315,6 +314,7 @@ class Instruction:
             elif PUSH_VAR:
                 raise InstructionParseError(subsection, f'Variable usage for Enum parameters is not supported.')
 
+            WRITING = _re.match(r'^writing\((?P<instr>(.*))\)$', subsection)  # just extract and see if output has at least one instruction.
             if WRITING:
                 content = WRITING.group('instr')
                 content_instr: list[Instruction] = Instruction.from_string(content, depth + 1, memstack)
@@ -323,7 +323,36 @@ class Instruction:
                 instructions.append(Instruction(InstructionType.WRITING, instructions=content_instr)) # fixme: this isn't like, safe. right?
                 continue
 
+            # todo: first version should support some form of choice, random user. Choice might want to support ' & "
+            RANDOM = _re.match(r"^rand(om)?\((?P<a>-?\d+), (?P<b>-?\d+)\)$", subsection) # todo: support var
+            RANDOM_VAR = _re.match(rf'^rand(om)?\((?P<a>[{LEGAL_VARIABLE_NAME_CHARACTERS}]+), (?P<b>[{LEGAL_VARIABLE_NAME_CHARACTERS}]+)\)$', subsection) # fixme: support mixing.
+            if RANDOM:
+                a = RANDOM.group('a')
+                b = RANDOM.group('b')
+                try:
+                    a = int(a)
+                except ValueError:
+                    raise InstructionParseError(subsection, f'**{a}** is not a Python-recognized integer.')
+                try:
+                    b = int(b)
+                except ValueError:
+                    raise InstructionParseError(subsection, f'**{b}** is not a Python-recognized integer.')
+                if a >= b:
+                    raise InstructionParseError(subsection, f'**left ({a})** should not be greater than ** right ({b})**.')
+                instructions.append(Instruction(InstructionType.RANDOM_REPL, lower=a, upper=b))
+                continue
+            elif RANDOM_VAR:
+                raise InstructionParseError(subsection, f'Using Variables inside of RANDOM is currently unsupported.')
 
+            # fixme: this sucks.
+            if subsection == 'local_facts':
+                instructions.append(Instruction(InstructionType.LOCAL_FACTS))
+            elif subsection == 'global_facts':
+                instructions.append(Instruction(InstructionType.GLOBAL_FACTS))
+            elif subsection == 'total_facts':
+                instructions.append(Instruction(InstructionType.TOTAL_FACTS))
+
+            
 
             # Default case, warn user of bad input.
             raise InstructionParseError(subsection, f'Instruction not recognized.')
@@ -362,7 +391,7 @@ def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> list[
                 depth -= 1
 
             if depth == 0:
-                instructions += Instruction.from_string(build, depth=depth)
+                instructions += Instruction.from_string(build, depth=depth) # fixme: memory is not layered correctly, causing everything to become local to the block.
                 build = ""
                 continue
         else:

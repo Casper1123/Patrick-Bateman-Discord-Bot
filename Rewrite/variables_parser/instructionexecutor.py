@@ -74,15 +74,15 @@ class InstructionExecutor:
                 elif instruction.type == InstructionType.WRITING:
                     build, first_reply = await self.is_writing(instruction.options['instructions'], interaction, depth, build, fresh, memstack)
                     if build is None:
-                        raise TypeError('Instruction of type WRITING returned None value instead of String.')
+                        raise TypeError('Instruction of type WRITING returned None value instead of String.') # fixme: this can't be right
                 elif instruction.type == InstructionType.CHOICE:
                     build, first_reply = await self.choice(instruction.options['options'], interaction, depth, build, fresh, memstack)
                 elif instruction.type == InstructionType.CALCULATE:
                     self.calculate(instruction.options, memstack)
+                elif instruction.type == InstructionType.RANDOM_REPL:
+                    build += str(self.random(instruction.options['left'], instruction.options['right']))
                 else:
-                    raise NotImplementedError()
-            except NotImplementedError:
-                build += '{ Skip exec of type ' + str(instruction.type) + '; NotImplemented }'
+                    raise NotImplementedError(f'InstructionType {instruction.type} not implemented.')
             except Exception as e:
                 raise ParsedExecutionFailure(instruction, i, cause=e)
             i += 1
@@ -219,10 +219,12 @@ class InstructionExecutor:
         async with interaction.channel.typing():
             return await self.run(instructions, interaction, depth, build, False, fresh, memstack)
 
-    async def choice(self, options: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
-        chosen: Instruction = _r.choice(options)
-        return await self.run([chosen], interaction, depth, build, False, fresh, memstack)
+    async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+        chosen: list[Instruction] = _r.choice(options)
+        return await self.run(chosen, interaction, depth, build, False, fresh, memstack)
 
+    def random(self, left: int, right: int) -> int:
+        return _r.randint(left, right)
     def calculate(self, options: dict[str, ...], memstack: list[dict[str, ...]]) -> None:
         ... # todo how in the world should calculations be performed? 
 
