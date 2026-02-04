@@ -314,12 +314,18 @@ class Instruction:
                 instructions.append(Instruction(InstructionType.PUSH, pingable=pingable))
                 continue
 
+            if WRITING:
+                content = WRITING.group('instr')
+                content_instr: list[Instruction] = Instruction.from_string(content, depth + 1, memstack)
+                if not content_instr:
+                    raise InstructionParseError(subsection, f'WRITING instruction did not receive any instructions (received **{content}**).')
+                instructions.append(Instruction(InstructionType.WRITING, instructions=content_instr)) # fixme: this isn't like, safe. right?
+                continue
 
+            # Default case, warn user of bad input.
+            raise InstructionParseError(subsection, f'Instruction not recognized.')
 
-
-
-        # Default
-        return [Instruction(InstructionType.BUILD, content='{ Instruction of unknown type failed Parsing: \'' + build + '\'}'),] if not instructions else instructions
+        return instructions
 
 def parse_variables(parse_string: str, depth: int = 0, *args, **kwargs) -> list[Instruction]:
     # To prevent infinite recursion but also limit memory usage, install a max depth limit. TODO: configurable.
