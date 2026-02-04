@@ -138,6 +138,7 @@ class InstructionExecutor:
                 'owner.created_at': owner.created_at,
                 'owner.account': owner.name,
                 'owner.roles': len(owner.roles) if owner else 0,
+                'owner.mutual_guilds': len(owner.mutual_guilds),
 
                 'message': interaction.message.id,
                 'message.jump_url': interaction.message.jump_url,
@@ -166,7 +167,19 @@ class InstructionExecutor:
                     message=f'Initial Instruction Memory has a missing entry as specified by the parser at **{key}**.\n'
                             'This is an implementation error and has to be fixed by developers manually.\n'
                             'Aborting execution to preserve memory safety.', error_type='InstructionMemoryError')
+            val = mem[key]
+            expected = INITIAL_MEMORY_TYPES[key]
+            if type(val) != expected:
+                raise CustomDiscordException(error_type='InstructionMemoryError',
+                                             message=f'Initial Instruction Memory has a typing mismatch from parser specification at **{key}** (expected **{expected}**, given **{type(val)} ({val})**).\n'
+                                                     f'This is *probably* an implementation error and probably has to be fixed by developers manually.\n'
+                                                     f'Aborting execution to preserve memory safety.')
         for key in mem.keys():
+            if key not in INITIAL_MEMORY_TYPES.keys():
+                raise CustomDiscordException(error_type='InstructionMemoryError',
+                                             message=f'Initial Instruction Memory contains a value not present in parser specification (**{key}**).\n'
+                                                     f'This is an implementation error and has to be fixed by developers manually.\n'
+                                                     f'Aborting execution to preserve memory safety.')
             if type(mem[key]) != INITIAL_MEMORY_TYPES[key]:
                 val = mem[key]
                 raise CustomDiscordException(error_type='InstructionMemoryError',
@@ -234,10 +247,6 @@ class InstructionExecutor:
     def random(self, left: int, right: int) -> int:
         return _r.randint(left, right)
 
-class DebugInteraction(Interaction):
-    def __init__(self):
-        self.guild_id = 0
-
 class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient = None):
         self.output: str = ''
@@ -286,7 +295,6 @@ class DebugInstructionExecutor(InstructionExecutor):
             'user.name': 'user',
             'user.created_at': now,
             'user.account': 'useraccount',
-            'user.status': 'userstatus',
             'user.mutual_guilds': 0,
             'user.roles': 0,
 
@@ -317,6 +325,7 @@ class DebugInstructionExecutor(InstructionExecutor):
             'owner.created_at': now,
             'owner.account': 'owneraccount',
             'owner.roles': 0,
+            'owner.mutual_guilds': 0,
 
             'message': 0,
             'message.jump_url': 'messageurl',
@@ -328,3 +337,7 @@ class DebugInstructionExecutor(InstructionExecutor):
         }
         self.check_init_memory(out)
         return out
+
+    def random(self, left: int, right: int) -> int:
+        self._instruction_log('RANDOM', f'left={left}, right={right}')
+        return 0
