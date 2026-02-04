@@ -16,7 +16,6 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'user.name': str,
     'user.created_at': _datetime.datetime,
     'user.account': str,
-    'user.status': str,
     'user.mutual_guilds': int,
     'user.roles': int,  # role count, not the actual roles.
 
@@ -45,6 +44,7 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'owner': str,
     'owner.name': str,
     'owner.created_at': _datetime.datetime,
+    'owner.mutual_guilds': int,
     'owner.account': str,
     'owner.roles': int,
 
@@ -94,11 +94,19 @@ class InstructionType(Enum):
     TOTAL_FACTS = 30
     RANDOM_REPL = 31
 
-
 class MentionOptions(Enum):
     NONE = 0
     AUTHOR = 1
     ALL = 2
+
+class UserAttributeOptions(Enum):
+    ID = 0
+    NAME = 1
+    CREATED_AT = 2
+    ACCOUNT = 3
+    MUTUAL_GUILDS = 4
+    ROLES = 5
+
 
 class Instruction:
     def __init__(self, instruction_type: InstructionType, **options):
@@ -251,7 +259,7 @@ class Instruction:
                 continue
 
             # todo: first version should support some form of choice, random user. Choice might want to support ' & "
-            RANDOM = _re.match(r"^rand(om)?\((?P<a>-?\d+), (?P<b>-?\d+)\)$", subsection) # todo: support var
+            RANDOM = _re.match(r"^rand(om)?\((?P<a>-?\d+),\s?(?P<b>-?\d+)\)$", subsection) # todo: support var
             if RANDOM:
                 a = RANDOM.group('a')
                 b = RANDOM.group('b')
@@ -266,6 +274,32 @@ class Instruction:
                 if a >= b:
                     raise InstructionParseError(subsection, f'**left ({a})** should not be greater than ** right ({b})**.')
                 instructions.append(Instruction(InstructionType.RANDOM_REPL, lower=a, upper=b))
+                continue
+
+            RANDOMUSER = _re.match(r'^tru\((?P<num>-?\d+),\s?(?P<attr>\w*)\)\)$', subsection) # id number, optional space, characters (0+)
+            if RANDOMUSER:
+                num = RANDOMUSER.group('num')
+                attr = RANDOMUSER.group('attr')
+                allowed_attributes: list[str] = ['id', 'name', 'account', 'created_at', 'roles', 'mutual_guilds']
+                try:
+                    num = int(num)
+                except ValueError:
+                    raise InstructionParseError(subsection, f'**{num}** is not a Python recognized integer.')
+                if not attr:
+                    attr = 'name'
+                elif attr not in allowed_attributes:
+                    raise InstructionParseError(subsection, f'Incompatible attribute.\n'
+                                                            f'Received: **{attr}**.\n'
+                                                            f'Expected: Element in **{allowed_attributes}**.')
+                attr_opt: dict[str, UserAttributeOptions] = {
+                    'id': UserAttributeOptions.ID,
+                    'name': UserAttributeOptions.NAME,
+                    'account': UserAttributeOptions.ACCOUNT,
+                    'created_at': UserAttributeOptions.CREATED_AT,
+                    'roles': UserAttributeOptions.ROLES,
+                    'mutual_guilds': UserAttributeOptions.MUTUAL_GUILDS,
+                }
+                instructions.append(Instruction(InstructionType.RANDOMUSER, num=num, attribute=attr_opt[attr]))
                 continue
 
 
