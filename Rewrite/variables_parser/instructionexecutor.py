@@ -11,6 +11,9 @@ from Rewrite.discorduser import BotClient
 from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES
 
 
+MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.
+
+
 class ParsedExecutionFailure(CustomDiscordException):
     def __init__(self, instruction: Instruction, index: int, cause: Exception | None = None) -> None:
         super().__init__(f'Failed to execute Instruction of type **{instruction.type}** (index {index}) given options \'{instruction.options}\'', cause)
@@ -20,22 +23,20 @@ class ParsedExecutionRecursionDepthLimit(CustomDiscordException):
         super().__init__(f'Maximum recursion depth of {depth} exceeded maximal value when executing Instructions.\n'
                          f'{"\n".join(str(i) for i in instructions)}')
 
-MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.
-
 class InstructionExecutor:
     """
     One call per instance, in part to be compatible with the debugger.
-    todo: pass around the constructor as a method to call from a global scope or nah?
     """
     def __init__(self, client: BotClient):
         self.client = client
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
-        if not interaction.guild.id:
+        if not interaction.guild_id:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
         depth: int = depth + 1 if depth else 0
         if depth > MAX_EXECUTION_RECURSION_DEPTH:
             raise ParsedExecutionRecursionDepthLimit(instructions, depth)
+
         first_reply = fresh
         i: int = 0
         build: str = build if build else "" # expanded until finished or message sends, then reset. Highest scope is first.
@@ -52,18 +53,6 @@ class InstructionExecutor:
                     await self.send_output(build, interaction, fresh=first_reply, mention=instruction.options['pingable'])
                     build = ""
                     first_reply = False
-                elif instruction.type == InstructionType.DEFINE:
-                    # fixme: match with banlist for other things? Or handle this properly with the parser.
-                    name: str = str(instruction.options['name'])
-                    value: object = instruction.options['value']
-                    assigned: bool = False
-                    for scope in memstack:
-                        if name in scope.keys():
-                            assigned = True
-                            scope[name] = value
-                    if not assigned:
-                        mem[name] = value
-
                 elif instruction.type == InstructionType.SLEEP:
                     time = instruction.options['time']
                     if isinstance(time, str):
@@ -103,10 +92,14 @@ class InstructionExecutor:
         guild: discord.Guild = interaction.guild
         owner: discord.Member = guild.owner  # guild owner
 
+        local_facts: int = 0 # todo: actually put a number in here.
+        global_facts: int = 0
+        total_facts: int = local_facts + global_facts
+
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
             raise ValueError('Cannot prepare memory data, missing required data to construct initial memory.')
         try:
-            out = {  # fixme: reflection in __init__.py for type checking.
+            out = {
                 '\\n': '\n',
 
                 # interaction target
@@ -148,23 +141,38 @@ class InstructionExecutor:
 
                 'message': interaction.message.id,
                 'message.jump_url': interaction.message.jump_url,
+
+                # external
+                'local_facts': local_facts,
+                'global_facts': global_facts,
+                'total_facts': total_facts,
             }
             # check for safety if all keys from parser specification are present.
-            for key in out.keys():
-                if not key in INITIAL_MEMORY_TYPES.keys():
-                    raise CustomDiscordException(message='Initial Instruction Memory is missing entries as specified by the parser.\n'
-                                                         'This is an implementation error and has to be fixed by developers manually.\n'
-                                                         'Aborting execution to preserve memory safety.', error_type='InstructionMemoryError')
-                elif type(out[key]) != INITIAL_MEMORY_TYPES[key]:
-                    val = out[key]
-                    raise CustomDiscordException(error_type='InstructionMemoryError', message=f'Initial Instruction Memory has a typing mismatch from parser specification at key:value **{key}:{val} ({type(val)}** *(expected {INITIAL_MEMORY_TYPES[key]})*.\n'
-                                                                                              f'This is probably an implementation error. Please raise this issue to the developers **if not reported already**.\n'
-                                                                                              f'Aborting execution to preserve memory safety.')
+            self.check_init_memory(out)
             return out
         except CustomDiscordException as e:
             raise e # Pass pre-constructed Exceptions up to user layer.
         except Exception as e:
             raise CustomDiscordException('Initial Instruction Memory failed to build.', e, 'InstructionMemoryError')
+
+    def check_init_memory(self, mem: dict[str, ...]) -> None:
+        """
+        Throws an exception if the memory is not safely initialized.
+        :param mem: Initial memory.
+        """
+        for key in INITIAL_MEMORY_TYPES.keys():
+            if not key in mem.keys():
+                raise CustomDiscordException(
+                    message=f'Initial Instruction Memory has a missing entry as specified by the parser at **{key}**.\n'
+                            'This is an implementation error and has to be fixed by developers manually.\n'
+                            'Aborting execution to preserve memory safety.', error_type='InstructionMemoryError')
+        for key in mem.keys():
+            if type(mem[key]) != INITIAL_MEMORY_TYPES[key]:
+                val = mem[key]
+                raise CustomDiscordException(error_type='InstructionMemoryError',
+                                             message=f'Initial Instruction Memory has a typing mismatch from parser specification at **{key}:{val} ({type(val)}** *(expected {INITIAL_MEMORY_TYPES[key]})*.\n'
+                                                     f'This is probably an implementation error. Please raise this issue to the developers **if not reported already**.\n'
+                                                     f'Aborting execution to preserve memory safety.')
 
     def mem_fetch(self, memdict: list[dict[str, ...]], keys: list[str]) -> dict[str, ...]:
         """
@@ -225,11 +233,13 @@ class InstructionExecutor:
 
     def random(self, left: int, right: int) -> int:
         return _r.randint(left, right)
-    def calculate(self, options: dict[str, ...], memstack: list[dict[str, ...]]) -> None:
-        ... # todo how in the world should calculations be performed? 
+
+class DebugInteraction(Interaction):
+    def __init__(self):
+        self.guild_id = 0
 
 class DebugInstructionExecutor(InstructionExecutor):
-    def __init__(self, client: BotClient):
+    def __init__(self, client: BotClient = None):
         self.output: str = ''
         super().__init__(client)
 
@@ -258,17 +268,17 @@ class DebugInstructionExecutor(InstructionExecutor):
         build += '} WRITING; End }'
         return build, first_reply
 
-    async def choice(self, options: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+    async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         index: int = _r.randint(0, len(options) - 1)
-        chosen: Instruction = options[index]
+        chosen: list[Instruction] = options[index]
         build += '{ CHOICE ['+str(index)+'] START; {'
-        out, first_message =  await self.run([chosen], interaction, depth, build, False, fresh, memstack)
+        out, first_message =  await self.run(chosen, interaction, depth, build, False, fresh, memstack)
         out += '} CHOICE ['+str(index)+'] END }'
         return out, first_message
 
     def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
         now: _datetime.datetime = _datetime.datetime.now()
-        return {
+        out = {
             '\\n': '\n',
 
             'user.id': 0,
@@ -310,4 +320,11 @@ class DebugInstructionExecutor(InstructionExecutor):
 
             'message': 0,
             'message.jump_url': 'messageurl',
+
+            # external
+            'local_facts': 1,
+            'global_facts': 1,
+            'total_facts': 2,
         }
+        self.check_init_memory(out)
+        return out
