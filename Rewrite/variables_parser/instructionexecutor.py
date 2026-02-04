@@ -92,8 +92,8 @@ class InstructionExecutor:
         channel: discord.TextChannel = interaction.channel
         owner: discord.Member = guild.owner  # guild owner
 
-        local_facts: int = 0 # todo: actually put a number in here.
-        global_facts: int = 0
+        local_facts: int = self.client.db.get_fact_count(guild.id)
+        global_facts: int = self.client.db.get_fact_count(None)
         total_facts: int = local_facts + global_facts
 
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
