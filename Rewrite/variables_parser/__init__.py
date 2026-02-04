@@ -259,7 +259,6 @@ class Instruction:
             SLEEP_VAR = _re.match(rf'sleep\((?P<time>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # just taking contents if they consist of characters to try memory.
 
             PUSH_CONST = _re.match(r'push\((?P<pingable>(\d?))\)', subsection)  # digit 0,1,2, default to 0
-            PUSH_CONST_MATCH = PUSH_CONST is not None
             PUSH_VAR = _re.match(rf'push\((?P<pingable>([{LEGAL_VARIABLE_NAME_CHARACTERS}]+))\)', subsection) # check for var.
 
             WRITING = _re.match(r'writing\((?P<instr>(.*))\)', subsection) # just extract and see if output has at least one instruction.
@@ -292,8 +291,8 @@ class Instruction:
                 instructions.append(Instruction(InstructionType.SLEEP, time=time))
                 continue
 
-            if PUSH_CONST_MATCH:
-                pingable = PUSH_CONST_MATCH.group('pingable')
+            if PUSH_CONST:
+                pingable = PUSH_CONST.group('pingable')
                 if not pingable:
                     instructions.append(Instruction(InstructionType.PUSH, pingable=MentionOptions.NONE))
                     continue
@@ -313,6 +312,8 @@ class Instruction:
 
                 instructions.append(Instruction(InstructionType.PUSH, pingable=pingable))
                 continue
+            elif PUSH_VAR:
+                raise InstructionParseError(subsection, f'Variable usage for Enum parameters is not supported.')
 
             if WRITING:
                 content = WRITING.group('instr')
@@ -321,6 +322,8 @@ class Instruction:
                     raise InstructionParseError(subsection, f'WRITING instruction did not receive any instructions (received **{content}**).')
                 instructions.append(Instruction(InstructionType.WRITING, instructions=content_instr)) # fixme: this isn't like, safe. right?
                 continue
+
+
 
             # Default case, warn user of bad input.
             raise InstructionParseError(subsection, f'Instruction not recognized.')
