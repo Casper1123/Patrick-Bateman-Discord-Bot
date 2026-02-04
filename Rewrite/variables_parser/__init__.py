@@ -116,6 +116,9 @@ class Instruction:
     def __str__(self):
         return str(self.type) + ": " + str(self.options)
 
+    def __repr__(self):
+        return str(self)
+
     @staticmethod
     def from_string(build: str, depth: int = 0, memstack: list[dict[str, type]] = None) -> list[Instruction]:
         """
