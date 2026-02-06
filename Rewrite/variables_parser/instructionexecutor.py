@@ -8,8 +8,7 @@ from discord.ext import commands
 
 from Rewrite.utilities.exceptions import CustomDiscordException
 from Rewrite.discorduser import BotClient
-from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES
-
+from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES, UserAttributeOptions
 
 MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.
 
@@ -17,11 +16,6 @@ MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.
 class ParsedExecutionFailure(CustomDiscordException):
     def __init__(self, instruction: Instruction, index: int, cause: Exception | None = None) -> None:
         super().__init__(f'Failed to execute Instruction of type **{instruction.type}** (index {index}) given options \'{instruction.options}\'', cause)
-
-class ParsedExecutionRecursionDepthLimit(CustomDiscordException):
-    def __init__(self, instructions: list[Instruction], depth: int) -> None:
-        super().__init__(f'Maximum recursion depth of {depth} exceeded maximal value when executing Instructions.\n'
-                         f'{"\n".join(str(i) for i in instructions)}')
 
 class InstructionExecutor:
     """
@@ -32,11 +26,13 @@ class InstructionExecutor:
         self.client = client
         self.shuffled_memberlist: list[Member] | None = None
         self.fresh: bool = True
+        self.guild_id = None
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
         depth: int = depth + 1 if depth else 0
         if depth > MAX_EXECUTION_RECURSION_DEPTH:
-            raise ParsedExecutionRecursionDepthLimit(instructions, depth)
+            raise CustomDiscordException(message=f'Maximum recursion depth of {depth} exceeded maximal value when executing Instructions.\n'
+                         f'{"\n".join(str(i) for i in instructions)}', error_type='ParsedExecutionRecursionDepthLimit', refer_wiki=True)
 
         i: int = 0
         build: str = build if build else ''
@@ -68,6 +64,8 @@ class InstructionExecutor:
                     build = await self.choice(instruction.options['options'], interaction, depth, build, memstack)
                 elif instruction.type == InstructionType.RANDOM_REPL:
                     build += str(self.random(instruction.options['left'], instruction.options['right']))
+                elif instruction.type == InstructionType.RANDOMUSER:
+                    build += str(self.random_user(instruction.options['num'], instruction.options['attribute'], interaction))
                 else:
                     raise NotImplementedError(f'InstructionType {instruction.type} not implemented.')
             except Exception as e:
@@ -202,6 +200,32 @@ class InstructionExecutor:
 
         memkeys = mem.keys()
         return { key: mem[key] if key in memkeys else None for key in keys }
+
+    def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> object:
+        if self.guild_id and self.guild_id != interaction.guild.id:
+            raise PermissionError(f'Cannot run RANDOMUSER Instruction, as Executor instance holds data from a different guild.\n'
+                f'To prevent data leakage, aborting execution.')
+        if not self.guild_id or not self.shuffled_memberlist:
+            self.guild_id = interaction.guild.id
+            self.shuffled_memberlist = [i for i in interaction.guild.members]
+            _r.shuffle(self.shuffled_memberlist)
+        index = num % len(self.shuffled_memberlist)
+        member = self.shuffled_memberlist[index]
+
+        if attribute == UserAttributeOptions.ID:
+            return member.id
+        elif attribute == UserAttributeOptions.NAME:
+            return member.display_name
+        elif attribute == UserAttributeOptions.CREATED_AT:
+            return member.created_at
+        elif attribute == UserAttributeOptions.ACCOUNT:
+            return member.name
+        elif attribute == UserAttributeOptions.MUTUAL_GUILDS:
+            return len(member.mutual_guilds)
+        elif attribute == UserAttributeOptions.ROLES:
+            return len(member.roles)
+        else:
+            raise NotImplementedError(f'UserAttributeOption {attribute} is not implemented for RANDOMUSER.')
 
     async def send_output(self, out: str, interaction: Interaction | Message, mention: MentionOptions = MentionOptions.NONE) -> None:
         """
