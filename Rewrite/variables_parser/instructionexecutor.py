@@ -201,7 +201,7 @@ class InstructionExecutor:
         memkeys = mem.keys()
         return { key: mem[key] if key in memkeys else None for key in keys }
 
-    def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> object:
+    def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> str:
         if self.guild_id and self.guild_id != interaction.guild.id:
             raise PermissionError(f'Cannot run RANDOMUSER Instruction, as Executor instance holds data from a different guild.\n'
                 f'To prevent data leakage, aborting execution.')
@@ -211,20 +211,17 @@ class InstructionExecutor:
             _r.shuffle(self.shuffled_memberlist)
         index = num % len(self.shuffled_memberlist)
         member = self.shuffled_memberlist[index]
-
-        if attribute == UserAttributeOptions.ID:
-            return member.id
-        elif attribute == UserAttributeOptions.NAME:
-            return member.display_name
-        elif attribute == UserAttributeOptions.CREATED_AT:
-            return member.created_at
-        elif attribute == UserAttributeOptions.ACCOUNT:
-            return member.name
-        elif attribute == UserAttributeOptions.MUTUAL_GUILDS:
-            return len(member.mutual_guilds)
-        elif attribute == UserAttributeOptions.ROLES:
-            return len(member.roles)
-        else:
+        options_dict: dict[UserAttributeOptions, ...] = {
+            UserAttributeOptions.ID: member.id,
+            UserAttributeOptions.NAME: member.display_name,
+            UserAttributeOptions.CREATED_AT: member.created_at,
+            UserAttributeOptions.ACCOUNT: member.name,
+            UserAttributeOptions.MUTUAL_GUILDS: len(member.mutual_guilds),
+            UserAttributeOptions.ROLES: len(member.roles),
+        }
+        try:
+            return str(options_dict[attribute])
+        except KeyError:
             raise NotImplementedError(f'UserAttributeOption {attribute} is not implemented for RANDOMUSER.')
 
     async def send_output(self, out: str, interaction: Interaction | Message, mention: MentionOptions = MentionOptions.NONE) -> None:
@@ -370,18 +367,16 @@ class DebugInstructionExecutor(InstructionExecutor):
         self._instruction_log('RANDOM', f'left={left}, right={right}')
         return 0
 
-    def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> object:
-        if attribute == UserAttributeOptions.ID:
-            return 0
-        elif attribute == UserAttributeOptions.NAME:
-            return f'ru{num}_name'
-        elif attribute == UserAttributeOptions.CREATED_AT:
-            return _datetime.datetime.now()
-        elif attribute == UserAttributeOptions.ACCOUNT:
-            return f'ru{num}_name'
-        elif attribute == UserAttributeOptions.MUTUAL_GUILDS:
-            return 0
-        elif attribute == UserAttributeOptions.ROLES:
-            return 0
-        else:
+    def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> str:
+        options_dict: dict[UserAttributeOptions, ...] = {
+            UserAttributeOptions.ID: f'ID',
+            UserAttributeOptions.NAME: f'NAME',
+            UserAttributeOptions.CREATED_AT: f'CREATED_AT',
+            UserAttributeOptions.ACCOUNT: f'ACCOUNT',
+            UserAttributeOptions.MUTUAL_GUILDS: f'MUTUAL_GUILDS',
+            UserAttributeOptions.ROLES: f'ROLES',
+        }
+        try:
+            return '{'+f'tru({num}, ' + str(options_dict[attribute]) + ')}'
+        except KeyError:
             raise NotImplementedError(f'UserAttributeOption {attribute} is not implemented for RANDOMUSER.')
