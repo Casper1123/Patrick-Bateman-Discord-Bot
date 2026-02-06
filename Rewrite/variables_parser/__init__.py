@@ -170,6 +170,8 @@ class Instruction:
                     layer_stack.pop()
                 else:
                     raise InstructionParseError(subbuild + char, reason=f'Encountered unescaped {char} before encountering {top_escape}')
+            elif char == '\\' and not escaped and len(layer_stack) == 0:
+                pass
             else:
                 subbuild += char
             i += 1
@@ -272,7 +274,7 @@ class Instruction:
                 except ValueError:
                     raise InstructionParseError(subsection, f'**{b}** is not a Python-recognized integer.')
                 if a >= b:
-                    raise InstructionParseError(subsection, f'**left ({a})** should not be greater than ** right ({b})**.')
+                    raise InstructionParseError(subsection, f'**left ({a})** should not be greater than **right ({b})**.')
                 instructions.append(Instruction(InstructionType.RANDOM_REPL, lower=a, upper=b))
                 continue
 
@@ -301,6 +303,63 @@ class Instruction:
                 }
                 instructions.append(Instruction(InstructionType.RANDOMUSER, num=num, attribute=attr_opt[attr]))
                 continue
+
+            CHOICE_BASIS = _re.match(r'^choice\(\s*(?P<options>.*)\s*\)$', subsection)
+            if CHOICE_BASIS:
+                options = CHOICE_BASIS.group('options').strip()
+                if not options:
+                    raise InstructionParseError(subsection, f'CHOICE Instruction did not receive anything to choose from.')
+                options_raw: list[str] = []
+                option_bounds: list[str] = ['\'', '"']
+                build_option: str = ''
+                if not options[0] in option_bounds:
+                    raise InstructionParseError(subsection, f'CHOICE Instruction did not receive input starting with a valid option boundary.\n'
+                                                            f'Received: **{options[0]}**.\n'
+                                                            f'Expected: *One of* **{option_bounds}**.\n')
+                chosen_bound: str = options[0]
+
+                ci: int = 1
+                inside: int = 0
+                while ci < len(options):
+                    char = options[ci]
+                    if not inside == 0:
+                        if char == ',' and inside == 1:
+                            inside = 2
+                        elif char == ' ' and inside == 2:
+                            pass  # continue to next character.
+                        elif char == chosen_bound and inside == 2:
+                            inside = 0
+                        else:
+                            raise InstructionParseError(options, f'CHOICE Instruction ran into parsing error while jumping between options (stage **{inside}**).\n'
+                                                                 f'Received: **{options[ci]}**.\n'
+                                                                 f'Expected: **{',' if inside == 1 else chosen_bound}**.')
+                    else:
+                        escaped: bool = options[ci - 1] == '\\'
+                        if char == chosen_bound and not escaped:
+                            options_raw.append(build_option)
+                            build_option = ''
+                            inside = 1
+                        elif char == '\\' and not escaped:
+                            pass
+                        else:
+                            build_option += char
+                    ci += 1
+
+                if build_option:
+                    raise InstructionParseError(subsection, f'CHOICE Instruction parsing terminated with trailing option characters.\n'
+                                                            f'Received: **{build_option}**.\n'
+                                                            f'Expected: **{build_option}***...***{chosen_bound}**.\n'
+                                                            f'To fix: either finish writing your option and end it with a {chosen_bound}, or remove the leftover characters.')
+                if len(options_raw) < 2:
+                    raise InstructionParseError(subsection, f'CHOICE Instruction received too few options to decide from.'
+                                                            f'Received: **{len(options_raw)}**.\n'
+                                                            f'Expected: **>=2**.\n'
+                                                            f'\n'
+                                                            f'Found options:\n'
+                                                            + '\n'.join(options_raw))
+                options_parsed: list[list[Instruction]] = [Instruction.from_string(opt, depth=depth+1, memstack=memstack + [{}]) for opt in options_raw]
+
+
 
 
             # Default case, warn user of bad input.
