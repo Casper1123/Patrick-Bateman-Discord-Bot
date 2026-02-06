@@ -361,8 +361,9 @@ class Instruction:
                                                             f'\n'
                                                             f'Found options:\n'
                                                             + '\n'.join(options_raw))
-                options_parsed: list[list[Instruction]] = [Instruction.from_string(opt, depth=depth+1, memstack=memstack + [{}]) for opt in options_raw]
-
+                options_parsed: list[list[Instruction]] = [Instruction.from_string(opt, depth=depth+1, memstack=memstack + [{}], writing=writing) for opt in options_raw]
+                instructions.append(Instruction(InstructionType.CHOICE, options=options_parsed))
+                continue
 
 
 
