@@ -181,7 +181,7 @@ class Instruction:
                     layer_stack.pop()
                 else:
                     raise InstructionParseError(subbuild + char, reason=f'Encountered unescaped {char} before encountering {top_escape}')
-            elif char in bounds: # fixme: choice('..', '..', *) has layer (''''
+            elif char in bounds:
                 subbuild += char
                 layer_stack.append(char)
             elif char == '\\' and not escaped and len(layer_stack) == 0:
