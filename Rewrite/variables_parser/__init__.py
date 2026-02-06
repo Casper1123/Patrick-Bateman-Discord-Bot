@@ -153,7 +153,7 @@ class Instruction:
                 subbuild += char
             elif char == terminator:
                 # inside of (i*) arguments of some function. required for, for example, Writing compat. fixme: figure this out properly.
-                if len(layer_stack) > 0 and layer_stack[-1] == '(':
+                if len(layer_stack) > 0 and '(' in layer_stack:
                     subbuild += char
                 elif len(layer_stack) == 0:
                     subsections.append(subbuild.strip())
@@ -259,7 +259,7 @@ class Instruction:
                 content_instr: list[Instruction] = Instruction.from_string(content, depth + 1, memstack, writing=True)
                 if not content_instr:
                     raise InstructionParseError(subsection, f'WRITING instruction did not receive any instructions (received **{content}**).')
-                instructions.append(Instruction(InstructionType.WRITING, instructions=content_instr)) # fixme: this isn't like, safe. right?
+                instructions.append(Instruction(InstructionType.WRITING, instructions=content_instr))
                 continue
 
             # todo: first version should support some form of choice, random user. Choice might want to support ' & "
