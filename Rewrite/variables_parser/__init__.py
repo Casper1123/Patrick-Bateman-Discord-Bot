@@ -422,7 +422,7 @@ class Instruction:
 
 def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, ...]] = None, writing: bool = False) -> list[Instruction]:
     """
-    Parses string containing variable blocks into Instruction objects, with non-block text being converted into BUILD Instructions.
+    Decomposes input string into text and command blocks by turning them into Instructions.
     :param parse_string: Input string containing variable blocks.
     :param depth: Recursion depth.
     :param memstack: Current given memory stack.
@@ -448,8 +448,9 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
             if parse_string[i-1] == '\\' and i > 0: # ensure doesn't check end of string but char in front
                 build += char
             elif i == 0 or parse_string[i-1] != '\\' and build and depth == 0:  # In a variable now. Previous build needs to be exited.
-                instructions.append(Instruction(InstructionType.BUILD, content=build))
-                build = ""
+                if build != '':
+                    instructions.append(Instruction(InstructionType.BUILD, content=build))
+                    build = ""
                 depth += 1
             else:
                 build += char
