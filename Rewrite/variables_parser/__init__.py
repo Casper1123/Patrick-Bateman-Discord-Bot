@@ -133,8 +133,8 @@ class Instruction:
             raise InstructionParseError(build,'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
         # region Step 1: separate into instruction subsections.
-        bounds: list[str] = ['{', '[', '(', '\''] # Opens another subsection. Input is already stripped of containing {}
-        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')', '\'': '\''}
+        bounds: list[str] = ['{', '[', '(',] # Opens another subsection. Input is already stripped of containing {}
+        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')',}
         escapes: list[str] = list(be_map.values())  # convert to list, makes it easier to work with.
         layer_stack: list[str] = []  # Keeps track of layers open as we need to distinguish in characters here.
         subsections: list[str] = []  # Keep track of every single operation, separated by ; terminator.
@@ -144,7 +144,7 @@ class Instruction:
         i: int = 0
         while i < len(build):
             char: str = build[i]
-            # escaped character
+
             escaped: bool = i > 0 and build[i-1] == '\\'
 
             # case 1: character is escaped
@@ -161,7 +161,7 @@ class Instruction:
                     expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
                     raise InstructionParseError(subbuild,
                         reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(expected))
-            elif char in bounds:
+            elif char in bounds: # fixme: choice('..', '..', *) has layer (''''
                 subbuild += char
                 layer_stack.append(char)
             elif char in escapes:
@@ -365,8 +365,6 @@ class Instruction:
                 instructions.append(Instruction(InstructionType.CHOICE, options=options_parsed))
                 continue
 
-
-
             # Default case, warn user of bad input.
             raise InstructionParseError(subsection, f'Instruction not recognized.')
         # endregion
@@ -382,7 +380,8 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
     :param writing: If the current `parse_string` would be executed inside of a writing(*i) environment.
     :return: `parse_string` converted into its composing Instructions.
     """
-    if depth > MAX_RECURSION_DEPTH:
+    recursion_depth = depth
+    if recursion_depth > MAX_RECURSION_DEPTH:
         raise InstructionParseError(parse_string, 'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
     mem: dict[str, type] = INITIAL_MEMORY_TYPES.copy() if not memstack else {}  # local memory
@@ -410,7 +409,7 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
                 depth -= 1
 
             if depth == 0:
-                instructions += Instruction.from_string(build, depth=depth, memstack=memstack, writing=writing)
+                instructions += Instruction.from_string(build, depth=recursion_depth, memstack=memstack, writing=writing)
                 build = ""
         else:
             build += char
