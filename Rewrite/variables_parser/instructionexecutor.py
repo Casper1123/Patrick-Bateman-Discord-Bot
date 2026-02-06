@@ -65,7 +65,7 @@ class InstructionExecutor:
                     if build is None:
                         raise TypeError('Instruction of type WRITING returned None value instead of String.') # fixme: this can't be right
                 elif instruction.type == InstructionType.CHOICE:
-                    build, first_reply = await self.choice(instruction.options['options'], interaction, depth, build, memstack)
+                    build = await self.choice(instruction.options['options'], interaction, depth, build, memstack)
                 elif instruction.type == InstructionType.RANDOM_REPL:
                     build += str(self.random(instruction.options['left'], instruction.options['right']))
                 else:
