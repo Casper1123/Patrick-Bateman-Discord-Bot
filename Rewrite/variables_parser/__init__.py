@@ -207,7 +207,7 @@ class Instruction:
                     _mem[k] = v
             return _mem[key] if key in _mem.keys() else None
 
-        for subsection in subsections:
+        for subi, subsection in enumerate(subsections):
 
             SLEEP_CONST = _re.match(r'^sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)$', subsection) # a.bc digits, a mandatory, .b option if a, c option if b, up to 2 digit decimal
             if SLEEP_CONST:
@@ -403,9 +403,9 @@ class Instruction:
             # Last in sequence to prevent 'overwrites' from actually overwriting available commands. This is not intended behaviour.
             res = fetch(subsection)
             if res is not None:
-                if i < len(subsections) - 1:
+                if subi < len(subsections) - 1:
                     raise InstructionParseError(subsection, f'Encountered BUILD Instruction before end of block.\n'
-                                                            f'Position: **{i}**. Expected: **{len(subsections)}**.\n'
+                                                            f'Position: **{subi}**. Expected: **{len(subsections)}**.\n'
                                                             f'In block {build}\n'
                                                             f'\n'
                                                             f'To fix: Move your BUILD instruction to the end of your block. Blocks cannot contain more than one BUILD instruction to force you to format. Open a new block to include a new BUILD instruction.')
