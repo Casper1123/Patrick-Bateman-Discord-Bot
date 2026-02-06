@@ -133,9 +133,10 @@ class Instruction:
             raise InstructionParseError(build,'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
         # region Step 1: separate into instruction subsections.
-        bounds: list[str] = ['{', '[', '(',] # Opens another subsection. Input is already stripped of containing {}
-        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')',} # fixme: re-add ' as bound for debugging. solution: if ' on top, ' is bound
+        bounds: list[str] = ['{', '[', '(', '\'', '"'] # Opens another subsection. Input is already stripped of containing {}
+        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
         escapes: list[str] = list(be_map.values())  # convert to list, makes it easier to work with.
+        doubles: list[str] = [b for b in bounds if be_map[b] == b]
         layer_stack: list[str] = []  # Keeps track of layers open as we need to distinguish in characters here.
         subsections: list[str] = []  # Keep track of every single operation, separated by ; terminator.
         subbuild: str = ''
@@ -158,13 +159,21 @@ class Instruction:
                     subsections.append(subbuild.strip())
                     subbuild = ''
                 else:
-                    expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
+                    expected: list[str] = [be_map[b] for b in reversed(layer_stack)]  # running into some typing issues so this is the ugly version
                     raise InstructionParseError(subbuild,
-                        reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(reversed(expected)))
-            elif char in bounds: # fixme: choice('..', '..', *) has layer (''''
-                subbuild += char
-                layer_stack.append(char)
-            elif char in escapes:
+                        reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(expected))
+            elif char in doubles:
+                # doubles: ' bounds and escapes.
+                # no symbols to escape with this char, or top char is char (doubles property)
+                if len(layer_stack) == 0 or layer_stack[-1] != char:
+                    # bound
+                    subbuild += char
+                    layer_stack.append(char)
+                else:
+                    # there is some symbol on top (that being char), as such we can escape it
+                    subbuild += char
+                    layer_stack.pop()
+            elif char in escapes:  # escapes before bounds in case doubles aren't escaped properly, which would consider them as bounds.
                 top = layer_stack[-1]
                 top_escape = be_map[top]
                 if char == top_escape:
@@ -172,14 +181,17 @@ class Instruction:
                     layer_stack.pop()
                 else:
                     raise InstructionParseError(subbuild + char, reason=f'Encountered unescaped {char} before encountering {top_escape}')
+            elif char in bounds: # fixme: choice('..', '..', *) has layer (''''
+                subbuild += char
+                layer_stack.append(char)
             elif char == '\\' and not escaped and len(layer_stack) == 0:
                 pass
             else:
                 subbuild += char
             i += 1
         if len(layer_stack) > 0:
-            expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
-            raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(reversed(expected)))
+            expected: list[str] = [be_map[b] for b in reversed(layer_stack)]
+            raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(expected))
         else:
             subsections.append(subbuild.strip())
         # endregion
