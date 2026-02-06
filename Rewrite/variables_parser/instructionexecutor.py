@@ -369,3 +369,19 @@ class DebugInstructionExecutor(InstructionExecutor):
     def random(self, left: int, right: int) -> int:
         self._instruction_log('RANDOM', f'left={left}, right={right}')
         return 0
+
+    def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> object:
+        if attribute == UserAttributeOptions.ID:
+            return 0
+        elif attribute == UserAttributeOptions.NAME:
+            return f'ru{num}_name'
+        elif attribute == UserAttributeOptions.CREATED_AT:
+            return _datetime.datetime.now()
+        elif attribute == UserAttributeOptions.ACCOUNT:
+            return f'ru{num}_name'
+        elif attribute == UserAttributeOptions.MUTUAL_GUILDS:
+            return 0
+        elif attribute == UserAttributeOptions.ROLES:
+            return 0
+        else:
+            raise NotImplementedError(f'UserAttributeOption {attribute} is not implemented for RANDOMUSER.')
