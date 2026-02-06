@@ -133,6 +133,7 @@ class Instruction:
             raise InstructionParseError(build,'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
         # region Step 1: separate into instruction subsections.
+        terminator: str = ';'
         bounds: list[str] = ['{', '[', '(', '\'', '"'] # Opens another subsection. Input is already stripped of containing {}
         be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
         escapes: list[str] = list(be_map.values())  # convert to list, makes it easier to work with.
@@ -140,12 +141,10 @@ class Instruction:
         layer_stack: list[str] = []  # Keeps track of layers open as we need to distinguish in characters here.
         subsections: list[str] = []  # Keep track of every single operation, separated by ; terminator.
         subbuild: str = ''
-        terminator: str = ';'
 
         i: int = 0
         while i < len(build):
             char: str = build[i]
-
             escaped: bool = i > 0 and build[i-1] == '\\'
 
             if escaped:
@@ -193,6 +192,8 @@ class Instruction:
             raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(expected))
         else:
             subsections.append(subbuild.strip())
+
+        del layer_stack, subbuild, i, char, escaped # Free this, and ensure that I cannot accidentally re-use old vars.
         # endregion
 
         # region Step 2: Instruction recognition
@@ -318,33 +319,70 @@ class Instruction:
                                                             f'Received: **{options[0]}**.\n'
                                                             f'Expected: *One of* **{option_bounds}**.\n')
                 chosen_bound: str = options[0]
-
-                ci: int = 1
-                inside: int = 0
-                while ci < len(options):
-                    char = options[ci]
-                    if not inside == 0:
-                        if char == ',' and inside == 1:
-                            inside = 2
-                        elif char == ' ' and inside == 2:
-                            pass  # continue to next character.
-                        elif char == chosen_bound and inside == 2:
-                            inside = 0
-                        else:
-                            raise InstructionParseError(options, f'CHOICE Instruction ran into parsing error while jumping between options (stage **{inside}**).\n'
-                                                                 f'Received: **{options[ci]}**.\n'
-                                                                 f'Expected: **{',' if inside == 1 else chosen_bound}**.')
-                    else:
-                        escaped: bool = options[ci - 1] == '\\'
-                        if char == chosen_bound and not escaped:
-                            options_raw.append(build_option)
-                            build_option = ''
-                            inside = 1
-                        elif char == '\\' and not escaped:
+                # fixme: needs to rely on a stack system where layering will working properly.
+                # Solution: when opening, throw bound on top of the stack. Use known bounds variables and parsing.
+                # If the stack is empty, the next character MUST be a ,
+                # Once that was encountered, ignore any spaces until the known bound is found.
+                # Any non-picked bound is tossed aside
+                i: int = 1
+                layer_stack: list[str] = [chosen_bound]
+                jumping: int = 0 # 0: in string, 1: right after, 2: spaces optional
+                while i < len(options):
+                    char = options[i]
+                    # We are outside of a variable
+                    if jumping != 0:
+                        if jumping == 1 and char == ',':
+                            jumping = 2
+                        elif jumping == 2 and char == ' ':
                             pass
+                        elif jumping == 2 and char == chosen_bound:
+                            layer_stack.append(chosen_bound)
+                            jumping = 0
+                        else:
+                            raise InstructionParseError(options,
+                                                        f'CHOICE Instruction ran into parsing error while jumping between options (stage **{jumping}**).\n'
+                                                        f'Received: **{options[i]}**.\n'
+                                                        f'Expected: **{',' if jumping == 1 else chosen_bound}**.')
+                    else:
+                        escaped: bool = options[i - 1] == '\\'
+                        if escaped:
+                            build_option += char
+                        # We are in a var.
+                        # Exiting the var.
+                        elif len(layer_stack) == 1 and layer_stack[-1] == chosen_bound == char:
+                            # empty option build after appending, then set jumping var.
+                            options_raw.append(build_option)
+                            layer_stack.pop()
+                            build_option = ''
+                            jumping = 1
+                        # Character is a doubles bound
+                        elif char in doubles:
+                            # Check if it is a bound or escape
+                            if len(layer_stack) > 0 and layer_stack[-1] == char:
+                                # escape
+                                layer_stack.pop()
+                            else: # fixme: this does not cover all cases. Remake.
+                                # bound
+                                layer_stack.append(char)
+                            build_option += char
+                        elif char in bounds:
+                            layer_stack.append(char)
+                            build_option += char
+                        elif char in escapes:
+                            if not layer_stack:
+                                raise InstructionParseError(options, f'CHOICE Instruction parsing encountered unescaped escaping character before encountering any bounding characters.\n'
+                                                                     f'Received: **{char}**')
+                            # escape has to be on top
+                            top = layer_stack[-1]
+                            top_escape = be_map[top]
+                            if char == top_escape:
+                                layer_stack.pop()
+                                build_option += char
+                            else:
+                                raise InstructionParseError(build_option + char, reason=f'Encountered unescaped {char} before encountering {top_escape}')
                         else:
                             build_option += char
-                    ci += 1
+                    i += 1
 
                 if build_option:
                     raise InstructionParseError(subsection, f'CHOICE Instruction parsing terminated with trailing option characters.\n'
