@@ -197,20 +197,6 @@ class Instruction:
 
         for subsection in subsections:
 
-            # Case 1: mem access for Build instruction.
-            res = fetch(subsection)
-            if res is not None:
-                if i < len(subsections) - 1:
-                    raise InstructionParseError(subsection, f'Encountered BUILD Instruction before end of block.\n'
-                                                            f'Position: **{i}**. Expected: **{len(subsections)}**.\n'
-                                                            f'In block {build}\n'
-                                                            f'\n'
-                                                            f'To fix: Move your BUILD instruction to the end of your block. Blocks cannot contain more than one BUILD instruction to force you to format. Open a new block to include a new BUILD instruction.')
-                else:
-                    instructions.append(Instruction(InstructionType.BASIC_REPLACE, key=subsection)) # can be used regardless of type.
-                    continue
-
-            # Case 2: Instruction is of one of the predefined functions, incompatible with comprehensions.
             SLEEP_CONST = _re.match(r'^sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)$', subsection) # a.bc digits, a mandatory, .b option if a, c option if b, up to 2 digit decimal
             if SLEEP_CONST:
                 time = SLEEP_CONST.group('time')
@@ -364,6 +350,20 @@ class Instruction:
                 options_parsed: list[list[Instruction]] = [parse_variables(opt, depth=depth+1, memstack=memstack + [{}], writing=writing) for opt in options_raw]
                 instructions.append(Instruction(InstructionType.CHOICE, options=options_parsed))
                 continue
+
+            # Last in sequence to prevent 'overwrites' from actually overwriting available commands. This is not intended behaviour.
+            res = fetch(subsection)
+            if res is not None:
+                if i < len(subsections) - 1:
+                    raise InstructionParseError(subsection, f'Encountered BUILD Instruction before end of block.\n'
+                                                            f'Position: **{i}**. Expected: **{len(subsections)}**.\n'
+                                                            f'In block {build}\n'
+                                                            f'\n'
+                                                            f'To fix: Move your BUILD instruction to the end of your block. Blocks cannot contain more than one BUILD instruction to force you to format. Open a new block to include a new BUILD instruction.')
+                else:
+                    instructions.append(Instruction(InstructionType.BASIC_REPLACE,
+                                                    key=subsection))  # can be used regardless of type.
+                    continue
 
             # Default case, warn user of bad input.
             raise InstructionParseError(subsection, f'Instruction not recognized.')
