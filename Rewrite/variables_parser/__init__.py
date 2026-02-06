@@ -252,7 +252,7 @@ class Instruction:
                 continue
 
             WRITING = _re.match(r'^writing\((?P<instr>(.*))\)$', subsection)  # just extract and see if output has at least one instruction.
-            if WRITING: # fixme: can currently layer writing in writing, this should probably not happen.
+            if WRITING:
                 if writing:
                     raise InstructionParseError(subsection, f'WRITING Instruction cannot be used inside of a WRITING instruction')
                 content = WRITING.group('instr')
