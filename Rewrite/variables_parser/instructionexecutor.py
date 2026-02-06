@@ -3,7 +3,7 @@ import random as _r
 import datetime as _datetime
 
 import discord
-from discord import AllowedMentions, Message, Interaction
+from discord import AllowedMentions, Message, Interaction, Member
 from discord.ext import commands
 
 from Rewrite.utilities.exceptions import CustomDiscordException
@@ -25,19 +25,21 @@ class ParsedExecutionRecursionDepthLimit(CustomDiscordException):
 
 class InstructionExecutor:
     """
-    One call per instance, in part to be compatible with the debugger.
+    Executes given instructions using asynchronous run method.
+    Create a new instance per attempted execution, as it keeps track of some global execution variables as class attributes.
     """
     def __init__(self, client: BotClient):
         self.client = client
+        self.shuffled_memberlist: list[Member] | None = None
+        self.fresh: bool = True
 
-    async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
+    async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
         depth: int = depth + 1 if depth else 0
         if depth > MAX_EXECUTION_RECURSION_DEPTH:
             raise ParsedExecutionRecursionDepthLimit(instructions, depth)
 
-        first_reply = fresh
         i: int = 0
-        build: str = build if build else "" # expanded until finished or message sends, then reset. Highest scope is first.
+        build: str = build if build else ''
         mem: dict[str, ...] = {} if memstack else self.init_memory(interaction)
         memstack = memstack if memstack else [] # outer scope memory. Initialize here for now.
         local_scope = memstack + [mem]
@@ -47,10 +49,10 @@ class InstructionExecutor:
                 if instruction.type == InstructionType.BUILD:
                     build += instruction.options['content']
                 elif instruction.type == InstructionType.PUSH:
-                    if build == "": raise ValueError('Instruction of type PUSH did not receive content to push.')
-                    await self.send_output(build, interaction, fresh=first_reply, mention=instruction.options['pingable'])
-                    build = ""
-                    first_reply = False
+                    if build == '': raise ValueError('Instruction of type PUSH did not receive content to push.')
+                    await self.send_output(build, interaction, mention=instruction.options['pingable'])
+                    build = ''
+                    self.fresh = False
                 elif instruction.type == InstructionType.SLEEP:
                     time = instruction.options['time']
                     if isinstance(time, str):
@@ -59,11 +61,11 @@ class InstructionExecutor:
                 elif instruction.type == InstructionType.BASIC_REPLACE:
                     build += self.basic_replace(local_scope, instruction.options['key'])
                 elif instruction.type == InstructionType.WRITING:
-                    build, first_reply = await self.is_writing(instruction.options['instructions'], interaction, depth, build, fresh, memstack)
+                    build = await self.is_writing(instruction.options['instructions'], interaction, depth, build, memstack)
                     if build is None:
                         raise TypeError('Instruction of type WRITING returned None value instead of String.') # fixme: this can't be right
                 elif instruction.type == InstructionType.CHOICE:
-                    build, first_reply = await self.choice(instruction.options['options'], interaction, depth, build, fresh, memstack)
+                    build, first_reply = await self.choice(instruction.options['options'], interaction, depth, build, memstack)
                 elif instruction.type == InstructionType.RANDOM_REPL:
                     build += str(self.random(instruction.options['left'], instruction.options['right']))
                 else:
@@ -73,10 +75,10 @@ class InstructionExecutor:
             i += 1
 
         if build and push_final_build:
-            await self.send_output(build, interaction, fresh=first_reply, mention=MentionOptions.NONE) # Defaults to not mentioning. Should have PUSHed beforehand.
-            return None, first_reply
+            await self.send_output(build, interaction, mention=MentionOptions.NONE) # Defaults to not mentioning. Should have PUSHed beforehand.
+            return ''
         else:
-            return build, first_reply
+            return build
 
     async def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
         guild: discord.Guild = interaction.guild
@@ -201,7 +203,7 @@ class InstructionExecutor:
         memkeys = mem.keys()
         return { key: mem[key] if key in memkeys else None for key in keys }
 
-    async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE) -> None:
+    async def send_output(self, out: str, interaction: Interaction | Message, mention: MentionOptions = MentionOptions.NONE) -> None:
         """
         Sends the given string into the interaction output channel.
         :param out: Message content string.
@@ -213,12 +215,12 @@ class InstructionExecutor:
             raise TypeError(f'Instruction of type PUSH received an output object of type {type(out)}, which is not supported.')
         allowed_mentions = AllowedMentions.all() if mention.ALL else (AllowedMentions(everyone=False, roles=False, users=False, replied_user=True) if mention.AUTHOR else AllowedMentions.none())
         if isinstance(interaction, Message):
-            if fresh:
+            if self.fresh:
                 await interaction.channel.send(content=out, allowed_mentions=allowed_mentions)
             else:
                 await interaction.reply(content=out, allowed_mentions=allowed_mentions)
         elif isinstance(interaction, Interaction):
-            if fresh:
+            if self.fresh:
                 await interaction.response.send_message(content=out, allowed_mentions=allowed_mentions)
             else:
                 await interaction.followup.send(content=out, allowed_mentions=allowed_mentions)
@@ -234,13 +236,13 @@ class InstructionExecutor:
             raise MemoryError(f'Cannot access memory entry \'{key}\'.')
         return str(result)
 
-    async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+    async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, memstack: list[dict[str, ...]]) -> str:
         async with interaction.channel.typing():
-            return await self.run(instructions, interaction, depth, build, False, fresh, memstack)
+            return await self.run(instructions, interaction, depth, build, False, memstack)
 
-    async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+    async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, memstack: list[dict[str, ...]]) -> str:
         chosen: list[Instruction] = _r.choice(options)
-        return await self.run(chosen, interaction, depth, build, False, fresh, memstack)
+        return await self.run(chosen, interaction, depth, build, False, memstack)
 
     def random(self, left: int, right: int) -> int:
         return _r.randint(left, right)
@@ -255,17 +257,17 @@ class DebugInstructionExecutor(InstructionExecutor):
         if not self.pure_output:
             self.output += '{' + itype + ';' + (extra if extra else '') + '}'
 
-    async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
+    async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
         # todo: determine if any initialization needs to be done here for memory evaluation.
         temp: str = self.output
         self.output = '' # temporarily move output.
-        out = await super().run(instructions, interaction, depth, build, push_final_build, fresh, memstack)
+        out = await super().run(instructions, interaction, depth, build, push_final_build, memstack)
         self.output = temp + self.output
         return out
 
-    async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE):
+    async def send_output(self, out: str, interaction: Interaction | Message, mention: MentionOptions = MentionOptions.NONE):
         self.output += out
-        self._instruction_log('PUSH', f'fr={fresh},mention={mention}')
+        self._instruction_log('PUSH', f'fr={self.fresh},mention={mention}')
 
     async def sleep(self, time: int | float):
         self._instruction_log('SLEEP', f'time={time}')
@@ -273,20 +275,19 @@ class DebugInstructionExecutor(InstructionExecutor):
     def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
         return '{BASIC_REPLACE;' + key + '}'
 
-    async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+    async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, memstack: list[dict[str, ...]]) -> str:
         self._instruction_log('WRITING', 'START')
-        build_out, first_reply = await self.run(instructions, interaction, depth, build, False, fresh, memstack)
-        build = build_out if build_out else ''
+        build = await self.run(instructions, interaction, depth, build, False, memstack)
         self._instruction_log('WRITING', 'END')
-        return build, first_reply
+        return build
 
-    async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
+    async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, memstack: list[dict[str, ...]]) -> str:
         index: int = _r.randint(0, len(options) - 1)
         chosen: list[Instruction] = options[index]
         build += '{CHOICE['+str(index)+'] START; { ' if not self.pure_output else '' #fixme: test properly
-        out, first_message =  await self.run(chosen, interaction, depth, build, False, fresh, memstack)
+        out =  await self.run(chosen, interaction, depth, build, False, memstack)
         out += ' } CHOICE['+str(index)+'] END}' if not self.pure_output else ''
-        return out, first_message
+        return out
 
     def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
         now: _datetime.datetime = _datetime.datetime.now()
