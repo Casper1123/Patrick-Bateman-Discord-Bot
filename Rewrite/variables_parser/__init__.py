@@ -282,7 +282,7 @@ class Instruction:
                 instructions.append(Instruction(InstructionType.RANDOM_REPL, lower=a, upper=b))
                 continue
 
-            RANDOMUSER = _re.match(r'^tru\((?P<num>-?\d+),\s?(?P<attr>\w*)\)\)$', subsection) # id number, optional space, characters (0+)
+            RANDOMUSER = _re.match(r'^tru\((?P<num>-?\d+),\s?(?P<attr>\w*)\)$', subsection) # id number, optional space, characters (0+)
             if RANDOMUSER:
                 num = RANDOMUSER.group('num')
                 attr = RANDOMUSER.group('attr')
