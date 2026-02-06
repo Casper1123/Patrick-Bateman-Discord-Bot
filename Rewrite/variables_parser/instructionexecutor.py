@@ -64,8 +64,6 @@ class InstructionExecutor:
                         raise TypeError('Instruction of type WRITING returned None value instead of String.') # fixme: this can't be right
                 elif instruction.type == InstructionType.CHOICE:
                     build, first_reply = await self.choice(instruction.options['options'], interaction, depth, build, fresh, memstack)
-                elif instruction.type == InstructionType.CALCULATE:
-                    self.calculate(instruction.options, memstack)
                 elif instruction.type == InstructionType.RANDOM_REPL:
                     build += str(self.random(instruction.options['left'], instruction.options['right']))
                 else:
@@ -92,8 +90,8 @@ class InstructionExecutor:
         channel: discord.TextChannel = interaction.channel
         owner: discord.Member = guild.owner  # guild owner
 
-        local_facts: int = 0 # todo: actually put a number in here.
-        global_facts: int = 0
+        local_facts: int = self.client.db.get_fact_count(guild.id)
+        global_facts: int = self.client.db.get_fact_count(None)
         total_facts: int = local_facts + global_facts
 
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
@@ -248,16 +246,21 @@ class InstructionExecutor:
         return _r.randint(left, right)
 
 class DebugInstructionExecutor(InstructionExecutor):
-    def __init__(self, client: BotClient = None):
+    def __init__(self, client: BotClient, pure_output: bool = False):
         self.output: str = ''
+        self.pure_output: bool = pure_output
         super().__init__(client)
 
     def _instruction_log(self, itype: str, extra: str = None):
-        self.output += '{' + itype + ';' + (extra if extra else '') + '}'
+        if not self.pure_output:
+            self.output += '{' + itype + ';' + (extra if extra else '') + '}'
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, fresh: bool = True, memstack: list[dict[str, ...]] = None) -> tuple[str | None, bool]:
         # todo: determine if any initialization needs to be done here for memory evaluation.
+        temp: str = self.output
+        self.output = '' # temporarily move output.
         out = await super().run(instructions, interaction, depth, build, push_final_build, fresh, memstack)
+        self.output = temp + self.output
         return out
 
     async def send_output(self, out: str, interaction: Interaction | Message, fresh: bool, mention: MentionOptions = MentionOptions.NONE):
@@ -271,18 +274,18 @@ class DebugInstructionExecutor(InstructionExecutor):
         return '{BASIC_REPLACE;' + key + '}'
 
     async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
-        build += '{WRITING;Start {'
+        self._instruction_log('WRITING', 'START')
         build_out, first_reply = await self.run(instructions, interaction, depth, build, False, fresh, memstack)
-        build += build_out if build_out else ''
-        build += '} WRITING;End}'
+        build = build_out if build_out else ''
+        self._instruction_log('WRITING', 'END')
         return build, first_reply
 
     async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         index: int = _r.randint(0, len(options) - 1)
         chosen: list[Instruction] = options[index]
-        build += '{CHOICE['+str(index)+'] START; {'
+        build += '{CHOICE['+str(index)+'] START; {' if not self.pure_output else '' #fixme: test properly
         out, first_message =  await self.run(chosen, interaction, depth, build, False, fresh, memstack)
-        out += '} CHOICE['+str(index)+'] END}'
+        out += '} CHOICE['+str(index)+'] END}' if not self.pure_output else ''
         return out, first_message
 
     def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
