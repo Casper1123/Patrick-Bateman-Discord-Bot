@@ -148,7 +148,6 @@ class Instruction:
 
             escaped: bool = i > 0 and build[i-1] == '\\'
 
-            # case 1: character is escaped
             if escaped:
                 subbuild += char
             elif char == terminator:
