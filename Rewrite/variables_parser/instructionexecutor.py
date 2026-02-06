@@ -283,9 +283,9 @@ class DebugInstructionExecutor(InstructionExecutor):
     async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str, fresh: bool, memstack: list[dict[str, ...]]) -> tuple[str | None, bool]:
         index: int = _r.randint(0, len(options) - 1)
         chosen: list[Instruction] = options[index]
-        build += '{CHOICE['+str(index)+'] START; {' if not self.pure_output else '' #fixme: test properly
+        build += '{CHOICE['+str(index)+'] START; { ' if not self.pure_output else '' #fixme: test properly
         out, first_message =  await self.run(chosen, interaction, depth, build, False, fresh, memstack)
-        out += '} CHOICE['+str(index)+'] END}' if not self.pure_output else ''
+        out += ' } CHOICE['+str(index)+'] END}' if not self.pure_output else ''
         return out, first_message
 
     def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
