@@ -134,7 +134,7 @@ class Instruction:
 
         # region Step 1: separate into instruction subsections.
         bounds: list[str] = ['{', '[', '(',] # Opens another subsection. Input is already stripped of containing {}
-        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')',}
+        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')',} # fixme: re-add ' as bound for debugging. solution: if ' on top, ' is bound
         escapes: list[str] = list(be_map.values())  # convert to list, makes it easier to work with.
         layer_stack: list[str] = []  # Keeps track of layers open as we need to distinguish in characters here.
         subsections: list[str] = []  # Keep track of every single operation, separated by ; terminator.
@@ -160,7 +160,7 @@ class Instruction:
                 else:
                     expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
                     raise InstructionParseError(subbuild,
-                        reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(expected))
+                        reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(reversed(expected)))
             elif char in bounds: # fixme: choice('..', '..', *) has layer (''''
                 subbuild += char
                 layer_stack.append(char)
@@ -179,7 +179,7 @@ class Instruction:
             i += 1
         if len(layer_stack) > 0:
             expected: list[str] = [be_map[layer_stack[i]] for i in range(len(layer_stack))]  # running into some typing issues so this is the ugly version
-            raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(expected))
+            raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(reversed(expected)))
         else:
             subsections.append(subbuild.strip())
         # endregion
@@ -398,14 +398,19 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
         if char == "{":
             if parse_string[i-1] == '\\' and i > 0: # ensure doesn't check end of string but char in front
                 build += char
-            elif i == 0 or parse_string[i-1] != '\\' and build:  # In a variable now. Previous build needs to be exited.
+            elif i == 0 or parse_string[i-1] != '\\' and build and depth == 0:  # In a variable now. Previous build needs to be exited.
                 instructions.append(Instruction(InstructionType.BUILD, content=build))
                 build = ""
+                depth += 1
+            else:
+                build += char
                 depth += 1
         elif char == "}":
             if parse_string[i-1] == '\\':
                 build += char
             else:
+                if depth > 1:
+                    build += char
                 depth -= 1
 
             if depth == 0:
