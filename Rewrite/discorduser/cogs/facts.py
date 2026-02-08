@@ -4,6 +4,8 @@ from discord.ext import commands
 
 from ...data.data_interface_abstracts import DataInterface
 from ...variables_parser import parse_variables, Instruction
+from ...variables_parser.instructionexecutor import InstructionExecutor
+from ..logger.visualisation import embedify
 
 
 class FactsCog(commands.Cog):
@@ -23,15 +25,16 @@ class FactsCog(commands.Cog):
             await interaction.response.send_message(fact, ephemeral=True)
         else:
             fact: list[Instruction] = parse_variables(fact_raw)
-            raise NotImplementedError()
+            executor: InstructionExecutor = InstructionExecutor(self.client)
+            await executor.run(fact, interaction=interaction)
 
 
     @app_commands.command(name="fact_index", description="Gives the number of stored facts.")
     async def fact_index(self, interaction: discord.Interaction):
         global_fact_count: int = self.db.get_fact_count(None)
         local_fact_count: int = self.db.get_fact_count(interaction.guild_id)
-        # send data over.
         embed = discord.Embed(title="Current fact count",
-                              description=f"Global: {global_fact_count}\n"
+                              description=f"Total: {global_fact_count + local_fact_count}\n"
+                                          f"Global: {global_fact_count}\n"
                                           f"Local: {local_fact_count}")
         await interaction.response.send_message(embed=embed, ephemeral=True)
