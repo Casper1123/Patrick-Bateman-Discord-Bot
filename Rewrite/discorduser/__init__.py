@@ -15,10 +15,18 @@ class BotClient(commands.Bot):
         self.db: DataInterface = db
         self.logger: Logger = logger
 
+        self.local_fact_killswitch: bool = False
+        # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
+        # Mostly intended for Moderation purposes.
+
         intents = discord.Intents.default()
         intents.message_content = True
         intents.members = True
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
+
+    def toggle_local_fact_killswitch(self) -> bool:
+        self.local_fact_killswitch = not self.local_fact_killswitch
+        return self.local_fact_killswitch
 
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):

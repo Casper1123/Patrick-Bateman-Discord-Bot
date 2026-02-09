@@ -3,6 +3,7 @@ import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 
+from .. import BotClient
 from ...data.data_interface_abstracts import GlobalAdminDataInterface
 from ...variables_parser import parse_variables, Instruction
 from ...variables_parser.instructionexecutor import InstructionExecutor, DebugInstructionExecutor
@@ -13,7 +14,7 @@ GLOBAL_ADMIN_SERVER_IDS: list[int] = [] # todo: config input
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(*[discord.Object(id=i) for i in GLOBAL_ADMIN_SERVER_IDS])
 class GlobalAdminCog(commands.Cog, name='global'):
-    def __init__(self, client: commands.bot,  db: GlobalAdminDataInterface, logger) -> None:
+    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
         self.client = client
         self.db = db
         self.logger = logger
@@ -49,4 +50,10 @@ class GlobalAdminCog(commands.Cog, name='global'):
             except discord.HTTPException:
                 pass
         await interaction.edit_original_response(content=f'Command Tree synchronization complete.')
+
+    @app_commands.command(name='DB_KILLSWITCH', description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
+    @app_commands.describe(ephemeral='Hide the message from the channel. Default: True')
+    async def killswitch(self, interaction: Interaction, ephemeral: bool = True):
+        state: bool = self.client.toggle_local_fact_killswitch()
+        await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
     # endregion
