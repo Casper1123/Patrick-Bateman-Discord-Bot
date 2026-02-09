@@ -14,16 +14,26 @@ DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discor
 FACT_COUNT_MAXIMUM: int = 50
 FACT_CHAR_LIMIT: int = 256
 
-class UserRestriction(Enum):
+class UseRestriction(Enum):
     NONE = 0,
     GUILD = 1,
     USER = 2,
 
-class RestrictedAccessException(CustomDiscordException):
-    def __init__(self, restriction: UserRestriction):
-        super().__init__(f'Your action has been interrupted; ' + (
-            'This guild has been restricted from using this feature.' if restriction == UserRestriction.GUILD
-            else 'You cannot use this command.'), refer_wiki=True) # todo: write on the wiki what's going on when you see this
+    FACT_LIMIT = 4
+    CHAR_LIMIT = 5
+
+
+class RestrictedUseException(CustomDiscordException):
+    def __init__(self, restriction: UseRestriction):
+        reasons: dict[UseRestriction, str] = {
+            UseRestriction.NONE: 'An unlisted external reason has prevented you from performing this action. Seeing this usually means you\'re an outlier or something went wrong on our side.',
+            UseRestriction.GUILD: 'This guild has been restricted from using this feature.',
+            UseRestriction.USER: 'You cannot use this feature.',
+
+            UseRestriction.FACT_LIMIT: 'This guild has hit the maximum number of Facts. Remove some to make space.',
+            UseRestriction.CHAR_LIMIT: 'Your input was too long.'
+        }
+        super().__init__(f'Your action has been interrupted; ' + reasons[restriction], refer_wiki=True) # todo: write on the wiki what's going on when you see this
 
 
 @app_commands.default_permissions(administrator=True)
@@ -33,17 +43,17 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.db = db
         self.logger = logger
 
-    def restricted(self, guild_id: int, user_id: int) -> UserRestriction:
+    def restricted(self, guild_id: int, user_id: int) -> UseRestriction:
         """
         Returns the highest level restriction block on the given user/guild.
         """
         userban: bool = self.db.is_banned_user(user_id)
         if userban:
-            return UserRestriction.USER
+            return UseRestriction.USER
         guildban: bool = self.db.is_banned_guild(guild_id)
         if guildban:
-            return UserRestriction.GUILD
-        return UserRestriction.NONE
+            return UseRestriction.GUILD
+        return UseRestriction.NONE
 
     def user_authorize_check(self, guild_id: int, user_id: int) -> None:
         """
@@ -51,9 +61,27 @@ class LocalAdminCog(commands.Cog, name='admin'):
         This is to be handled by the BotClient's Exception handler.
         Does nothing if the user has access.
         """
-        restrictions: UserRestriction = self.restricted(guild_id, user_id)
-        if restrictions != UserRestriction.NONE:
-            raise RestrictedAccessException(restrictions)
+        restrictions: UseRestriction = self.restricted(guild_id, user_id)
+        if restrictions != UseRestriction.NONE:
+            raise RestrictedUseException(restrictions)
+
+    def fact_limit_check(self, guild_id: int, text: str, edit: bool = False) -> None:
+        """
+        Checks given input and sees if it can be created as a fact.
+        Will raise an Exception if the check fails.
+        :param edit: If true, ignores fact limit check (considers it as replacing the fact)
+        :return: Permission.
+        """
+        if self.db.is_super_server(guild_id):
+            return
+
+        if len(text) > FACT_CHAR_LIMIT:
+            raise RestrictedUseException(UseRestriction.CHAR_LIMIT)
+
+        if not edit:
+            if self.db.get_fact_count(guild_id) >= FACT_COUNT_MAXIMUM:
+                raise RestrictedUseException(UseRestriction.FACT_LIMIT)
+
 
     async def killswitch_check(self, interaction: Interaction) -> bool:
         if self.client.local_fact_killswitch:
