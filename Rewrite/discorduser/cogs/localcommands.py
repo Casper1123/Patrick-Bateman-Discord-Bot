@@ -100,7 +100,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not await self.killswitch_check(interaction):
             return
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
-        # todo: is super server, otherwise check for bounds restriction? -> char limit / fact count.
+        self.fact_limit_check(interaction.guild.id, text)
         # todo: duplicate check?
         if not await input_test(self.client, interaction, text, ephemeral):
             return
@@ -113,7 +113,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             return
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         delete: bool = text is None
-        # todo: is super server, otherwise check for bounds restriction? -> char limit / fact count.
+        self.fact_limit_check(interaction.guild.id, text, edit=True)
         # todo: duplicate check?
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
