@@ -83,25 +83,19 @@ class LocalAdminCog(commands.Cog, name='admin'):
                 raise RestrictedUseException(UseRestriction.FACT_LIMIT)
 
 
-    async def killswitch_check(self, interaction: Interaction) -> bool:
-        if self.client.local_fact_killswitch:
+    async def kill_switch_check(self, interaction: Interaction) -> bool:
+        if self.client.local_fact_kill_switch:
             await interaction.response.send_message(ephemeral=True, content='This feature is currently disabled.')
             return False
         return True
 
     # region facts
-    # fact add
-    # fact edit -> empty input removes
-    # fact help
-    # fact preview
-    # endregion
 
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
-        if not await self.killswitch_check(interaction):
+        if not await self.kill_switch_check(interaction):
             return
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         self.fact_limit_check(interaction.guild.id, text)
-        # todo: duplicate check?
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         success: bool = self.db.create_fact(interaction.guild.id, interaction.user.id, text)
@@ -109,12 +103,11 @@ class LocalAdminCog(commands.Cog, name='admin'):
         # todo: log this action
 
     async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
-        if not await self.killswitch_check(interaction):
+        if not await self.kill_switch_check(interaction):
             return
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         delete: bool = text is None
         self.fact_limit_check(interaction.guild.id, text, edit=True)
-        # todo: duplicate check?
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
@@ -158,3 +151,4 @@ class LocalAdminCog(commands.Cog, name='admin'):
         )
         embeds = [embed] + ([exception.as_embed()] if exception else [])
         await interaction.edit_original_response(embeds=embeds)
+    # endregion

@@ -17,7 +17,7 @@ class FactsCog(commands.Cog):
     @app_commands.describe(index="The index of the fact you would like to request.")
     async def fact_give(self, interaction: discord.Interaction, index: int = None, ephemeral: bool = False):
         try:
-            fact_raw: str = self.db.get_fact(interaction.guild_id if not self.client.local_fact_killswitch else None, index)
+            fact_raw: str = self.db.get_fact(interaction.guild_id if not self.client.local_fact_kill_switch else None, index)
         except IndexError:
             fact: str = f"Given index {index} is out of range." # todo: embed nicely
             await interaction.response.send_message(fact, ephemeral=True)
@@ -30,7 +30,7 @@ class FactsCog(commands.Cog):
     @app_commands.command(name="fact_index", description="Gives the number of stored facts.")
     async def fact_index(self, interaction: discord.Interaction):
         global_fact_count: int = self.db.get_fact_count(None)
-        local_fact_count: int = self.db.get_fact_count(interaction.guild_id) if not self.client.local_fact_killswitch else 0
+        local_fact_count: int = self.db.get_fact_count(interaction.guild_id) if not self.client.local_fact_kill_switch else 0
         embed = discord.Embed(title="Current fact count",
                               description=f"Total: {global_fact_count + local_fact_count}\n"
                                           f"Global: {global_fact_count}\n"
