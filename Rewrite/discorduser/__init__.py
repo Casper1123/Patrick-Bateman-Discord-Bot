@@ -31,7 +31,7 @@ class BotClient(commands.Bot):
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
             try:
-                if (False):  # todo: config to make uncaught public errors hidden or not
+                if (True):  # todo: config to make uncaught public errors hidden or not
                     await interaction.response.defer(ephemeral=True, thinking=False)
             except Exception as err: # Shoddy attempt at hiding the error from users.
                 pass
