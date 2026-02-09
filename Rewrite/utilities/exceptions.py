@@ -3,6 +3,7 @@ from discord import Embed
 SUPPORT_SERVER_INVITE: str = 'XNQwUHAbDh'  # storing invite suffix here. If anyone ever forks this, feel free to alter this.
 # Explicitly not leaving url in here, for one for scrapers and for two for my mental wellbeing
 #   (I'd rather make sure that the return is a Discord URL in case SOMEHOW memory gets fiddled with)
+GITHUB_WIKI_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki' # todo: config
 
 class CustomDiscordException(Exception):
     """
@@ -23,7 +24,7 @@ class CustomDiscordException(Exception):
                             'If this issue persists, feel free to report it on '
                             '[the development\'s issues page](<https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/issues>).\n'
                                 if not self.refer_wiki else 
-                            f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{SUPPORT_SERVER_INVITE}>) or check out the [wiki](<https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki>).',
+                            f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{SUPPORT_SERVER_INVITE}>) or check out the [wiki](<{GITHUB_WIKI_URL}>).',
                         }"
                         f"{f'\n**Error:**\n{self.message}' if self.message else ''}"
                         f"{'\n\n**Caused by:**' + type(self.cause).__name__ + '\n' + str(self.cause) if self.cause else ''}",

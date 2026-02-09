@@ -5,11 +5,9 @@ from discord.ext import commands
 from ...data.data_interface_abstracts import DataInterface
 from ...variables_parser import parse_variables, Instruction
 from ...variables_parser.instructionexecutor import InstructionExecutor
-from ..logger.visualisation import embedify
 
 
 class FactsCog(commands.Cog):
-    # todo: db reachable class needs type definition
     def __init__(self, client: commands.bot,  db: DataInterface, logger) -> None:
         self.client = client
         self.db = db

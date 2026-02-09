@@ -23,7 +23,8 @@ class BotClient(commands.Bot):
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
             try:
-                await interaction.response.defer(ephemeral=True, thinking=False)
+                if (False):  # todo: config to make uncaught public errors hidden or not
+                    await interaction.response.defer(ephemeral=True, thinking=False)
             except Exception as err: # Shoddy attempt at hiding the error from users.
                 pass
 
@@ -36,20 +37,10 @@ class BotClient(commands.Bot):
                     # So this is temporary glue fix.
                 if not isinstance(error, CustomDiscordException):
                     error_old = error
-                    error: CustomDiscordException = CustomDiscordException(cause=error_old, error_type=type(error).__name__) # todo: test
+                    error: CustomDiscordException = CustomDiscordException(cause=error_old, error_type=type(error).__name__)
 
                 await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
                 raise error
 
 
         self.tree.on_error = on_tree_error
-
-        # Big stinky doodo practice TODO: Find another way to fix this please.
-        await self.tree.sync()
-        return
-
-        for guild_id in self.cm.global_edits_server_ids:
-            try:
-                await self.tree.sync(guild=discord.Object(id=guild_id))
-            except discord.HTTPException:
-                pass

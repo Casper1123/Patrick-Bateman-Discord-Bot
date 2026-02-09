@@ -12,4 +12,4 @@ Each entry has:
 - CreatorID
 - Text
 - GuildID
-- ModifiedAt (to order for indices)
+- ModifiedAt (UNIX Timestamp) (to order for indices)

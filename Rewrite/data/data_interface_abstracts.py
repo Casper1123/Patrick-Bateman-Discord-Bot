@@ -43,6 +43,56 @@ class LocalAdminDataInterface(DataInterface):
     Can do basic local-administrator operations, like adding local facts.
     """
     # region Facts
+    @abstractmethod
+    def create_fact(self, guild_id: int, user_id: int, fact: str) -> bool: # todo: better return information?
+        """
+        Creates a new Local fact under the given user id
+        :param guild_id: Guild the new Local fact will belong to.
+        :param user_id: The ID of the user adding the new Local fact.
+        :param fact: The new Local fact. Ensure it compiles before being added.
+        :return: Creation succes.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None) -> bool: # todo: better return information?
+        """
+        Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
+        :param guild_id: Guild of the belonging fact.
+        :param previous_author_id: ID of the previous author of the fact.
+        :param old_fact: Old fact string.
+        :param editor_id: Id of the editor of the fact.
+        :param new_fact: New fact string.
+        :return: Edit success.
+        """
+        raise NotImplementedError()
+    # endregion
+
+    # region authorized
+    @abstractmethod
+    def is_banned_user(self, user_id: int) -> bool:
+        """
+        :param user_id: User ID
+        :return: User is banned.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def is_banned_guild(self, guild_id: int) -> bool:
+        """
+        :param guild_id: Guild ID
+        :return: Guild is banned.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def is_super_server(self, guild_id: int) -> bool:
+        """
+        Returns guild Super Server status.
+        :param guild_id: Guild ID for which to check.
+        :return: Whether the Guild is a Super Server.
+        """
+        raise NotImplementedError()
     # endregion
 
 
