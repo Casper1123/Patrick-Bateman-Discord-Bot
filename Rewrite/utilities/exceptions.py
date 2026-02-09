@@ -15,6 +15,7 @@ class CustomDiscordException(Exception):
         self.cause = cause
         self.refer_wiki = refer_wiki
         super().__init__(self.message)
+    # note: Exception.__traceback__ exists, go look it up it's kinda silli :)
 
     def as_embed(self) -> Embed:
         embed = Embed(
