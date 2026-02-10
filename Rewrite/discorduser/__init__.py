@@ -7,7 +7,7 @@ from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
 from Rewrite.data.data_interface_abstracts import DataInterface
-from Rewrite.discorduser.logger.logger import Logger
+from Rewrite.discorduser.logger.logger import Logger, LoggerConfiguration
 from Rewrite.utilities.exceptions import CustomDiscordException
 from Rewrite.variables_parser import InstructionParseError
 
@@ -15,9 +15,9 @@ UNLOGGED_EXCEPTION_TYPES = [InstructionParseError.__name__, CommandOnCooldown.__
 
 
 class BotClient(commands.Bot):
-    def __init__(self, db: DataInterface, logger: Logger) -> None:
+    def __init__(self, db: DataInterface, logger_config: LoggerConfiguration) -> None:
         self.db: DataInterface = db
-        self.logger: Logger = logger
+        self.logger: Logger = Logger(self, logger_config)
 
         self.local_fact_kill_switch: bool = False
         # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
