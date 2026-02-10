@@ -174,7 +174,7 @@ class LocalAdminGroup(commands.GroupCog, name="admin"):
     async def fact_help(self, interaction: discord.Interaction):
         with open("admin_help.md", "r", encoding="utf-8") as f:
             markdown_content = f.read()
-        description = f"```md\n{markdown_content[:4000]}\n```"
+        description = f"{markdown_content[:]}".replace('<BR>', '')
         embed = discord.Embed(
             title="Fact variables information",
             description=description
