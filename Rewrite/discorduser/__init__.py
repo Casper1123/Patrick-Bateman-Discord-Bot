@@ -8,6 +8,9 @@ from discord.ext import commands
 from Rewrite.data.data_interface_abstracts import DataInterface
 from Rewrite.discorduser.logger.logger import Logger
 from Rewrite.utilities.exceptions import CustomDiscordException
+from Rewrite.variables_parser import InstructionParseError
+
+UNLOGGED_EXCEPTION_TYPES = [InstructionParseError.__name__] # using __name__ to ensure that when I change the class names this updates.
 
 
 class BotClient(commands.Bot):
@@ -48,6 +51,10 @@ class BotClient(commands.Bot):
                     error: CustomDiscordException = CustomDiscordException(cause=error_old, error_type=type(error).__name__)
 
                 await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
+                if not type(error) in UNLOGGED_EXCEPTION_TYPES: # fixme: this setup is ASS.
+                    if ((isinstance(error, CustomDiscordException) and error.cause.__name__ not in UNLOGGED_EXCEPTION_TYPES) or
+                            (not isinstance(error, CustomDiscordException) and error.__name__ not in UNLOGGED_EXCEPTION_TYPES)):
+                        await self.logger.log_error(error, interaction)
                 raise error
 
 

@@ -4,7 +4,7 @@ from discord.ext import commands
 from enum import Enum
 
 from .. import BotClient
-from ...data.data_interface_abstracts import LocalAdminDataInterface
+from ...data.data_interface_abstracts import LocalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException
 from ...variables_parser import parse_variables, Instruction, InstructionParseError
 from ...variables_parser.instructionexecutor import DebugInstructionExecutor, ParsedExecutionFailure
@@ -100,7 +100,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             return
         success: bool = self.db.create_fact(interaction.guild.id, interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure', description=f'Fact added successfully.' if success else 'Fact creation failed.'))
-        # todo: log this action
+        await self.logger.log_created_fact(interaction, text)
 
     async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
@@ -111,10 +111,11 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
+        old: FactEditorData = self.db.get_local_fact(interaction.guild.id, index)
         success: bool = self.db.edit_fact(interaction.guild_id, 0, 'old', interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure',
                                                                         description=f'Fact {'deleted' if delete else 'edited'} successfully.' if success else f'Fact {'deletion' if delete else 'edit'} failed.'))
-        # todo: log this action.
+        await self.logger.log_edited_fact(interaction, text, old)
 
 
     async def help(self, interaction: Interaction) -> None:

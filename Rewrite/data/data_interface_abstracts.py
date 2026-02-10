@@ -1,4 +1,22 @@
-from abc import ABC, abstractmethod, abstractproperty, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractproperty, abstractmethod, abstractstaticmethod
+
+class FactEditorData:
+    """
+    Purely a record class to hold Fact data.
+    """
+    def __init__(self, guild_id: int, author_id: int, text: str, modified_at: int):
+        """
+        Represents the object data that should be returned for some subfunctions.
+        :param guild_id:
+        :param author_id:
+        :param text:
+        :param modified_at:
+        """
+        self.text: str = text
+        self.guild_id: int = guild_id
+        self.author_id: int = author_id
+        self.modified_at: int = modified_at
+
 
 class DataInterface(ABC):
     """
@@ -64,6 +82,17 @@ class LocalAdminDataInterface(DataInterface):
         :param editor_id: Id of the editor of the fact.
         :param new_fact: New fact string.
         :return: Edit success.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_local_fact(self, guild_id: int, index: int) -> FactEditorData:
+        """
+        Get a local fact for the purpose of editing. Needs to be directly indexed.
+        Raises IndexError if index is out of range.
+        :param guild_id: Guild to look in.
+        :param index: Index of the fact.
+        :return: FactEditorData object containing author and edit data of the fact, as well as fact content.
         """
         raise NotImplementedError()
     # endregion

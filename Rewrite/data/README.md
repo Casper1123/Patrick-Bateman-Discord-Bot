@@ -9,7 +9,7 @@ Also like, don't forget about making a tool that translates previously added dat
 
 # Facts:
 Each entry has:
-- CreatorID
+- AuthorID (keep track of last modified user ID)
 - Text
 - GuildID
 - ModifiedAt (UNIX Timestamp) (to order for indices)

@@ -3,7 +3,11 @@ from __future__ import annotations
 from enum import Enum
 
 import discord
+from discord import Guild, Interaction, Embed
 from discord.ext import commands
+
+from Rewrite.data.data_interface_abstracts import FactEditorData
+
 
 # from Rewrite.discorduser import BotClient # fixme: circular import
 
@@ -33,4 +37,16 @@ class Logger:
         self.client = client
         self.config = config
 
+    async def log_general_event(self, embed: Embed):
+        """
+        TODO: REQUIRES HEAVY EXTRA DESIGN
+        """
+        ...
 
+    async def log_error(self, error: Exception, interaction: Interaction):
+        ...
+
+    async def log_created_fact(self, interaction: Interaction, text: str):
+        ...
+    async def log_edited_fact(self, interaction: Interaction, text: str | None, old: FactEditorData):
+        ...
