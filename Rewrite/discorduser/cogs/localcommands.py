@@ -14,6 +14,10 @@ DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discor
 FACT_COUNT_MAXIMUM: int = 50
 FACT_CHAR_LIMIT: int = 256
 
+PREVIEW_COOLDOWN_SECONDS: float = 5.0
+EDIT_COOLDOWN_SECONDS: float = 5.0
+ADD_COOLDOWN_SECONDS: float = 5.0
+
 class UseRestriction(Enum):
     NONE = 0,
     GUILD = 1,
@@ -90,7 +94,10 @@ class LocalAdminCog(commands.Cog, name='admin'):
         return True
 
     # region facts
-
+    @app_commands.command(name='add', description='Add a new local fact. Will be test-compiled, but not in detail.')
+    @app_commands.describe(text='The fact to add. Will be tested',
+                           ephemeral='Hide the message from other users.')
+    @app_commands.checks.cooldown(1, ADD_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
@@ -102,6 +109,11 @@ class LocalAdminCog(commands.Cog, name='admin'):
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure', description=f'Fact added successfully.' if success else 'Fact creation failed.'))
         await self.logger.log_created_fact(interaction, text)
 
+    @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
+    @app_commands.describe(index='The index of the fact you\'re editing/removing',
+                           text='The replacement fact. Leave empty to remove the original.',
+                           ephemeral='Hide the message from other users.')
+    @app_commands.checks.cooldown(1, EDIT_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
@@ -121,6 +133,9 @@ class LocalAdminCog(commands.Cog, name='admin'):
     async def help(self, interaction: Interaction) -> None:
         ... # todo: implement sending basic MD data over.
 
+    @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
+    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide the message from other users.')
+    @app_commands.checks.cooldown(1, PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
             await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description='Performing PISS test.'))
