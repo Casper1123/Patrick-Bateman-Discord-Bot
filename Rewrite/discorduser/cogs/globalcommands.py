@@ -8,11 +8,10 @@ from ...data.data_interface_abstracts import GlobalAdminDataInterface
 from ...variables_parser import parse_variables, Instruction
 from ...variables_parser.instructionexecutor import InstructionExecutor, DebugInstructionExecutor
 
-SUPER_SERVER_IDS: list[int] = [] # todo: config input
-GLOBAL_ADMIN_SERVER_IDS: list[int] = [] # todo: config input
+GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
 @app_commands.default_permissions(administrator=True)
-@app_commands.guilds(*[discord.Object(id=i) for i in GLOBAL_ADMIN_SERVER_IDS])
+@app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminCog(commands.Cog, name='global'):
     def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
         self.client = client
@@ -44,7 +43,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
         await interaction.edit_original_response(content=f'Synchronizing Command Tree ...')
         await self.client.tree.sync()
         await interaction.edit_original_response(content=f'Starting Super Guild overwrites ...')
-        for i, guild_id in enumerate(SUPER_SERVER_IDS):
+        for i, guild_id in enumerate(self.db.get_super_server_ids()):
             try:
                 await self.client.tree.sync(guild=discord.Object(id=guild_id))
             except discord.HTTPException:
