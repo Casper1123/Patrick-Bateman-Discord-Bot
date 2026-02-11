@@ -29,7 +29,7 @@ async def embedify(bot: _commands.Bot, message: _discord.Message, reply: bool = 
     if message.type == _discord.MessageType.reply and reply:
         # noinspection PyBroadException
         try:
-            reply = await embedify(
+            reply = await embedify(bot,
                 await bot.get_channel(message.channel.id).fetch_message(message.reference.message_id), reply=False, message_jump_link=False)
             embeds = [reply[0], embed]
         except:
