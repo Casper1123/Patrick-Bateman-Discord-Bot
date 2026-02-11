@@ -32,7 +32,7 @@ class LoggerConfiguration:
         raise NotImplementedError()
 
 
-class Logger:
+class Logger: # todo: make this a bot subclass, to be able to pass it a different token for a different logging account?
     def __init__(self, client: BotClient, config: LoggerConfiguration) -> None:
         self.client = client
         self.config = config
@@ -59,5 +59,8 @@ class Logger:
         ...
     # endregion
     # region admin
-
+    async def user_ban(self, interaction: Interaction, user_id: int, ban: bool):
+        ...
+    async def guild_ban(self, interaction: Interaction, guild_id: int, ban: bool):
+        ...
     # endregion

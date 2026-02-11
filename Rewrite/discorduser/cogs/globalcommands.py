@@ -153,3 +153,33 @@ class GlobalAdminCog(commands.Cog, name='global'):
         self.client = client
         self.db = db
         self.logger = logger
+
+    @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
+    @app_commands.describe(ephemeral='Hide the message from the channel. Default: False', user_id='The ID of the user you aim to (un)ban.')
+    async def ban_user(self, interaction: Interaction, user_id: int, ephemeral: bool = False) -> None:
+        state: bool = self.db.is_banned_user(user_id)
+        self.db.unban_user(user_id) if state else self.db.ban_user(user_id)
+        await self.logger.user_ban(interaction, user_id, not state)
+        embed = Embed(title=f'User {'un' if state else ''}banned')
+        user = self.client.get_user(user_id)
+        if user:
+            embed.set_author(name=user.name, icon_url=user.avatar.url)
+        else:
+            embed.set_author(name=f'{user_id}')
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
+
+    @app_commands.command(name='guildban',
+                          description='Ban a guild from using Local Fact administrative features. If already banned, unbans it.')
+    @app_commands.describe(ephemeral='Hide the message from the channel. Default: False',
+                           guild_id='The ID of the guild you aim to (un)ban.')
+    async def ban_guild(self, interaction: Interaction, guild_id: int, ephemeral: bool = False) -> None:
+        state: bool = self.db.is_banned_guild(guild_id)
+        self.db.unban_guild(guild_id) if state else self.db.ban_guild(guild_id)
+        await self.logger.guild_ban(interaction, guild_id, not state)
+        embed = Embed(title=f'Guild {'un' if state else ''}banned')
+        guild = self.client.get_guild(guild_id)
+        if guild:
+            embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        else:
+            embed.set_author(name=f'{guild}')
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)

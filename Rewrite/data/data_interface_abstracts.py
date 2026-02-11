@@ -218,3 +218,36 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
         Primarily used for tree synchronization.
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def ban_user(self, user_id: int) -> None:
+        """
+        Bans the given user.
+        :param user_id:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def unban_user(self, user_id: int) -> None:
+        """
+        Unbans the given user.
+        :param user_id:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def ban_guild(self, guild_id: int) -> None:
+        """
+        Bans the given guild.
+        :param guild_id:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def unban_guild(self, guild_id: int) -> None:
+        """
+        Unbans the given guild.
+        :param guild_id:
+        """
+        raise NotImplementedError()
+
