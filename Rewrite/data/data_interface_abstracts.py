@@ -162,6 +162,53 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
     Can perform operations on the global data other than retrieving.
     """
     # region Facts
+    @abstractmethod
+    def create_global_fact(self,  user_id: int, fact: str) -> bool:  # todo: better return information?
+        """
+        Creates a new Global fact under the given user id
+        :param user_id: The ID of the user adding the new Local fact.
+        :param fact: The new Global fact. Ensure it compiles before being added.
+        :return: Creation succes.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int,
+                  new_fact: str | None) -> bool:  # todo: better return information?
+        """
+        Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
+        :param previous_author_id: ID of the previous author of the fact.
+        :param old_fact: Old fact string.
+        :param editor_id: Id of the editor of the fact.
+        :param new_fact: New fact string.
+        :return: Edit success.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_global_fact(self, index: int) -> FactEditorData:
+        """
+        Get a local fact for the purpose of editing. Needs to be directly indexed.
+        Raises IndexError if index is out of range.
+        :param index: Index of the fact.
+        :return: FactEditorData object containing author and edit data of the fact, as well as fact content.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod  # todo: add filter parameters?
+    def get_global_facts(self) -> list[FactEditorData]:
+        """
+        Gets all global facts.
+        Ordered on edit date.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_all_local_facts(self) -> dict[int, list[FactEditorData]]:
+        """
+        Gets all local facts, indexed by guild ID.
+        """
+        raise NotImplementedError()
     # endregion
 
     @abstractmethod

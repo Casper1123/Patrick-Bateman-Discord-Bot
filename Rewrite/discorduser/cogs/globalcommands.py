@@ -1,26 +1,116 @@
 # NOTE: COMMANDS ARE NOT GLOBALLY USABLE, THEY ARE GLOBAL ADMIN
+import io as _io
+import json as _json
 import discord
-from discord import app_commands, Interaction
+from discord import app_commands, Interaction, Embed, Guild, Member
 from discord.ext import commands
 
 from .. import BotClient
-from ...data.data_interface_abstracts import GlobalAdminDataInterface
+from ...data.data_interface_abstracts import GlobalAdminDataInterface, FactEditorData
 from ...variables_parser import parse_variables, Instruction
 from ...variables_parser.instructionexecutor import InstructionExecutor, DebugInstructionExecutor
+from ...variables_parser.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
-class GlobalAdminCog(commands.Cog, name='global'):
+class GlobalFactAdminCog(commands.Cog, name='gfact'):
     def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
         self.client = client
         self.db = db
         self.logger = logger
 
     # region facts
-    # fact add
-    # fact edit -> empty input removes
+    @app_commands.command(name='add', description='Add a new global fact. Will be test-compiled, but not in detail.')
+    @app_commands.describe(text='The fact to add. Will be tested',
+                           ephemeral='Hide the message from other users.')
+    async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
+        if not await input_test(self.client, interaction, text, ephemeral):
+            return
+        success: bool = self.db.create_global_fact(interaction.user.id, text)
+        await interaction.response.send_message(ephemeral=ephemeral,
+                                                embed=Embed(title='Success' if success else 'Failure',
+                                                            description=f'Fact added successfully.' if success else 'Fact creation failed.'))
+        await self.logger.global_fact_create(interaction, text)
+
+    @app_commands.command(name='edit', description='Edit or Remove a global fact. Leave the text empty to remove.')
+    @app_commands.describe(index='The index of the fact you\'re editing/removing',
+                           text='The replacement fact. Leave empty to remove the original.',
+                           ephemeral='Hide the message from other users.')
+    async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
+        delete: bool = text is None
+        if not delete:
+            if not await input_test(self.client, interaction, text, ephemeral):
+                return
+        old: FactEditorData = self.db.get_global_fact(index)
+        success: bool = self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
+        await interaction.response.send_message(ephemeral=ephemeral,
+                                                embed=Embed(title='Success' if success else 'Failure',
+                                                            description=f'Fact {'deleted' if delete else 'edited'} successfully.' if success else f'Fact {'deletion' if delete else 'edit'} failed.'))
+        await self.logger.fact_edit(interaction, text, old)
+
+    @app_commands.command(name='index',
+                          description='Exports an overview of Global (and, optionally, Local) facts. Can be exported to JSON for easier automated use.')
+    @app_commands.describe(ephemeral='Hide the message from other users.',
+                           json='Export the facts to an attached JSON file instead.', local='Also export local facts, indexed by guild ID')
+    async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False, local: bool = False) -> None:
+        global_facts: list[FactEditorData] = self.db.get_global_facts()
+        local_facts: dict[int, list[FactEditorData]] = {} if not local else self.db.get_all_local_facts()
+
+        files: list[discord.File] = []
+        if json:
+            out: list[dict[str, str | int]] = [{'text': v.text, 'author_id': v.author_id} for v in global_facts]
+            with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
+                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json"))
+        else:
+            out: list[str] = []
+            for i, fact in enumerate(global_facts):
+                author = interaction.guild.get_member(fact.author_id)
+                if author:
+                    author = author.name
+                else:
+                    author = fact.author_id
+                out.append(f'{i + 1} ({author}): {fact.text}')
+            out: str = '\n'.join(out)
+            with _io.StringIO(out) as text_stream:
+                files.append(discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt"))
+
+        if local_facts and json:
+            out: dict[int, list[dict[str, str | int]]] = {}
+            for k, v in local_facts.items():
+                out[k] = [{'text': f.text, 'author_id': f.author_id} for f in v]
+            with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
+                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json"))
+        elif local_facts and not json:
+            out: str = ''
+            membercache: dict[int, str] = {}
+            for k, v in local_facts.items():
+                guild: Guild = self.client.get_guild(k)
+                guild_facts: str = f'# - {k} {f': {guild.name}' if guild else ''}'
+                for i, f in enumerate(v):
+                    # member -> either in cache or require guild.
+                    # if guild is not available, then we have a problem
+                    if f.author_id in membercache.keys():
+                        member = membercache[f.author_id]
+                    elif not guild:
+                        member = None
+                    else:
+                        member = guild.get_member(f.author_id).name
+                        membercache[f.author_id] = member
+                    guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
+                guild_facts += '\n\n\n' # factnl, nl, #guild, space of 2 between last fact and new guild.
+                out += guild_facts
+            with _io.StringIO(out) as text_stream:
+                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt'))
+
+        await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed(
+            title=f'{'Global' if not local else 'Total'} fact data',
+            description='JSON data attached' if json else f'See attached file{'s' if len(files) > 0 else ''} for fact data.'
+        ))
+
+                
+
     # endregion
 
     # region factmod
@@ -55,4 +145,14 @@ class GlobalAdminCog(commands.Cog, name='global'):
     async def killswitch(self, interaction: Interaction, ephemeral: bool = True):
         state: bool = self.client.toggle_local_fact_killswitch()
         await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
+
+    # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
     # endregion
+
+@app_commands.default_permissions(administrator=True)
+@app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
+class GlobalAdminCog(commands.Cog, name='global'):
+    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
+        self.client = client
+        self.db = db
+        self.logger = logger
