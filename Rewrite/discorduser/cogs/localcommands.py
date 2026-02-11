@@ -6,10 +6,12 @@ from discord.ext import commands
 from enum import Enum
 
 from .. import BotClient
+from ..logger.logger import Logger
+from ..logger.local_logger import LocalLogger
 from ...data.data_interface_abstracts import LocalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
-from ...variables_parser import parse_variables, Instruction, InstructionParseError
-from ...variables_parser.instructionexecutor import DebugInstructionExecutor, ParsedExecutionFailure
+from ...variables_parser import parse_variables, Instruction
+from ...variables_parser.instructionexecutor import DebugInstructionExecutor
 from ...variables_parser.testing import test_raw_input as input_test
 
 DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
@@ -44,10 +46,11 @@ class RestrictedUseException(CustomDiscordException):
 
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
-    def __init__(self, client: BotClient,  db: LocalAdminDataInterface, logger) -> None:
+    def __init__(self, client: BotClient,  db: LocalAdminDataInterface, logger: Logger) -> None:
         self.client = client
         self.db = db
         self.logger = logger
+        self.local_logger = LocalLogger(self.client)
 
     def restricted(self, guild_id: int, user_id: int) -> UseRestriction:
         """
@@ -110,6 +113,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         success: bool = self.db.create_fact(interaction.guild.id, interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure', description=f'Fact added successfully.' if success else 'Fact creation failed.'))
         await self.logger.log_created_fact(interaction, text)
+        await self.local_logger.fact_create(interaction, text)
 
     @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
@@ -130,6 +134,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure',
                                                                         description=f'Fact {'deleted' if delete else 'edited'} successfully.' if success else f'Fact {'deletion' if delete else 'edit'} failed.'))
         await self.logger.log_edited_fact(interaction, text, old)
+        await self.local_logger.fact_edit(interaction, old, index, text)
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide the message from other users.')
@@ -209,4 +214,20 @@ class LocalAdminCog(commands.Cog, name='admin'):
         with _io.StringIO(out) as text_stream:
             file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.txt")
             await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(title='Local fact data', description='See attached file for fact data.'))
+
+    @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
+    @app_commands.describe(ephemeral='Hide the message from other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to disable.')
+    async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
+        if not channel:
+            self.db.set_log_output(interaction.guild.id, None)
+            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description='Logging output removed.'))
+            return
+
+        logchannel = interaction.guild.get_channel(channel)
+        if not logchannel:
+            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description=f'Input channel ID **{channel}** is invalid or not found.\n'))
+
+        self.db.set_log_output(interaction.guild.id, logchannel.id)
+        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description=f'Log output channel set to <#{logchannel.id}>'))
+        # todo: Choice to display current value.
     # endregion
