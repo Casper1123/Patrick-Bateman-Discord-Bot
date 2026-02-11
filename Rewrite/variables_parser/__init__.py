@@ -415,7 +415,7 @@ class Instruction:
                     continue
 
             # Default case, warn user of bad input.
-            raise InstructionParseError(subsection, f'Instruction not recognized.')
+            raise InstructionParseError(subsection, f'Instruction not recognized, or Memory Fetch target unavailable.')
         # endregion
 
         return instructions
