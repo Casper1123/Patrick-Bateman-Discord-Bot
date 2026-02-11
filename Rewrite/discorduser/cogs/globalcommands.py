@@ -108,9 +108,6 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             title=f'{'Global' if not local else 'Total'} fact data',
             description='JSON data attached' if json else f'See attached file{'s' if len(files) > 0 else ''} for fact data.'
         ))
-
-                
-
     # endregion
 
     # region factmod
