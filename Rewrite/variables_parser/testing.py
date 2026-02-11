@@ -16,8 +16,8 @@ async def test_raw_input(client: BotClient, interaction: Interaction | Message, 
         executor: DebugInstructionExecutor = DebugInstructionExecutor(client)
         await executor.run(compiled, interaction)
     except InstructionParseError or ParsedExecutionFailure as e:
-        await interaction.send_message(ephemeral=ephemeral, embed=Embed(
-            title=f'Input failed to {'compile' if isinstance(e, InstructionParseError) else 'test execution'}.',
-            description='Aborting operation. Please properly test your fact using `/admin preview`.'))
+        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(
+            title=f'Input failed {'to compile' if isinstance(e, InstructionParseError) else 'somewhere in test execution'}.',
+            description='Aborting operation. Consider testing using `/admin preview` for more detailed information.'))
         return False
     return True
