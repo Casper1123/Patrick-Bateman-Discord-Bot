@@ -37,16 +37,27 @@ class Logger:
         self.client = client
         self.config = config
 
-    async def log_general_event(self, embed: Embed):
+    async def general_event(self, embed: Embed):
         """
         TODO: REQUIRES HEAVY EXTRA DESIGN
         """
         ...
 
-    async def log_error(self, error: Exception, interaction: Interaction):
+    async def error(self, error: Exception, interaction: Interaction):
         ...
 
-    async def log_created_fact(self, interaction: Interaction, text: str):
+    # region local
+    async def fact_create(self, interaction: Interaction, text: str):
         ...
-    async def log_edited_fact(self, interaction: Interaction, text: str | None, old: FactEditorData):
+    async def fact_edit(self, interaction: Interaction, text: str | None, old: FactEditorData):
         ...
+    # endregion
+    # region global fact
+    async def global_fact_create(self, interaction: Interaction, text: str):
+        ...
+    async def global_fact_edit(self, interaction: Interaction, text: str | None, old: FactEditorData):
+        ...
+    # endregion
+    # region admin
+
+    # endregion

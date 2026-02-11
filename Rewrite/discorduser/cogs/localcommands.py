@@ -112,7 +112,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             return
         success: bool = self.db.create_fact(interaction.guild.id, interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure', description=f'Fact added successfully.' if success else 'Fact creation failed.'))
-        await self.logger.log_created_fact(interaction, text)
+        await self.logger.fact_create(interaction, text)
         await self.local_logger.fact_create(interaction, text)
 
     @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
@@ -130,10 +130,10 @@ class LocalAdminCog(commands.Cog, name='admin'):
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
         old: FactEditorData = self.db.get_local_fact(interaction.guild.id, index)
-        success: bool = self.db.edit_fact(interaction.guild_id, 0, 'old', interaction.user.id, text)
+        success: bool = self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure',
                                                                         description=f'Fact {'deleted' if delete else 'edited'} successfully.' if success else f'Fact {'deletion' if delete else 'edit'} failed.'))
-        await self.logger.log_edited_fact(interaction, text, old)
+        await self.logger.fact_edit(interaction, text, old)
         await self.local_logger.fact_edit(interaction, old, index, text)
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
@@ -195,7 +195,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             return
 
         if json:
-            out = [{'text': v.text, 'author_id': v.author_id} for v in local_facts]
+            out: list[dict[str, str | int]] = [{'text': v.text, 'author_id': v.author_id} for v in local_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.json")
 

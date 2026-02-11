@@ -61,7 +61,7 @@ class BotClient(commands.Bot):
 
                 await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
                 if log:
-                    await self.logger.log_error(error, interaction)
+                    await self.logger.error(error, interaction)
                 raise error
 
 
