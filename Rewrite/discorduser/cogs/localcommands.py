@@ -106,6 +106,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
+        if interaction.user.bot:
+            raise RestrictedUseException(UseRestriction.USER)
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         self.fact_limit_check(interaction.guild.id, text)
         if not await input_test(self.client, interaction, text, ephemeral):
@@ -123,6 +125,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
     async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
+        if interaction.user.bot:
+            raise RestrictedUseException(UseRestriction.USER)
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         delete: bool = text is None
         self.fact_limit_check(interaction.guild.id, text, edit=True)
@@ -189,6 +193,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
     @app_commands.describe(ephemeral='Hide the message from other users.', json='Export the facts to an attached JSON file instead.')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
+        if interaction.user.bot:
+            raise RestrictedUseException(UseRestriction.USER)
         local_facts: list[FactEditorData] = self.db.get_local_facts(interaction.guild.id)
         if not local_facts:
             await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Local Facts', description='There are no local facts. Go add some!'))
