@@ -95,6 +95,14 @@ class LocalAdminDataInterface(DataInterface):
         :return: FactEditorData object containing author and edit data of the fact, as well as fact content.
         """
         raise NotImplementedError()
+
+    @abstractmethod # todo: add filter parameters?
+    def get_local_facts(self, guild_id:int) -> list[FactEditorData]:
+        """
+        Gets all local facts for guild.
+        Ordered on edit date.
+        """
+        raise NotImplementedError()
     # endregion
 
     # region authorized
@@ -132,3 +140,11 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
     """
     # region Facts
     # endregion
+
+    @abstractmethod
+    def get_super_server_ids(self) -> list[int]:
+        """
+        Gets the list of super server IDs.
+        Primarily used for tree synchronization.
+        """
+        raise NotImplementedError()

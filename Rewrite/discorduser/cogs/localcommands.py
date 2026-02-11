@@ -1,3 +1,5 @@
+import io as _io
+import json as _json
 import discord
 from discord import app_commands, Interaction, Embed
 from discord.ext import commands
@@ -129,10 +131,6 @@ class LocalAdminCog(commands.Cog, name='admin'):
                                                                         description=f'Fact {'deleted' if delete else 'edited'} successfully.' if success else f'Fact {'deletion' if delete else 'edit'} failed.'))
         await self.logger.log_edited_fact(interaction, text, old)
 
-
-    async def help(self, interaction: Interaction) -> None:
-        ... # todo: implement sending basic MD data over.
-
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide the message from other users.')
     @app_commands.checks.cooldown(1, PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
@@ -167,4 +165,48 @@ class LocalAdminCog(commands.Cog, name='admin'):
         )
         embeds = [embed] + ([exception.as_embed()] if exception else [])
         await interaction.edit_original_response(embeds=embeds)
+
+    @app_commands.command(name='help', description='A small introduction on how to use PISS to construct facts.')
+    @app_commands.describe(ephemeral='Hide the message from other users.')
+    async def help(self, interaction: Interaction, ephemeral: bool = True) -> None:
+        with open("data/admin_help.md", "r", encoding="utf-8") as f:
+            markdown_content = f.read()
+        nli: int = markdown_content.index('\n') # find first newline to separate first line as embed title.
+        title, other = markdown_content[:nli], markdown_content[nli:]
+        title = title.replace('#', '').strip()
+        if not title:
+            title = 'invalid title formatting'
+        if not other:
+            other = 'no body content'
+
+        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title=title, description=other))
+
+    @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
+    @app_commands.describe(ephemeral='Hide the message from other users.', json='Export the facts to an attached JSON file instead.')
+    async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
+        local_facts: list[FactEditorData] = self.db.get_local_facts(interaction.guild.id)
+        if not local_facts:
+            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Local Facts', description='There are no local facts. Go add some!'))
+            return
+
+        if json:
+            out = [{'text': v.text, 'author_id': v.author_id} for v in local_facts]
+            with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
+                file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.json")
+
+                await interaction.response.send_message(embed=Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True, file=file)
+                return
+
+        out: list[str] = []
+        for i, fact in enumerate(local_facts):
+            author = interaction.guild.get_member(fact.author_id)
+            if author:
+                author = author.name
+            else:
+                author = fact.author_id
+            out.append(f'{i+1} ({author}): {fact.text}')
+        out: str = '\n'.join(out)
+        with _io.StringIO(out) as text_stream:
+            file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.txt")
+            await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(title='Local fact data', description='See attached file for fact data.'))
     # endregion
