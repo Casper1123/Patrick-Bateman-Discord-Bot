@@ -3,7 +3,7 @@ from enum import Enum
 import datetime as _datetime
 import re as _re
 
-from Rewrite.utilities.exceptions import CustomDiscordException
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 # todo: move to config, somehow.
 MAX_RECURSION_DEPTH = 5
@@ -60,10 +60,10 @@ SLEEP_TIMER_UPPER_BOUND: float = 3600 # in seconds
 SLEEP_TIMER_LOWER_BOUND: float = 0.25
 
 class InstructionParseError(CustomDiscordException):
-    def __init__(self, bad_var: str, reason: str = None, refer_wiki: bool = True):
+    def __init__(self, bad_var: str, reason: str = None, tooltip: ErrorTooltip = ErrorTooltip.WIKI):
         self.bad_var: str = bad_var
         self.reason: str = reason
-        super().__init__(f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}', refer_wiki=refer_wiki)
+        super().__init__(f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}', tooltip=tooltip)
 
 class InstructionType(Enum):
     # Syntax descriptors:
@@ -230,23 +230,23 @@ class Instruction:
 
             PUSH_CONST = _re.match(r'^push\((?P<pingable>(\d?))\)$', subsection)  # digit 0,1,2, default to 0
             if PUSH_CONST:
-                pingable = PUSH_CONST.group('pingable')
-                if not pingable:
+                pingable_val: str = PUSH_CONST.group('pingable')
+                if not pingable_val:
                     instructions.append(Instruction(InstructionType.PUSH, pingable=MentionOptions.NONE))
                     continue
                 try:
-                    pingable_val = int(pingable)
+                    pingable_val = int(pingable_val)
                 except ValueError:
-                    raise InstructionParseError(subsection, f'Could not parse {pingable} into an Integer.')
+                    raise InstructionParseError(subsection, f'Could not parse {pingable_val} into an Integer.')
                 if not pingable_val in [0, 1, 2]:
                     raise InstructionParseError(subsection, f'Pingable option **{pingable_val}** not in **[0, 1, 2]**.')
                 pingable: MentionOptions
-                if pingable_val == 0:
-                    pingable = MentionOptions.NONE
+                if pingable_val == 2:
+                    pingable = MentionOptions.ALL
                 elif pingable_val == 1:
                     pingable = MentionOptions.AUTHOR
-                elif pingable_val == 2:
-                    pingable = MentionOptions.ALL
+                else:
+                    pingable = MentionOptions.NONE
 
                 instructions.append(Instruction(InstructionType.PUSH, pingable=pingable))
                 continue

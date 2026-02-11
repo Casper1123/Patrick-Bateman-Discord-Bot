@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from Rewrite.data.data_interface_abstracts import DataInterface
 from Rewrite.discorduser.logger.logger import Logger, LoggerConfiguration
-from Rewrite.utilities.exceptions import CustomDiscordException
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.variables_parser import InstructionParseError
 
 UNLOGGED_EXCEPTION_TYPES = [InstructionParseError.__name__, CommandOnCooldown.__name__] # using __name__ to ensure that when I change the class names this updates.
@@ -47,10 +47,10 @@ class BotClient(commands.Bot):
                     return # Skip 'connection lost' exceptions, also removing them from the logging.
                     # Idk why, but for some reason my host device seems to lose connection at unknown intervals for short periods of time.
                     # So this is temporary glue fix.
-                log: bool = True
+                log: bool = True # just-in-case.
                 if isinstance(error, CommandOnCooldown):
                     log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES
-                    error = CustomDiscordException(message=str(error), error_type=error.__name__)
+                    error = CustomDiscordException(message=f'Command on cooldown ({error.cooldown}s), try again in **{error.retry_after}s**.', error_type='Command on cooldown.', tooltip=ErrorTooltip.NONE)
                 elif not isinstance(error, CustomDiscordException):
                     log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES
                     error_old = error

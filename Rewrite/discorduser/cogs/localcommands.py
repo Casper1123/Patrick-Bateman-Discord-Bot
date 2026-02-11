@@ -5,7 +5,7 @@ from enum import Enum
 
 from .. import BotClient
 from ...data.data_interface_abstracts import LocalAdminDataInterface, FactEditorData
-from ...utilities.exceptions import CustomDiscordException
+from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
 from ...variables_parser import parse_variables, Instruction, InstructionParseError
 from ...variables_parser.instructionexecutor import DebugInstructionExecutor, ParsedExecutionFailure
 from ...variables_parser.testing import test_raw_input as input_test
@@ -37,7 +37,7 @@ class RestrictedUseException(CustomDiscordException):
             UseRestriction.FACT_LIMIT: 'This guild has hit the maximum number of Facts. Remove some to make space.',
             UseRestriction.CHAR_LIMIT: 'Your input was too long.'
         }
-        super().__init__(f'Your action has been interrupted; ' + reasons[restriction], refer_wiki=True) # todo: write on the wiki what's going on when you see this
+        super().__init__(f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
 
 
 @app_commands.default_permissions(administrator=True)
@@ -156,7 +156,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         except CustomDiscordException as e:
             exception = e
         except Exception as e:
-            exception = CustomDiscordException(cause=e, refer_wiki=True)
+            exception = CustomDiscordException(cause=e, tooltip=ErrorTooltip.WIKI)
         if exception is not None:
             description = f'See the attached Embed for additional information on the compilation error.'
 

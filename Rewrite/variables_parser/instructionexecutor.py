@@ -6,7 +6,7 @@ import discord
 from discord import AllowedMentions, Message, Interaction, Member
 from discord.ext import commands
 
-from Rewrite.utilities.exceptions import CustomDiscordException
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.discorduser import BotClient
 from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES, UserAttributeOptions
 
@@ -32,7 +32,7 @@ class InstructionExecutor:
         depth: int = depth + 1 if depth else 0
         if depth > MAX_EXECUTION_RECURSION_DEPTH:
             raise CustomDiscordException(message=f'Maximum recursion depth of {depth} exceeded maximal value when executing Instructions.\n'
-                         f'{"\n".join(str(i) for i in instructions)}', error_type='ParsedExecutionRecursionDepthLimit', refer_wiki=True)
+                         f'{"\n".join(str(i) for i in instructions)}', error_type='ParsedExecutionRecursionDepthLimit', tooltip=ErrorTooltip.WIKI)
 
         i: int = 0
         build: str = build if build else ''
