@@ -18,6 +18,6 @@ async def test_raw_input(client: BotClient, interaction: Interaction | Message, 
     except InstructionParseError or ParsedExecutionFailure as e:
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(
             title=f'Input failed {'to compile' if isinstance(e, InstructionParseError) else 'somewhere in test execution'}.',
-            description='Aborting operation. Consider testing using `/admin preview` for more detailed information.'))
+            description=f'Aborting operation. Consider testing using `/admin preview` for more detailed information.\n\nInput given:\n`{text}`'))
         return False
     return True
