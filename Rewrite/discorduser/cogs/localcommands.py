@@ -6,7 +6,7 @@ from discord.ext import commands
 from enum import Enum
 
 from .. import BotClient
-from ..logger.logger import Logger
+from ..logger.__init__ import Logger
 from ..logger.local_logger import LocalLogger
 from ...data.data_interface_abstracts import LocalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -136,7 +136,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
         old: FactEditorData = self.db.get_local_fact(interaction.guild.id, index)
         success: bool = self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure',
-                                                                        description=f'Fact {'deleted' if delete else 'edited'} successfully.' if success else f'Fact {'deletion' if delete else 'edit'} failed.'))
+                                                                        description=f'Fact {'deleted' if delete else 'edited'} {'successfully.' if success else 'failed.'}'
+                                                                                    f'{f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`' if success else ''}'))
         await self.logger.fact_edit(interaction, text, old)
         await self.local_logger.fact_edit(interaction, old, index, text)
 
