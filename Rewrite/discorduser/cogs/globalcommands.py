@@ -112,7 +112,6 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     # endregion
 
     # region factmod
-    # fact modify -> other server
     @app_commands.command(name='modify', description='Modify local facts from any server directly.')
     @app_commands.describe(guild_id='The ID of the guild you wish to index from.',
                            index='Local fact index.',
@@ -150,7 +149,37 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                            json='Export the facts to an attached JSON file instead.',
                            guild_id='The ID of the guild you wish to index from.',)
     async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False, json: bool = False) -> None:
-        raise NotImplementedError()
+        local_facts: list[FactEditorData] = self.db.get_local_facts(guild_id)
+        if not local_facts:
+            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='No local facts found.'))
+            return
+        if json:
+            out: dict[int, list[dict[str, str | int]]] = {}
+            for guild_id, v in local_facts.items():
+                out[guild_id] = [{'text': f.text, 'author_id': f.author_id} for f in v]
+            with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
+                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")
+        else:
+            membercache: dict[int, str] = {}
+            guild: Guild = self.client.get_guild(guild_id)
+            guild_facts: str = f'# - {guild_id} {f': {guild.name}' if guild else ''}'
+            for i, f in enumerate(local_facts):
+                # member -> either in cache or require guild.
+                # if guild is not available, then we have a problem
+                if f.author_id in membercache.keys():
+                    member = membercache[f.author_id]
+                elif not guild:
+                    member = None
+                else:
+                    member = guild.get_member(f.author_id).name
+                    membercache[f.author_id] = member
+                guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
+            with _io.StringIO(guild_facts) as text_stream:
+                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt')
+        await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(
+            title=f'Local fact data',
+            description='JSON data attached.' if json else f'See attached file for fact data.'
+        ))
     # endregion
 
 @app_commands.default_permissions(administrator=True)
