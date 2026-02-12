@@ -27,6 +27,7 @@ class CustomDiscordException(Exception):
 
     def as_embed(self) -> Embed:
         tooltips: dict[ErrorTooltip, str] = {
+            ErrorTooltip.NONE: '',
             ErrorTooltip.ISSUE: 'If this issue persists, feel free to report it on '
                 '[the development\'s issues page](<https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/issues>).',
             ErrorTooltip.WIKI: f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{SUPPORT_SERVER_INVITE}>) or check out the [wiki](<{GITHUB_WIKI_URL}>).',
