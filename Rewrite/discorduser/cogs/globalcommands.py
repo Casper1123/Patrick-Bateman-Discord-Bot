@@ -7,6 +7,7 @@ from discord.ext import commands
 
 from .. import BotClient
 from ...data.data_interface_abstracts import GlobalAdminDataInterface, FactEditorData
+from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
 from ...variables_parser import parse_variables, Instruction
 from ...variables_parser.instructionexecutor import InstructionExecutor, DebugInstructionExecutor
 from ...variables_parser.testing import test_raw_input as input_test
@@ -112,38 +113,44 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 
     # region factmod
     # fact modify -> other server
-    # fact list [guildid]
-    # fact count -> list fact number for each other server.
-    # banuser
-    # banguild
-    # endregion
+    @app_commands.command(name='modify', description='Modify local facts from any server directly.')
+    @app_commands.describe(guild_id='The ID of the guild you wish to index from.',
+                           index='Local fact index.',
+                           text='Replacement text. Leave empty to remove entirely.',
+                           local_log='Log to the given server\'s local log channel. Author will be denoted as the bot.',
+                           ephemeral='Hide the message from the channel. Default: False')
+    async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str = None, local_log: bool = True, ephemeral: bool = False) -> None:
+        delete: bool = text is None
+        if not delete:
+            if not await input_test(self.client, interaction, text, ephemeral):
+                return
+        local_facts: list[FactEditorData] = self.db.get_local_facts(guild_id)
+        try:
+            old: FactEditorData = local_facts[index]
+        except IndexError as e:
+            raise CustomDiscordException(tooltip=ErrorTooltip.NONE, cause=e,
+                                         message=f'Index ({index}) not in 0 <= index < {len(local_facts)}.')
+        success: bool = self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
 
+        await interaction.response.send_message(ephemeral=ephemeral, # todo: update to also display guild information
+                                                embed=Embed(title='Success' if success else 'Failure',
+                                                            description=f'Fact {'deleted' if delete else 'edited'} {'successfully.' if success else 'failed.'}'
+                                                                                    f'{f'\n# Old:\n'
+                                                                                       f'`{old.text}`\n'
+                                                                                       f'\n'
+                                                                                       f'# New:\n'
+                                                                                       f'`{text}`' if success else ''}'))
+        await self.logger.global_fact_edit(interaction, text, old)
+        if local_log:
+            # todo: log to server locally
+            pass
 
-    # region autoreply
-    # endregion autoreply
-
-    # region other
-    @app_commands.command(name='refresh', description='Refresh command tree. ONLY USE IF YOU KNOW WHAT YOU ARE DOING.')
-    @app_commands.describe(ephemeral='Hide the message from the channel. Default: True')
-    async def refresh(self, interaction: Interaction, ephemeral: bool = True):
-        await interaction.response.defer(ephemeral=ephemeral, thinking=False)
-        await interaction.edit_original_response(content=f'Synchronizing Command Tree ...')
-        await self.client.tree.sync()
-        await interaction.edit_original_response(content=f'Starting Super Guild overwrites ...')
-        for i, guild_id in enumerate(self.db.get_super_server_ids()):
-            try:
-                await self.client.tree.sync(guild=discord.Object(id=guild_id))
-            except discord.HTTPException:
-                pass
-        await interaction.edit_original_response(content=f'Command Tree synchronization complete.')
-
-    @app_commands.command(name='DB_KILLSWITCH', description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
-    @app_commands.describe(ephemeral='Hide the message from the channel. Default: True')
-    async def killswitch(self, interaction: Interaction, ephemeral: bool = True):
-        state: bool = self.client.toggle_local_fact_killswitch()
-        await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
-
-    # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
+    @app_commands.command(name='list', description='List the local facts of the given guild.')
+    @app_commands.describe(ephemeral='Hide the message from the channel. Default: False',
+                           json='Export the facts to an attached JSON file instead.',
+                           guild_id='The ID of the guild you wish to index from.',)
+    async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False, json: bool = False) -> None:
+        raise NotImplementedError()
     # endregion
 
 @app_commands.default_permissions(administrator=True)
@@ -153,6 +160,10 @@ class GlobalAdminCog(commands.Cog, name='global'):
         self.client = client
         self.db = db
         self.logger = logger
+
+    # region autoreply
+    # todo: make command list, probably move to autoreply cog?
+    # endregion autoreply
 
     @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
     @app_commands.describe(ephemeral='Hide the message from the channel. Default: False', user_id='The ID of the user you aim to (un)ban.')
@@ -183,3 +194,29 @@ class GlobalAdminCog(commands.Cog, name='global'):
         else:
             embed.set_author(name=f'{guild}')
         await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
+
+    # region other
+    @app_commands.command(name='refresh',
+                          description='Refresh command tree. ONLY USE IF YOU KNOW WHAT YOU ARE DOING.')
+    @app_commands.describe(ephemeral='Hide the message from the channel. Default: True')
+    async def refresh(self, interaction: Interaction, ephemeral: bool = True):
+        await interaction.response.defer(ephemeral=ephemeral, thinking=False)
+        await interaction.edit_original_response(content=f'Synchronizing Command Tree ...')
+        await self.client.tree.sync()
+        await interaction.edit_original_response(content=f'Starting Super Guild overwrites ...')
+        for i, guild_id in enumerate(self.db.get_super_server_ids()):
+            try:
+                await self.client.tree.sync(guild=discord.Object(id=guild_id))
+            except discord.HTTPException:
+                pass
+        await interaction.edit_original_response(content=f'Command Tree synchronization complete.')
+
+    @app_commands.command(name='DB_KILLSWITCH',
+                          description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
+    @app_commands.describe(ephemeral='Hide the message from the channel. Default: True')
+    async def killswitch(self, interaction: Interaction, ephemeral: bool = True):
+        state: bool = self.client.toggle_local_fact_killswitch()
+        await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
+
+    # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
+    # endregion
