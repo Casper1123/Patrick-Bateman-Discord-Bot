@@ -7,7 +7,7 @@ from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
 from Rewrite.data.data_interface_abstracts import DataInterface
-from Rewrite.discorduser.logger.logger import Logger, LoggerConfiguration
+from Rewrite.discorduser.logger.__init__ import Logger, LoggerConfiguration
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.variables_parser import InstructionParseError
 
