@@ -28,6 +28,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
+        # todo: check for duplicates!
         success: bool = self.db.create_global_fact(interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral,
                                                 embed=Embed(title='Success' if success else 'Failure',
@@ -43,6 +44,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
+            # todo: check for duplicates!
         old: FactEditorData = self.db.get_global_fact(index)
         success: bool = self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral,

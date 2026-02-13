@@ -108,7 +108,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not await self.kill_switch_check(interaction):
             return
         if interaction.user.bot:
-            raise RestrictedUseException(UseRestriction.USER)
+            raise RestrictedUseException(UseRestriction.USER) # todo: check for duplicates!
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         self.fact_limit_check(interaction.guild.id, text)
         if not await input_test(self.client, interaction, text, ephemeral):
@@ -130,7 +130,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             raise RestrictedUseException(UseRestriction.USER)
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         delete: bool = text is None
-        self.fact_limit_check(interaction.guild.id, text, edit=True)
+        self.fact_limit_check(interaction.guild.id, text, edit=True) # todo: check for duplicates!
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
