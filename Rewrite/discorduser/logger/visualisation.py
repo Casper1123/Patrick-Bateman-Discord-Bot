@@ -1,7 +1,8 @@
-import discord
-from discord.ext import commands
 import re
 from urllib.parse import urlparse
+
+import discord
+from discord.ext import commands
 
 
 async def embedify(bot: commands.Bot, message: discord.Message, reply: bool = True, message_jump_link: bool = True) -> list[discord.Embed]:

@@ -1,13 +1,12 @@
 import asyncio as _asyncio
-import random as _r
 import datetime as _datetime
+import random as _r
 
 import discord
 from discord import AllowedMentions, Message, Interaction, Member
-from discord.ext import commands
 
-from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.discorduser import BotClient
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES, UserAttributeOptions
 
 MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.

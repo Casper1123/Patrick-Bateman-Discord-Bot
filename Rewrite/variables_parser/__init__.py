@@ -1,7 +1,8 @@
 from __future__ import annotations
-from enum import Enum
+
 import datetime as _datetime
 import re as _re
+from enum import Enum
 
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 

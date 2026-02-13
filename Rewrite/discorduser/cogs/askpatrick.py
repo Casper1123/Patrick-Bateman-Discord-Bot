@@ -1,6 +1,3 @@
-import asyncio as _asyncio
-import random as _r
-
 import discord
 from discord import app_commands
 from discord.ext import commands

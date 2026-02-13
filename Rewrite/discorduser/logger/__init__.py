@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-import discord
-from discord import Guild, Interaction, Embed
-from discord.ext import commands
+from discord import Interaction, Embed
 
 from Rewrite.data.data_interface_abstracts import FactEditorData
 

@@ -1,7 +1,8 @@
-import discord as _discord
-from discord.ext import commands as _commands
 import re as _re
 from urllib.parse import urlparse as _urlparse
+
+import discord as _discord
+from discord.ext import commands as _commands
 
 
 # Code was designed and taken in from another project and thus not originally designed for this.

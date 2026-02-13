@@ -1,9 +1,10 @@
 import io as _io
 import json as _json
+from enum import Enum
+
 import discord
 from discord import app_commands, Interaction, Embed
 from discord.ext import commands
-from enum import Enum
 
 from .. import BotClient
 from ..logger.__init__ import Logger
