@@ -1,4 +1,5 @@
-from abc import ABC, abstractproperty, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod
+
 
 class FactEditorData:
     """

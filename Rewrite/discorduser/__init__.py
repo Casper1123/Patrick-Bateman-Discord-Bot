@@ -1,6 +1,6 @@
-import aiohttp
 import socket
 
+import aiohttp
 import discord
 from discord import app_commands
 from discord.app_commands import CommandOnCooldown

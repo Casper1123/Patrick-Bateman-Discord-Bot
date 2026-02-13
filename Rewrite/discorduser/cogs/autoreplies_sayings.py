@@ -1,7 +1,7 @@
+import random as _r
+
 import discord
 from discord.ext import commands
-
-import random as _r
 
 
 class RandomAutoreplyCog(commands.Cog):

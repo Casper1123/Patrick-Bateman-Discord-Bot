@@ -1,15 +1,14 @@
 # NOTE: COMMANDS ARE NOT GLOBALLY USABLE, THEY ARE GLOBAL ADMIN
 import io as _io
 import json as _json
+
 import discord
-from discord import app_commands, Interaction, Embed, Guild, Member
+from discord import app_commands, Interaction, Embed, Guild
 from discord.ext import commands
 
 from .. import BotClient
 from ...data.data_interface_abstracts import GlobalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
-from ...variables_parser import parse_variables, Instruction
-from ...variables_parser.instructionexecutor import InstructionExecutor, DebugInstructionExecutor
 from ...variables_parser.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
@@ -190,10 +189,6 @@ class GlobalAdminCog(commands.Cog, name='global'):
         self.db = db
         self.logger = logger
 
-    # region autoreply
-    # todo: make command list, probably move to autoreply cog?
-    # endregion autoreply
-
     @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
     @app_commands.describe(ephemeral='Hide the message from the channel. Default: False', user_id='The ID of the user you aim to (un)ban.')
     async def ban_user(self, interaction: Interaction, user_id: int, ephemeral: bool = False) -> None:
@@ -249,3 +244,15 @@ class GlobalAdminCog(commands.Cog, name='global'):
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
     # endregion
+
+@app_commands.default_permissions(administrator=True)
+@app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
+class GlobalAdminCog(commands.Cog, name='autoreply'):
+    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
+        self.client = client
+        self.db = db
+        self.logger = logger
+
+    # region autoreply
+    # todo: make command list, probably move to autoreply cog?
+    # endregion autoreply
