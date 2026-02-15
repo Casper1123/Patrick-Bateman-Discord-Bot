@@ -13,7 +13,8 @@ class SQLDataBase(GlobalAdminDataInterface):
     - int; AuthorID (keep track of last modified user ID)
     - str; Text
     - int; GuildID
-    - int; ModifiedAt (UNIX Timestamp) (to order for indices)
+    - int; ModifiedAt (UNIX Timestamp) (Moderation purposes)
+    - int; CreatedAt (UNIX Timestamp) (to order for indices)
     PK: (GuildID, Text)
     Order by ModifiedAt for Indexing purposes.
     Disallows users adding duplicate facts.
@@ -50,7 +51,8 @@ class SQLDataBase(GlobalAdminDataInterface):
     # GlobalFacts:
     - int; AuthorID (keep track of last modified user ID)
     - str; Text
-    - int; ModifiedAt (UNIX Timestamp) (to order for indices)
+    - int; ModifiedAt (UNIX Timestamp) (Moderation purposes)
+    - int; CreatedAt (UNIX Timestamp) (to order for indices)
     PK: (Text)
     Order by ModifiedAt for Indexing purposes.
     Disallows users adding duplicate facts.
