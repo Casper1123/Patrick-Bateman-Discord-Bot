@@ -1,0 +1,42 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS LocalFacts (
+    GuildID     INTEGER NOT NULL,
+    Text        TEXT NOT NULL,
+    AuthorID    INTEGER NOT NULL,
+    ModifiedAt  INTEGER NOT NULL,
+    CreatedAt   INTEGER NOT NULL,
+
+    PRIMARY KEY (GuildID, Text)
+) WITHOUT ROWID;
+
+-- Create Lexicographic indexing on (GuildId, CreatedAt)
+CREATE INDEX IF NOT EXISTS idx_localfacts_modified
+ON LocalFacts (GuildID, CreatedAt DESC);
+
+CREATE TABLE IF NOT EXISTS GlobalFacts (
+    Text        TEXT NOT NULL PRIMARY KEY,
+    AuthorID    INTEGER NOT NULL,
+    ModifiedAt  INTEGER NOT NULL,
+    CreatedAt   INTEGER NOT NULL
+) WITHOUT ROWID;
+
+CREATE INDEX IF NOT EXISTS idx_globalfacts_modified
+ON GlobalFacts (CreatedAt DESC);
+
+CREATE TABLE IF NOT EXISTS BannedUsers (
+    UserID INTEGER NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS BannedGuilds (
+    GuildID INTEGER NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS SuperServers (
+    GuildID INTEGER NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+
+CREATE TABLE IF NOT EXISTS LocalLogChannels (
+    GuildID   INTEGER NOT NULL PRIMARY KEY,
+    ChannelID INTEGER NOT NULL
+) WITHOUT ROWID;
