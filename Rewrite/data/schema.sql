@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS LocalFacts (
 ) WITHOUT ROWID;
 
 -- Create Lexicographic indexing on (GuildId, CreatedAt)
-CREATE INDEX IF NOT EXISTS idx_localfacts_modified
+CREATE INDEX IF NOT EXISTS idx_localfacts_creation
 ON LocalFacts (GuildID, CreatedAt);
 
 CREATE TABLE IF NOT EXISTS GlobalFacts (
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS GlobalFacts (
     CreatedAt   INTEGER NOT NULL
 ) WITHOUT ROWID;
 
-CREATE INDEX IF NOT EXISTS idx_globalfacts_modified
+CREATE INDEX IF NOT EXISTS idx_globalfacts_creation
 ON GlobalFacts (CreatedAt);
 
 CREATE TABLE IF NOT EXISTS BannedUsers (
