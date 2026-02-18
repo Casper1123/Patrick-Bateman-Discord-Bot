@@ -1,10 +1,33 @@
+import sqlite3 as _sql
+import random as _r
+
 from Rewrite.data.data_interface_abstracts import GlobalAdminDataInterface, FactEditorData
 
 
 class SQLDataBase(GlobalAdminDataInterface):
-    def __init__(self):
-        pass
+    def __init__(self, path: str):
+        self.path = path
+        # setting up table if not existent.
+        with _sql.connect(path) as conn:
+            with open("data/schema.sql", "r") as f:
+                conn.executescript(f.read())
         # todo: do not forget to implement caching!
+
+        self.super_server_cache: list[int] = []
+
+    # region caching
+    def cache_super_server(self, guild_id: int):
+        self.super_server_cache.append(guild_id)
+    def clear_super_server_cache(self):
+        self.super_server_cache = []
+    # endregion
+
+    # region sqlite helpers
+    def _connection(self) -> _sql.Connection:
+        conn = _sql.connect(self.path)
+        conn.row_factory = _sql.Row
+        return conn
+    # endregion
 
     # region facts
     """
@@ -21,10 +44,116 @@ class SQLDataBase(GlobalAdminDataInterface):
     """
     # region DataInterface
     def get_fact(self, guild_id: int | None, index: int | None) -> str:
-        raise NotImplementedError()
+        if index is not None and index < 1:
+            raise IndexError('Index must not be smaller than 1.')
+        with self._connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT COUNT(*) FROM GlobalFacts")
+            global_count = cursor.fetchone()[0]
+            if index is not None and index <= global_count:
+                cursor.execute(
+                    """
+                    SELECT Text
+                    FROM GlobalFacts
+                    ORDER BY CreatedAt DESC
+                    LIMIT 1 OFFSET ?
+                    """,
+                    (index - 1,)
+                )
+                row = cursor.fetchone()
+                if row is None:
+                    raise IndexError('Indexed into GlobalFacts returned nothing when count implied availability')
+                return str(row[0])
+            elif index is None and guild_id is None:
+                # Random, no guild passed.
+                index = _r.randint(0, global_count)
+                cursor.execute(
+                    """
+                    SELECT Text
+                    FROM GlobalFacts
+                    ORDER BY CreatedAt DESC
+                    LIMIT 1 OFFSET ?
+                    """,
+                    (index,)
+                )
+                row = cursor.fetchone()
+                if row is None:
+                    raise IndexError('Indexed into GlobalFacts returned nothing when count implied availability')
+                return str(row[0])
+            elif index > global_count and guild_id is None:
+                raise IndexError('Index out of range.')
+            cursor.execute(
+                "SELECT COUNT(*) FROM LocalFacts WHERE GuildID = ?",
+                (guild_id,)
+            )
+            local_count = cursor.fetchone()[0]
+            if index is not None and index - global_count > local_count:
+                raise IndexError('Index out of range.')
+            elif index is not None: # Available index
+                cursor.execute(
+                    """
+                    SELECT Text
+                    FROM LocalFacts
+                    WHERE GuildID = ?
+                    ORDER BY CreatedAt DESC
+                    LIMIT 1 OFFSET ?
+                    """,
+                    (guild_id, index - global_count - 1)
+                )
+
+                row = cursor.fetchone()
+                if row is None:
+                    raise IndexError("Index out of range.")
+                return str(row[0])
+            elif index is None and guild_id is not None:
+                index = _r.randint(0, global_count + local_count)
+                if index < global_count:
+                    cursor.execute(
+                        """
+                        SELECT Text
+                        FROM GlobalFacts
+                        ORDER BY CreatedAt DESC
+                        LIMIT 1 OFFSET ?
+                        """,
+                        (index,)
+                    )
+                    row = cursor.fetchone()
+                    if row is None:
+                        raise IndexError('Indexed into GlobalFacts returned nothing when count implied availability')
+                    return str(row[0])
+                else:
+                    cursor.execute(
+                        """
+                        SELECT Text
+                        FROM LocalFacts
+                        WHERE GuildID = ?
+                        ORDER BY CreatedAt DESC
+                        LIMIT 1 OFFSET ?
+                        """,
+                        (guild_id, index)
+                    )
+
+                    row = cursor.fetchone()
+                    if row is None:
+                        raise IndexError('Indexed into LocalFacts returned nothing when count implied availability')
+                    return str(row[0])
+            else:
+                raise RuntimeError(f'Somehow unaccounted for the following situation: gid={guild_id}, index={index} in fact fetch')
 
     def get_fact_count(self, guild_id: int | None) -> int:
-        raise NotImplementedError()
+        with self._connection() as conn:
+            cursor = conn.cursor()
+
+            if guild_id is None:
+                cursor.execute("SELECT COUNT(*) FROM GlobalFacts")
+                return int(cursor.fetchone()[0])
+            else:
+                cursor.execute(
+                    "SELECT COUNT(*) FROM LocalFacts WHERE GuildID = ?",
+                    (guild_id,)
+                )
+                return int(cursor.fetchone()[0])
     # endregion
     # region LocalAdminDataInterface
     def create_fact(self, guild_id: int, user_id: int, fact: str) -> bool:  # todo: better return information?
