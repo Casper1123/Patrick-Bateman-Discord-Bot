@@ -51,7 +51,29 @@ class SQLDataBase(GlobalAdminDataInterface):
 
             cursor.execute("SELECT COUNT(*) FROM GlobalFacts")
             global_count = cursor.fetchone()[0]
-            if index is not None and index <= global_count:
+
+            local_count = 0
+            if guild_id is not None:
+                cursor.execute(
+                    "SELECT COUNT(*) FROM LocalFacts WHERE GuildID = ?",
+                    (guild_id,)
+                )
+                local_count = cursor.fetchone()[0]
+
+            total = global_count + local_count
+
+            # transform index into table ordering offset.
+            if index is None:
+                if total == 0:
+                    raise IndexError("No facts available.")
+                offset = _r.randrange(total)
+            else:
+                offset = index - 1
+                if offset >= total:
+                    raise IndexError("Index out of range.")
+
+            # offset implies table to select from
+            if offset < global_count:
                 cursor.execute(
                     """
                     SELECT Text
@@ -59,38 +81,12 @@ class SQLDataBase(GlobalAdminDataInterface):
                     ORDER BY CreatedAt DESC
                     LIMIT 1 OFFSET ?
                     """,
-                    (index - 1,)
+                    (offset,)
                 )
-                row = cursor.fetchone()
-                if row is None:
-                    raise IndexError('Indexed into GlobalFacts returned nothing when count implied availability')
-                return str(row[0])
-            elif index is None and guild_id is None:
-                # Random, no guild passed.
-                index = _r.randint(0, global_count)
-                cursor.execute(
-                    """
-                    SELECT Text
-                    FROM GlobalFacts
-                    ORDER BY CreatedAt DESC
-                    LIMIT 1 OFFSET ?
-                    """,
-                    (index,)
-                )
-                row = cursor.fetchone()
-                if row is None:
-                    raise IndexError('Indexed into GlobalFacts returned nothing when count implied availability')
-                return str(row[0])
-            elif index > global_count and guild_id is None:
-                raise IndexError('Index out of range.')
-            cursor.execute(
-                "SELECT COUNT(*) FROM LocalFacts WHERE GuildID = ?",
-                (guild_id,)
-            )
-            local_count = cursor.fetchone()[0]
-            if index is not None and index - global_count > local_count:
-                raise IndexError('Index out of range.')
-            elif index is not None: # Available index
+            else:
+                if guild_id is None:
+                    raise IndexError("Index out of range.")
+
                 cursor.execute(
                     """
                     SELECT Text
@@ -99,47 +95,14 @@ class SQLDataBase(GlobalAdminDataInterface):
                     ORDER BY CreatedAt DESC
                     LIMIT 1 OFFSET ?
                     """,
-                    (guild_id, index - global_count - 1)
+                    (guild_id, offset - global_count)
                 )
 
-                row = cursor.fetchone()
-                if row is None:
-                    raise IndexError("Index out of range.")
-                return str(row[0])
-            elif index is None and guild_id is not None:
-                index = _r.randint(0, global_count + local_count)
-                if index < global_count:
-                    cursor.execute(
-                        """
-                        SELECT Text
-                        FROM GlobalFacts
-                        ORDER BY CreatedAt DESC
-                        LIMIT 1 OFFSET ?
-                        """,
-                        (index,)
-                    )
-                    row = cursor.fetchone()
-                    if row is None:
-                        raise IndexError('Indexed into GlobalFacts returned nothing when count implied availability')
-                    return str(row[0])
-                else:
-                    cursor.execute(
-                        """
-                        SELECT Text
-                        FROM LocalFacts
-                        WHERE GuildID = ?
-                        ORDER BY CreatedAt DESC
-                        LIMIT 1 OFFSET ?
-                        """,
-                        (guild_id, index- global_count)
-                    )
+            row = cursor.fetchone()
+            if row is None:
+                raise IndexError("Index out of range.")
 
-                    row = cursor.fetchone()
-                    if row is None:
-                        raise IndexError('Indexed into LocalFacts returned nothing when count implied availability')
-                    return str(row[0])
-            else:
-                raise RuntimeError(f'Somehow unaccounted for the following situation: gid={guild_id}, index={index} in fact fetch')
+            return row['Text']
 
     def get_fact_count(self, guild_id: int | None) -> int:
         with self._connection() as conn:
@@ -147,13 +110,12 @@ class SQLDataBase(GlobalAdminDataInterface):
 
             if guild_id is None:
                 cursor.execute("SELECT COUNT(*) FROM GlobalFacts")
-                return int(cursor.fetchone()[0])
             else:
                 cursor.execute(
                     "SELECT COUNT(*) FROM LocalFacts WHERE GuildID = ?",
                     (guild_id,)
                 )
-                return int(cursor.fetchone()[0])
+            return int(cursor.fetchone()[0])
     # endregion
     # region LocalAdminDataInterface
     def create_fact(self, guild_id: int, user_id: int, fact: str) -> bool:  # todo: better return information?

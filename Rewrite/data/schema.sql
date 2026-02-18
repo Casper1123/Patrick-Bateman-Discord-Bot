@@ -1,8 +1,8 @@
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS LocalFacts (
-    GuildID     INTEGER NOT NULL,
     Text        TEXT NOT NULL,
+    GuildID     INTEGER NOT NULL,
     AuthorID    INTEGER NOT NULL,
     ModifiedAt  INTEGER NOT NULL,
     CreatedAt   INTEGER NOT NULL,
