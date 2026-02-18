@@ -131,7 +131,7 @@ class SQLDataBase(GlobalAdminDataInterface):
                         ORDER BY CreatedAt DESC
                         LIMIT 1 OFFSET ?
                         """,
-                        (guild_id, index)
+                        (guild_id, index- global_count)
                     )
 
                     row = cursor.fetchone()
