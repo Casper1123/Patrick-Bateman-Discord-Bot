@@ -126,7 +126,22 @@ class SQLDataBase(GlobalAdminDataInterface):
         raise NotImplementedError()
 
     def get_local_fact(self, guild_id: int, index: int) -> FactEditorData:
-        raise NotImplementedError()
+        with self._connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT Text
+                FROM LocalFacts
+                WHERE GuildID = ?
+                ORDER BY CreatedAt DESC
+                LIMIT 1 OFFSET ?
+                """,
+                (guild_id, index - 1)
+            )
+            row = cursor.fetchone()
+            if row is None:
+                raise IndexError("Index out of range.")
+            return FactEditorData(row['GuildID'], row['AuthorID'], row['Text'], row['ModifiedAt'])
 
     def get_local_facts(self, guild_id: int) -> list[FactEditorData]:
         raise NotImplementedError()
@@ -156,7 +171,21 @@ class SQLDataBase(GlobalAdminDataInterface):
         raise NotImplementedError()
 
     def get_global_fact(self, index: int) -> FactEditorData:
-        raise NotImplementedError()
+        with self._connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT Text
+                FROM GlobalFacts
+                ORDER BY CreatedAt DESC
+                LIMIT 1 OFFSET ?
+                """,
+                (index - 1,)
+            )
+            row = cursor.fetchone()
+            if row is None:
+                raise IndexError("Index out of range.")
+            return FactEditorData(None, row['AuthorID'], row['Text'], row['ModifiedAt'])
     def get_global_facts(self) -> list[FactEditorData]:
         raise NotImplementedError()
     # endregion

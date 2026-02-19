@@ -1,22 +1,23 @@
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 
 
 class FactEditorData:
     """
     Purely a record class to hold Fact data.
     """
-    def __init__(self, guild_id: int, author_id: int, text: str, modified_at: int):
+    def __init__(self, guild_id: int | None, author_id: int, text: str, modified_at: int):
         """
         Represents the object data that should be returned for some subfunctions.
-        :param guild_id:
+        :param guild_id: Only None when Global fact
         :param author_id:
         :param text:
         :param modified_at:
         """
         self.text: str = text
-        self.guild_id: int = guild_id
+        self.guild_id: int | None = guild_id
         self.author_id: int = author_id
-        self.modified_at: int = modified_at
+        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
 
 class DataInterface(ABC):
