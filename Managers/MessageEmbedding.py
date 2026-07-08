@@ -64,7 +64,10 @@ def _is_auto_embedded(message: str):
 
 def _has_media_attachment(message: discord.Message) -> discord.Attachment | None:
     for attachment in message.attachments:
-        media_type = attachment.content_type.split("/")[0]
+        try:
+            media_type = attachment.content_type.split("/")[0]
+        except AttributeError:
+            continue
         if media_type in ["image"]:  # Videos unsupported. Unfortunately. If it ever changes, this is here. Not optimised for speed, of course. I wouldn't be doing this in Python if that were the case.
             return attachment
     return None
