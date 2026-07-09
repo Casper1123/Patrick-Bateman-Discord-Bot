@@ -1,18 +1,20 @@
+Global-wide:
+- 1 Command (global operators) to disable local fact pool for a given server ID. If left empty, it disables it for all of them.
 Server-wide:
 - 1 Command to toggle features as a whole
     - Each feature is an optional setting
     - Running the command prevents all in one go if no optionals are passed in.
-- 1 Command (global operators) to disable local fact pool for a given server ID. If left empty, it disables it for all of them.
+- 1 Command to pause features in this channel temporarily todo: currently done in BotClient. Ban does not remove known entries (yet). Make that optional in the command for it.
+    - Just locally cache datetime and after 1hr auto-reenable with a ping
 User-wide:
-- 1 command to toggle user-only features
+- 1 Command to toggle user-only features
     - Settings shared across all servers
     - Prevents things like autoreply
-    - Defaults to false
+    - Defaults to enabled
 
 User-indexed tables? UID --> BOOL / other data required for settings
 
 Features that require supporting:
-Fact -- See above!
 AskPatrick -- Only usable if the chat command permissions were given to the user (ask @patrick method)
 Autoreplies -- Only server-wide for sayings. User-wide AND server-wide for numbers and letters.
 
@@ -27,3 +29,9 @@ Couple options:
 - Create entries for all users, that stores explicit on/off state
 - Create entries only for users that have modified their settings
 - Create entries of only the (hashed) UID of users that do not have the default settings.
+
+
+How to DB:
+Interface as currently implemented
+Asynchronous 'run_cache_management' that is asynchronously ran as the cache updater. Can be left empty.
+    > Force callings this or throw an error!
