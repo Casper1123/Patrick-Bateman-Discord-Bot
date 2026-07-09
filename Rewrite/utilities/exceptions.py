@@ -5,7 +5,9 @@ from discord import Embed
 SUPPORT_SERVER_INVITE: str = 'XNQwUHAbDh'  # storing invite suffix here. If anyone ever forks this, feel free to alter this.
 # Explicitly not leaving url in here, for one for scrapers and for two for my mental wellbeing
 #   (I'd rather make sure that the return is a Discord URL in case SOMEHOW memory gets fiddled with)
-GITHUB_WIKI_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki' # todo: config
+    # todo: config of this invite string.
+GITHUB_ISSUES_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/issues'
+GITHUB_WIKI_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
 
 
 class ErrorTooltip(Enum):
@@ -29,7 +31,7 @@ class CustomDiscordException(Exception):
         tooltips: dict[ErrorTooltip, str] = {
             ErrorTooltip.NONE: '',
             ErrorTooltip.ISSUE: 'If this issue persists, feel free to report it on '
-                '[the development\'s issues page](<https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/issues>).',
+                f'[the development\'s issues page](<{GITHUB_ISSUES_URL}>).',
             ErrorTooltip.WIKI: f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{SUPPORT_SERVER_INVITE}>) or check out the [wiki](<{GITHUB_WIKI_URL}>).',
         }
         embed = Embed(

@@ -1,1 +1,0 @@
-Place Cog files here for organizational purposes.

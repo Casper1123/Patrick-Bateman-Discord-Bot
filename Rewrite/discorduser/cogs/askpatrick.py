@@ -11,6 +11,7 @@ class AskPatrick(commands.Cog):
     async def ask_patrick_listener(self, message: discord.Message):
         if not message.content.lower().startswith(f"ask <@{self.client.user.id}>"):
             return
+        # todo: check if command is callable here by user. If not, back out.
         split_content = message.content.split()
         if len(split_content) < 3:
             return # Ignore if no question asked.
