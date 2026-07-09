@@ -9,18 +9,10 @@ class SQLDataBase(GlobalAdminDataInterface):
         self.path = path
         # setting up table if not existent.
         with _sql.connect(path) as conn:
-            with open("data/data_schema.sql", "r") as f:
+            with open("data/schemas/data.sql", "r") as f:
                 conn.executescript(f.read())
         # todo: do not forget to implement caching!
 
-        self.super_server_cache: list[int] = []
-
-    # region caching
-    def cache_super_server(self, guild_id: int):
-        self.super_server_cache.append(guild_id)
-    def clear_super_server_cache(self):
-        self.super_server_cache = []
-    # endregion
 
     # region sqlite helpers
     def _connection(self) -> _sql.Connection:
