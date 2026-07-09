@@ -1,3 +1,9 @@
+-- Stores:
+-- (Local) Facts
+-- Logging destinations for Local fact edits
+-- Super Server IDS
+-- Banned Guilds / Users (IDS too)
+
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS LocalFacts (

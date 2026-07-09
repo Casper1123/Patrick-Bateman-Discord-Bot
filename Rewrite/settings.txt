@@ -1,10 +1,11 @@
 Global-wide:
 - 1 Command (global operators) to disable local fact pool for a given server ID. If left empty, it disables it for all of them.
+    todo: currently has killswitch in BotClient. figure out what to do with that.
 Server-wide:
 - 1 Command to toggle features as a whole
     - Each feature is an optional setting
     - Running the command prevents all in one go if no optionals are passed in.
-- 1 Command to pause features in this channel temporarily todo: currently done in BotClient. Ban does not remove known entries (yet). Make that optional in the command for it.
+- 1 Command to pause features in this channel temporarily
     - Just locally cache datetime and after 1hr auto-reenable with a ping
 User-wide:
 - 1 Command to toggle user-only features
