@@ -7,6 +7,7 @@ from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
 from Rewrite.data.interfaces.data import DataInterface
+from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.discorduser.logger.__init__ import Logger, LoggerConfiguration
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.variables_parser import InstructionParseError
@@ -15,22 +16,15 @@ UNLOGGED_EXCEPTION_TYPES = [InstructionParseError.__name__, CommandOnCooldown.__
 
 
 class BotClient(commands.Bot):
-    def __init__(self, db: DataInterface, logger_config: LoggerConfiguration) -> None:
+    def __init__(self, db: DataInterface, pref: PreferencesInterface, logger_config: LoggerConfiguration) -> None:
+        self.pref: PreferencesInterface = pref
         self.db: DataInterface = db
         self.logger: Logger = Logger(self, logger_config)
 
-        self.local_fact_kill_switch: bool = False
-        # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
-        # Mostly intended for Moderation purposes.
-
         intents = discord.Intents.default()
-        intents.message_content = True
+        intents.message_content = True # Required for autoreplies
         intents.members = True
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
-
-    def toggle_local_fact_killswitch(self) -> bool:
-        self.local_fact_kill_switch = not self.local_fact_kill_switch
-        return self.local_fact_kill_switch
 
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):

@@ -13,6 +13,23 @@ class SQLDataBase(GlobalAdminDataInterface):
                 conn.executescript(f.read())
         # todo: do not forget to implement caching!
 
+        self.local_fact_kill_switch: bool = False # todo: actually block these function calls?
+        # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
+        # Mostly intended for Moderation purposes.
+
+    def toggle_local_fact_killswitch(self) -> bool:
+        self.local_fact_kill_switch = not self.local_fact_kill_switch
+        return self.local_fact_kill_switch
+
+    def is_killswitch(self) -> bool:
+        """
+        Are local fact services disabled?
+        BTW did you know the only reason this is here is such that I don't screw with the Interface design pattern?
+        Man, this OOP crap fucking SUCKS.
+        :return:
+        """
+        return self.local_fact_kill_switch
+
 
     # region sqlite helpers
     def _connection(self) -> _sql.Connection:
@@ -141,6 +158,8 @@ class SQLDataBase(GlobalAdminDataInterface):
     # region GlobalAdminDataInterface
     def get_all_local_facts(self) -> dict[int, list[FactEditorData]]:
         raise NotImplementedError()
+
+
     # endregion
     # endregion
     # region global facts
