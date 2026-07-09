@@ -1,6 +1,6 @@
 from discord import Interaction, TextChannel, Guild
 
-from Rewrite.data.data_interface_abstracts import FactEditorData, LocalAdminDataInterface
+from Rewrite.data.interfaces.data import FactEditorData, LocalAdminDataInterface
 from Rewrite.discorduser import BotClient
 
 

@@ -1,7 +1,7 @@
 import sqlite3 as _sql
 import random as _r
 
-from Rewrite.data.data_interface_abstracts import GlobalAdminDataInterface, FactEditorData
+from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
 
 
 class SQLDataBase(GlobalAdminDataInterface):

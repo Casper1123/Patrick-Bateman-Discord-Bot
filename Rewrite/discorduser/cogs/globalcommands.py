@@ -7,7 +7,7 @@ from discord import app_commands, Interaction, Embed, Guild
 from discord.ext import commands
 
 from .. import BotClient
-from ...data.data_interface_abstracts import GlobalAdminDataInterface, FactEditorData
+from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
 from ...variables_parser.testing import test_raw_input as input_test
 

@@ -4,7 +4,7 @@ from enum import Enum
 
 from discord import Interaction, Embed
 
-from Rewrite.data.data_interface_abstracts import FactEditorData
+from Rewrite.data.interfaces.data import FactEditorData
 
 
 # from Rewrite.discorduser import BotClient # fixme: circular import

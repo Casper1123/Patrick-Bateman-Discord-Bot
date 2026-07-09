@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from .. import BotClient
-from ...data.data_interface_abstracts import DataInterface
+from Rewrite.data.interfaces.data import DataInterface
 from ...variables_parser import parse_variables, Instruction
 from ...variables_parser.instructionexecutor import InstructionExecutor
 

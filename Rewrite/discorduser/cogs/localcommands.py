@@ -9,7 +9,7 @@ from discord.ext import commands
 from .. import BotClient
 from ..logger.__init__ import Logger
 from ..logger.local_logger import LocalLogger
-from ...data.data_interface_abstracts import LocalAdminDataInterface, FactEditorData
+from Rewrite.data.interfaces.data import LocalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
 from ...variables_parser import parse_variables, Instruction
 from ...variables_parser.instructionexecutor import DebugInstructionExecutor
