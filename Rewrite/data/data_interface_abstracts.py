@@ -47,7 +47,7 @@ class DataInterface(ABC):
     @abstractmethod
     def get_fact_count(self, guild_id: int | None) -> int:
         """
-        Gets the number of facts from the domain.
+        Gets the number of facts for the given guild.
 
         As it just gets the quantity, guild_id is optional to either get global count or local count.
         :param guild_id: If not None, gets the given guild's local fact count, otherwise gets global fact count.

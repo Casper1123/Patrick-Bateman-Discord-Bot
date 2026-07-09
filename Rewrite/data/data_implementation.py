@@ -9,7 +9,7 @@ class SQLDataBase(GlobalAdminDataInterface):
         self.path = path
         # setting up table if not existent.
         with _sql.connect(path) as conn:
-            with open("data/schema.sql", "r") as f:
+            with open("data/data_schema.sql", "r") as f:
                 conn.executescript(f.read())
         # todo: do not forget to implement caching!
 
