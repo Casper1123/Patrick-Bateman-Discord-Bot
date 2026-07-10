@@ -1,10 +1,10 @@
-# todo: load config
-# todo: instantiate db class
 from Rewrite.data.interfaces.data import GlobalAdminDataInterface
+from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.discorduser import BotClient
 from Rewrite.discorduser.logger.__init__ import LoggerConfiguration
 
-db: GlobalAdminDataInterface
-logconfig: LoggerConfiguration
+db: GlobalAdminDataInterface = None
+pref: PreferencesInterface = None
+logconfig: LoggerConfiguration = None
 
-client = BotClient(db, logconfig)
+client = BotClient(db, pref, logconfig)

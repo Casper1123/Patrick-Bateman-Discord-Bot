@@ -1,0 +1,17 @@
+Notes for myself on what and how.
+
+Simple:
+- Fact get DONE
+- Simple commands
+  - Chinese launch codes DONE
+  - throwitback DONE
+  - sex DONE
+  - throwback DONE
+- Letter autoreply DONE
+- Sayings DONE
+
+- number autoreply TODO: numerical conversion and incrementation. Preferences done.
+- Message content autoreply TODO: Needs entire structure worked out.
+
+- Local moderation
+- Global moderation
