@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from Managers.MessageEmbedding import embedify
+from Rewrite.utilities.messagevisualisation import embedify
 
 
 class MainCommandsCog(commands.Cog):
@@ -41,11 +41,15 @@ class MainCommandsCog(commands.Cog):
         oldest: datetime.datetime = \
         [message async for message in interaction.channel.history(limit=1, oldest_first=True)][0].created_at
 
+        if not oldest or not newest:
+            await interaction.edit_original_response(content='Insufficient messages found')
+            return
+
         random_message: discord.Message | None = None
+        total_seconds = int((newest - oldest).total_seconds())
         attempts: int = 0
         while random_message is None and attempts < 100:
             # Create a new date in between based on random seconds in between.
-            total_seconds = int((newest - oldest).total_seconds())
             random_seconds = _r.randint(0, total_seconds)
             random_date = oldest + datetime.timedelta(seconds=random_seconds)
 
@@ -58,6 +62,7 @@ class MainCommandsCog(commands.Cog):
 
         if attempts >= 100:
             await interaction.edit_original_response(content="Could not find a message within a reasonable timeframe.")
+            return
 
         embeds: list[discord.Embed] = await embedify(self.client, random_message, reply=True, message_jump_link=True)
         await interaction.edit_original_response(embeds=embeds)
