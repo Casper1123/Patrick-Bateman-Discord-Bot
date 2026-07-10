@@ -32,6 +32,7 @@ class UseRestriction(Enum):
     CHAR_LIMIT = 5
 
 
+
 class RestrictedUseException(CustomDiscordException):
     def __init__(self, restriction: UseRestriction):
         reasons: dict[UseRestriction, str] = {
@@ -51,7 +52,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.client = client
         self.db = db
         self.logger = logger
-        self.local_logger = LocalLogger(self.client)
+        self.local_logger = LocalLogger(self.client, db)
 
     def restricted(self, guild_id: int, user_id: int) -> UseRestriction:
         """

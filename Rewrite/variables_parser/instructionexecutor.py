@@ -3,11 +3,13 @@ import datetime as _datetime
 import random as _r
 
 import discord
+from discord.ext import commands
 from discord import AllowedMentions, Message, Interaction, Member
 
 from Rewrite.discorduser import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES, UserAttributeOptions
+from ..data.interfaces.data import DataInterface
 
 MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.
 
@@ -21,8 +23,9 @@ class InstructionExecutor:
     Executes given instructions using asynchronous run method.
     Create a new instance per attempted execution, as it keeps track of some global execution variables as class attributes.
     """
-    def __init__(self, client: BotClient):
+    def __init__(self, client: commands.Bot, db: DataInterface):
         self.client = client
+        self.db = db
         self.shuffled_memberlist: list[Member] | None = None
         self.fresh: bool = True
         self.guild_id = None
@@ -89,8 +92,8 @@ class InstructionExecutor:
         channel: discord.TextChannel = interaction.channel
         owner: discord.Member = guild.owner  # guild owner
 
-        local_facts: int = self.client.db.get_fact_count(guild.id)
-        global_facts: int = self.client.db.get_fact_count(None)
+        local_facts: int = self.db.get_fact_count(guild.id)
+        global_facts: int = self.db.get_fact_count(None)
         total_facts: int = local_facts + global_facts
 
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
@@ -271,7 +274,7 @@ class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient, pure_output: bool = False):
         self.output: str = ''
         self.pure_output: bool = pure_output
-        super().__init__(client)
+        super().__init__(client, client.db)
 
     def _instruction_log(self, itype: str, extra: str = None):
         if not self.pure_output:

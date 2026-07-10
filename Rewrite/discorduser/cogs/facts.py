@@ -27,7 +27,7 @@ class FactsCog(commands.Cog):
             return
 
         fact: list[Instruction] = parse_variables(fact_raw)
-        executor: InstructionExecutor = InstructionExecutor(self.client)
+        executor: InstructionExecutor = InstructionExecutor(self.client, self.db)
         await executor.run(fact, interaction=interaction)
 
 
