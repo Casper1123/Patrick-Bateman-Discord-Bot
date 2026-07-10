@@ -54,6 +54,23 @@ class DataInterface(ABC):
         :return: Number of facts in given domain.
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def is_killswitch(self) -> bool:
+        """
+        Are local-fact services temporarily disabled?
+        """
+        raise NotImplementedError()
+    # endregion
+
+    # region Saying
+    @abstractmethod
+    def get_saying(self) -> str:
+        """
+        Gets a random saying.
+        :return: Unprocessed PISS-compatible string.
+        """
+        raise NotImplementedError()
     # endregion
 
 
@@ -163,7 +180,16 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
     The strongest layer of power, stronger than `LocalAdminDataInterface`.
     Can perform operations on the global data other than retrieving.
     """
+
     # region Facts
+    @abstractmethod
+    def toggle_local_fact_killswitch(self) -> bool:
+        """
+        Toggle the local-fact service killswitch.
+        :return: Updated state
+        """
+        raise NotImplementedError()
+
     @abstractmethod
     def create_global_fact(self,  user_id: int, fact: str) -> bool:  # todo: better return information?
         """
@@ -201,7 +227,7 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
     def get_global_facts(self) -> list[FactEditorData]:
         """
         Gets all global facts.
-        Ordered on edit date.
+        Ordered on edit date. todo: why the fuck did I make this up?
         """
         raise NotImplementedError()
 
@@ -221,6 +247,7 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
         """
         raise NotImplementedError()
 
+    # region User Moderation
     @abstractmethod
     def ban_user(self, user_id: int) -> None:
         """
@@ -236,7 +263,9 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
         :param user_id:
         """
         raise NotImplementedError()
+    # endregion
 
+    # region Server Moderation
     @abstractmethod
     def ban_guild(self, guild_id: int) -> None:
         """
@@ -252,4 +281,6 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
         :param guild_id:
         """
         raise NotImplementedError()
+    # endregion
 
+    # todo: sayings
