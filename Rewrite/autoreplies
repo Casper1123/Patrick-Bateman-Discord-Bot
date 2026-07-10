@@ -2,3 +2,12 @@ Ok so, I NEED another clean file to work from here. TBF most of this crap will b
 
 Anyhows, content autoreplies need a COMPLETE overhaul.
 I will need to work this out over time.
+
+General idea:
+Triggers bucketed together
+If a trigger condition is met, roll a dice for the entire bucket's acceptance. If accepted, proceed.
+Take a random reply, each reply having a larger probability of being selected given their individual weights.
+Example: replies a and b, with weights x and y
+(a, x), (b, y)
+If x = 10y
+then x gets picked 10 times more often than y
