@@ -22,3 +22,6 @@ class NumberAutoreplyCog(commands.Cog):
             return
 
         # todo: pattern matching and conversion.
+        # Notes for later:
+        # numbers [,] numbers [.]  [numbers [,] numbers] and mirrored
+        # ?
