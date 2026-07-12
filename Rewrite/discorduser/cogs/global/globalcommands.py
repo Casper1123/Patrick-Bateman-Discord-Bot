@@ -6,10 +6,10 @@ import discord
 from discord import app_commands, Interaction, Embed, Guild
 from discord.ext import commands
 
-from .. import BotClient
+from Rewrite.discorduser import BotClient
 from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
-from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
-from ...piss.testing import test_raw_input as input_test
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
+from Rewrite.piss.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 

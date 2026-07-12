@@ -2,10 +2,10 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from .. import BotClient
+from Rewrite.discorduser import BotClient
 from Rewrite.data.interfaces.data import DataInterface
-from ...piss import parse_variables, Instruction
-from ...piss.instructionexecutor import InstructionExecutor
+from Rewrite.piss import parse_variables, Instruction
+from Rewrite.piss.instructionexecutor import InstructionExecutor
 
 FACT_COOLDOWN: float = 1.0
 

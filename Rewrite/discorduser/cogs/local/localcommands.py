@@ -6,14 +6,14 @@ import discord
 from discord import app_commands, Interaction, Embed
 from discord.ext import commands
 
-from .. import BotClient
-from ..logger.__init__ import Logger
-from ..logger.local_logger import LocalLogger
+from Rewrite.discorduser import BotClient
+from Rewrite.discorduser.logger import Logger
+from Rewrite.discorduser.logger.local_logger import LocalLogger
 from Rewrite.data.interfaces.data import LocalAdminDataInterface, FactEditorData
-from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
-from ...piss import parse_variables, Instruction
-from ...piss.instructionexecutor import DebugInstructionExecutor
-from ...piss.testing import test_raw_input as input_test
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
+from Rewrite.piss import parse_variables, Instruction
+from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
+from Rewrite.piss.testing import test_raw_input as input_test
 
 DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
 FACT_COUNT_MAXIMUM: int = 50
