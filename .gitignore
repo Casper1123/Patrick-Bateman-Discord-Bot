@@ -1,5 +1,9 @@
 # Custom gitignore
 /hidden_secret_dev_files
+/Rewrite/data/data/*.sql
+# Just in case it's moved around.
+/data/data/*.sql
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

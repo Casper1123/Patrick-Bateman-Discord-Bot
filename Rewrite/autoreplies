@@ -1,13 +1,37 @@
-Ok so, I NEED another clean file to work from here. TBF most of this crap will be removed around the end.
+Triggers bundled by Aliases yield weighted Replies
+The term Alias might need a rename, but it is what it is for now.
 
-Anyhows, content autoreplies need a COMPLETE overhaul.
-I will need to work this out over time.
+Alias has a Rate in (0..1] that defaults to 1
+Can be overridden by trigger rate, if it is set
 
-General idea:
-Triggers bucketed together
-If a trigger condition is met, roll a dice for the entire bucket's acceptance. If accepted, proceed.
-Take a random reply, each reply having a larger probability of being selected given their individual weights.
-Example: replies a and b, with weights x and y
-(a, x), (b, y)
-If x = 10y
-then x gets picked 10 times more often than y
+Triggers:
+Regex --> Substring is implied unless properly indicated.
+    - FUTURE: Logical operators and slightly more complicated operands (like message author permissions)?
+Triggers have optional rate in (0..1] that overrides alias / bucket rate
+
+Replies:
+PISS-compatible string. Has a weight [1..256] (todo: internally decrement by 1 to use exactly 8 bits, and make a weight of 0 incompatible.)
+Weights relate relative picking chance: reply A with weight 256 is picked 256x as often as reply B with weight 1 and 128x as often as reply C with weight 2
+
+As such, as is required:
+
+Alias:
+- Name (unique, for editing triggers / replies purposes)
+- ID (internal only, keeps things held together after Alias rename)
+
+Trigger:
+- Type (Purely for future compatibility)
+- Data (String output)
+- ? Rate (optional override rate, [1..256]
+- BucketID (ID of attached Alias)
+- ID (increasing unique number for ordering reasons)
+
+Reply:
+- Data (PISS-compatible string output)
+- Weight
+- BucketID
+- ID (increasing unique number for ordering reasons)
+
+Implementation:
+Everything stored in separate tables (BUCKET, TRIGGER, REPLY)
+Keep triggers in memory in a cache -> Prevent repeatedly fetching from db, keeping db as a disk-based storage medium for startup and long-term storage reasons.
