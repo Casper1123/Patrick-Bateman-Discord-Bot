@@ -15,6 +15,14 @@ class ErrorTooltip(Enum):
     ISSUE = 1
     WIKI = 2
 
+# Tooltip to description translation. No repeated allocation at local runtime.
+_tooltips: dict[ErrorTooltip, str] = {
+            ErrorTooltip.NONE: '',
+            ErrorTooltip.ISSUE: 'If this issue persists, feel free to report it on '
+                f'[the development\'s issues page](<{GITHUB_ISSUES_URL}>).',
+            ErrorTooltip.WIKI: f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{SUPPORT_SERVER_INVITE}>) or check out the [wiki](<{GITHUB_WIKI_URL}>).',
+        }
+
 class CustomDiscordException(Exception):
     """
     Template exception which includes simple visualisation for user-feedback.
@@ -28,16 +36,10 @@ class CustomDiscordException(Exception):
     # todo note: Exception.__traceback__ exists, go look it up it's kinda silli :)
 
     def as_embed(self) -> Embed:
-        tooltips: dict[ErrorTooltip, str] = {
-            ErrorTooltip.NONE: '',
-            ErrorTooltip.ISSUE: 'If this issue persists, feel free to report it on '
-                f'[the development\'s issues page](<{GITHUB_ISSUES_URL}>).',
-            ErrorTooltip.WIKI: f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{SUPPORT_SERVER_INVITE}>) or check out the [wiki](<{GITHUB_WIKI_URL}>).',
-        }
         embed = Embed(
             title=self.error_type,
             description=f"**An error has occurred.**\n"
-                        f"{tooltips[self.tooltip]}"
+                        f"{_tooltips[self.tooltip]}"
                         f"{f'\n**Error:**\n{self.message}' if self.message else ''}"
                         f"{'\n\n**Caused by:**' + type(self.cause).__name__ + '\n' + str(self.cause) if self.cause else ''}",
         )
