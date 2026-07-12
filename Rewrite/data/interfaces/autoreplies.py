@@ -1,21 +1,22 @@
+from _ast import alias
 from abc import ABC, abstractmethod
 from typing import Literal
 
 _trigger_types = Literal['regex']
+_reply_types = Literal['text', 'reaction']
 
 class AliasData:
     """
     Record class for alias data
     """
-    def __init__(self, name: str, rate: int, uid: str):
+    def __init__(self, name: str, rate: int):
         """
         Represents Data Transfer Object for Alias data.
         :param name: Alias name. Unique.
-        :param rate: Rate of alias in [1..100]. Probability of alias triggering, if not overriden by trigger.
+        :param rate: Rate of alias in [1..256]. Probability of trigger in alias activating, if not overridden by trigger.
         :param uid: Unique ID of alias. Primarily for internal use.
         """
         self.name: str = name
-        self.uid: str = uid
         self.rate: int = rate
 
 class TriggerData:
@@ -28,14 +29,25 @@ class TriggerData:
         :param trigger_type: Type of trigger. Needs to be supported.
         :param data: Unprocess PISS-compatible string.
         :param alias: Alias of the trigger.
-        :param rate: If present, overrides rate of alias in [1..100].
+        :param rate: If present, overrides rate of alias in [1..256].
         :param uid: Unique ID of trigger. Primarily for internal use.
         """
         self.type: _trigger_types = trigger_type # todo: validate type correctness?
         self.data: str = data
-        self.alias: AliasData = alias # todo: alias uid only?
+        self.alias: AliasData = alias # todo: alias name only?
         self.rate: int | None = rate
         self.id: str = uid
+
+class ReplyData:
+    """
+    Record for reply data.
+    """
+    def __init__(self, reply_type: _reply_types, data: str, weight: int, uid: str, alias: AliasData,):
+        self.type: _reply_types = reply_type
+        self.data: str = data
+        self.alias: AliasData = alias # todo: alias name only?
+        self.weight: int = weight
+        self.id = uid
 
 class TextAutorepliesInterface(ABC):
     """
@@ -53,15 +65,24 @@ class TextAutorepliesInterface(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_triggers(self, alias: str) -> list[TriggerData]:
+    def get_triggers_by_alias(self) -> dict[AliasData, list[TriggerData]]:
         """
-        Get all triggers of a given alias.
+        Gets all triggers bundled by Aliases.
+        :return: Aliases indexed by alias name
         """
         raise NotImplementedError()
 
+class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
+    """
+    Extension of the standard authorization interface, which includes methods to modify the autoreply pool.
+    """
     @abstractmethod
-    def get_aliases(self) -> list[AliasData]:
+    def add_trigger(self, alias: str, trigger_type: _trigger_types, data: str, rate: int | None):
         """
-        Get all aliases.
+        Creates a new Trigger for the given Alias.
+        :param alias: Name of the Alias
+        :param trigger_type: Type of the Trigger
+        :param data: Trigger Data
+        :param rate: Optional Trigger rate in [1..256]
         """
         raise NotImplementedError()
