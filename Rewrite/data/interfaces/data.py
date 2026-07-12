@@ -40,7 +40,7 @@ class DataInterface(ABC):
         If passed a known guild_id, appends local fact pool to the index range and fact pool.
         :param guild_id: Guild ID for local facts. Can be None to use only global.
         :param index: If not None, will try getting the fact at the given index. Throws IndexError when out of bounds.
-        :return: An unprocessed fact. Usually requires variables parsing.
+        :return: Unprocessed PISS-compatible string.
         """
         raise NotImplementedError()
 
@@ -51,7 +51,7 @@ class DataInterface(ABC):
 
         As it just gets the quantity, guild_id is optional to either get global count or local count.
         :param guild_id: If not None, gets the given guild's local fact count, otherwise gets global fact count.
-        :return: Number of facts in given domain.
+        :return: Number of facts for the given guild.
         """
         raise NotImplementedError()
 
