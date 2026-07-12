@@ -11,9 +11,9 @@ from ..logger.__init__ import Logger
 from ..logger.local_logger import LocalLogger
 from Rewrite.data.interfaces.data import LocalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
-from ...variables_parser import parse_variables, Instruction
-from ...variables_parser.instructionexecutor import DebugInstructionExecutor
-from ...variables_parser.testing import test_raw_input as input_test
+from ...piss import parse_variables, Instruction
+from ...piss.instructionexecutor import DebugInstructionExecutor
+from ...piss.testing import test_raw_input as input_test
 
 DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
 FACT_COUNT_MAXIMUM: int = 50

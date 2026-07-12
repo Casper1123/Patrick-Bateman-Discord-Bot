@@ -9,7 +9,7 @@ from discord.ext import commands
 from .. import BotClient
 from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
 from ...utilities.exceptions import CustomDiscordException, ErrorTooltip
-from ...variables_parser.testing import test_raw_input as input_test
+from ...piss.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 

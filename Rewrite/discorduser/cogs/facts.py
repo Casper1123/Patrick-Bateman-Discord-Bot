@@ -4,8 +4,8 @@ from discord.ext import commands
 
 from .. import BotClient
 from Rewrite.data.interfaces.data import DataInterface
-from ...variables_parser import parse_variables, Instruction
-from ...variables_parser.instructionexecutor import InstructionExecutor
+from ...piss import parse_variables, Instruction
+from ...piss.instructionexecutor import InstructionExecutor
 
 FACT_COOLDOWN: float = 1.0
 
