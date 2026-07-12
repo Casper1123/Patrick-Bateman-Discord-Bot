@@ -4,7 +4,7 @@ import re as _re
 import discord
 from discord.ext import commands
 
-from Rewrite.data.interfaces.autoreplies import TextAutorepliesInterface, AliasData, TriggerData, ReplyData
+from Rewrite.data.interfaces.autoreplies import TextAutorepliesInterface, AliasData, ReplyData
 from Rewrite.data.interfaces.data import DataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.piss import Instruction, parse_variables
