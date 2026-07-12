@@ -55,12 +55,11 @@ class TextAutorepliesInterface(ABC):
     """
 
     @abstractmethod
-    def get_reply(self, alias: str) -> str:
+    def get_reply(self, alias: str) -> ReplyData | None:
         """
         Get a random reply based on the given alias and the corresponding reply pool's weights.
-        Throws a ValueError if not possible.
         :param alias: Alias of the reply to get.
-        :return: Unprocessed PISS-compatible string.
+        :return: Unprocessed PISS-compatible string or NONE if no replies exist for this Alias.
         """
         raise NotImplementedError()
 

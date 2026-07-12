@@ -27,12 +27,6 @@ class MessageContentAutoreplyCog(commands.Cog):
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'text'):
             return
 
-        # Get trigger data
-        # Find if a trigger is met
-        # Compute if the alias should trigger
-        # Randomly select from resulting aliases
-        # Get a reply for that alias
-        # Execute
         a_data = self.repl.get_triggers_by_alias()
 
         triggering_aliases: list[AliasData] = []
@@ -54,15 +48,21 @@ class MessageContentAutoreplyCog(commands.Cog):
         if not triggering_aliases:
             return
 
-        raw: str | None = None
-        while raw is None and triggering_aliases:
+        reply: ReplyData | None = None
+        while reply is None and triggering_aliases:
             index: int = _r.randint(0, len(triggering_aliases) - 1)
             alias: AliasData = triggering_aliases.pop(index)
-            raw: str = self.repl.get_reply(alias.name)
-        if not raw:
+            reply: ReplyData | None = self.repl.get_reply(alias.name)
+        if not reply:
             return # todo: log that the given message triggered a bunch of aliases, but did not get a reply. Maybe even log which aliases it were and the trigger it hit.
+            # also do not be a dumbo and put a cooldown on that log pretty please.
 
-        instructions: list[Instruction] = parse_variables(raw)
-        executor: InstructionExecutor = InstructionExecutor(self.client, self.db)
-        await executor.run(instructions, message)
-
+        if reply.type == 'text':
+            instructions: list[Instruction] = parse_variables(reply.data)
+            executor: InstructionExecutor = InstructionExecutor(self.client, self.db)
+            await executor.run(instructions, message)
+        elif reply.type == 'reaction':
+            await message.add_reaction(reply.data)
+            # todo: test
+        else:
+            raise TypeError(f'Reply of invalid type **{reply.type}**')
