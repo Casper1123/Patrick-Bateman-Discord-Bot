@@ -113,6 +113,7 @@ class Instruction:
     def __init__(self, instruction_type: InstructionType, **options):
         self.type: InstructionType = instruction_type
         self.options: dict[str, object] = options
+        # todo: I should REALLY make Instructions seperate subclasses from this, as well as have them have individual static functions to parse into them.
 
     def __str__(self):
         return str(self.type) + ": " + str(self.options)

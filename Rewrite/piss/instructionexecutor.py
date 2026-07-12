@@ -31,6 +31,16 @@ class InstructionExecutor:
         self.guild_id = None
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
+        """
+        Execute the given instructions within the context of a message or interaction.
+        :param instructions: Instructions to execute.
+        :param interaction: Interaction context.
+        :param depth: Recursion depth. Raises exception if exceeded to prevent stack overflow.
+        :param build: Currently building string output. Required for recursion. Leave empty if you don't know what you're doing.
+        :param push_final_build: If False, skips sending remaining building content on ending execution.
+        :param memstack: The current memory context, in stack form.
+        :return: Remaining building text progress.
+        """
         depth: int = depth + 1 if depth else 0
         if depth > MAX_EXECUTION_RECURSION_DEPTH:
             raise CustomDiscordException(message=f'Maximum recursion depth of {depth} exceeded maximal value when executing Instructions.\n'
