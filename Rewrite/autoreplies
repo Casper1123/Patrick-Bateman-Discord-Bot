@@ -18,6 +18,7 @@ As such, as is required:
 Alias:
 - Name (unique, for editing triggers / replies purposes)
 - ID (internal only, keeps things held together after Alias rename)
+- Rate (Default activation value of triggers)
 
 Trigger:
 - Type (Purely for future compatibility)
@@ -27,6 +28,7 @@ Trigger:
 - ID (increasing unique number for ordering reasons)
 
 Reply:
+- Type (Text, Reaction)
 - Data (PISS-compatible string output)
 - Weight
 - BucketID
