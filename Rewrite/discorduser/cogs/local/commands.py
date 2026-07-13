@@ -32,7 +32,6 @@ class UseRestriction(Enum):
     CHAR_LIMIT = 5
 
 
-
 class RestrictedUseException(CustomDiscordException):
     def __init__(self, restriction: UseRestriction):
         reasons: dict[UseRestriction, str] = {
@@ -80,6 +79,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
         """
         Checks given input and sees if it can be created as a fact.
         Will raise an Exception if the check fails.
+        :param guild_id: Guild ID to check for
+        :param text: Created/updated fact text; used for character limit checking
         :param edit: If true, ignores fact limit check (considers it as replacing the fact)
         :return: Permission.
         """
