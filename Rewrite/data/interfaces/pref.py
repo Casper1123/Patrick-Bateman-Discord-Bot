@@ -3,17 +3,20 @@ from typing import Literal
 
 _supp_autr_features = Literal['saying', 'text', 'letter', 'number']
 
+# Only reason these are separate are just in case extra data needs to be supplied (like uid, gid, cid)
+# But yeah, copy pasted.
 class UserPreferenceData:
     """
     Record for User Preference data.
     """
-    def __init__(self, text: bool, letter: bool, number: bool):
+    def __init__(self, text: bool, letter: bool, number: bool, saying: bool):
         """
         Creates a Data Transfer Object containing data on each of the supported features for the given user id.
         """
         self.text = text
         self.letter = letter
         self.number = number
+        self.saying = saying
 
 class GuildChannelPreferenceData:
     """
