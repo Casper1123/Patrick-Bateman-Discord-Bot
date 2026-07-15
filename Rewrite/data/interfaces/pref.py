@@ -3,6 +3,28 @@ from typing import Literal
 
 _supp_autr_features = Literal['saying', 'text', 'letter', 'number']
 
+class UserPreferenceData:
+    """
+    Record for User Preference data.
+    """
+    def __init__(self, text: bool, letter: bool, number: bool):
+        """
+        Creates a Data Transfer Object containing data on each of the supported features for the given user id.
+        """
+        self.text = text
+        self.letter = letter
+        self.number = number
+
+class GuildChannelPreferenceData:
+    """
+    Record for Guild Preference data.
+    """
+    def __init__(self, text: bool, letter: bool, number: bool, saying: bool):
+        self.text = text
+        self.letter = letter
+        self.number = number
+        self.saying = saying
+
 class PreferencesInterface(ABC):
     @abstractmethod
     async def run_cache_manager(self):
@@ -52,6 +74,25 @@ class PreferencesInterface(ABC):
         :param channel_id:
         :param feature: Given feature to check status for. todo: needs one for all features for command inputs?
         :return: Feature availability status.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def user_autoreplies_enabled(self, user_id: int) -> UserPreferenceData:
+        """
+        Gets all user preferences. Use over `is_autoreply_enabled` if you intend to request more than one data point.
+        :param user_id: User ID to get for.
+        :return: UserPreferenceData for the given data.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def guild_channel_autoreplies_enabled(self, guild_id: int, channel_id: int | None) -> GuildChannelPreferenceData:
+        """
+        Gets all guild preferences for the current channel. Use over `is_autoreply_enabled` if you intend to request more than one data point.
+        :param guild_id: The guild ID to get for.
+        :param channel_id: The channel ID to get for. NONE if all channels.
+        :return: GuildChannelPreferenceData for the given data.
         """
         raise NotImplementedError()
     # endregion
