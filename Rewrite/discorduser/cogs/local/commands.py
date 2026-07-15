@@ -31,17 +31,17 @@ class UseRestriction(Enum):
     FACT_LIMIT = 4
     CHAR_LIMIT = 5
 
+reasons: dict[UseRestriction, str] = {
+        UseRestriction.NONE: 'An unlisted external reason has prevented you from performing this action. Seeing this usually means you\'re an outlier or something went wrong on our side.',
+        UseRestriction.GUILD: 'This guild has been restricted from using this feature.',
+        UseRestriction.USER: 'You cannot use this feature.',
+
+        UseRestriction.FACT_LIMIT: 'This guild has hit the maximum number of Facts. Remove some to make space.',
+        UseRestriction.CHAR_LIMIT: 'Your input was too long.'
+    }
 
 class RestrictedUseException(CustomDiscordException):
     def __init__(self, restriction: UseRestriction):
-        reasons: dict[UseRestriction, str] = {
-            UseRestriction.NONE: 'An unlisted external reason has prevented you from performing this action. Seeing this usually means you\'re an outlier or something went wrong on our side.',
-            UseRestriction.GUILD: 'This guild has been restricted from using this feature.',
-            UseRestriction.USER: 'You cannot use this feature.',
-
-            UseRestriction.FACT_LIMIT: 'This guild has hit the maximum number of Facts. Remove some to make space.',
-            UseRestriction.CHAR_LIMIT: 'Your input was too long.'
-        }
         super().__init__(f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
 
 
