@@ -12,7 +12,7 @@ class GuildPreferenceCog(commands.Cog):
         self.pref = pref
 
     # Guild channel preference toggle
-    @app_commands.command(name="preferences", description="Toggle automatic features for yourself. Set to True to toggle.")
+    @app_commands.command(name="guild_preferences", description="Toggle automatic features for this, or all, channels. Set to True to toggle.")
     @app_commands.describe(here="If false, edits general server-wide override instead.", numbers="Incremental number replies.", letters='Letter-only replies.', text='Text content replies.')
     async def guild_toggle_preference(self, interaction: discord.Interaction, here: bool, numbers: bool = False, letters: bool = False, text: bool = False, saying: bool = False):
         await interaction.response.defer(ephemeral=True, thinking=True)
