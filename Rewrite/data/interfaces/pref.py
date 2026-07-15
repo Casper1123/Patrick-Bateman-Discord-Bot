@@ -77,14 +77,6 @@ class PreferencesInterface(ABC):
         """
         raise NotImplementedError()
 
-    @abstractmethod
-    def user_autoreplies_enabled(self, user_id: int) -> UserPreferenceData:
-        """
-        Gets all user preferences. Use over `is_autoreply_enabled` if you intend to request more than one data point.
-        :param user_id: User ID to get for.
-        :return: UserPreferenceData for the given data.
-        """
-        raise NotImplementedError()
 
     @abstractmethod
     def guild_channel_autoreplies_enabled(self, guild_id: int, channel_id: int | None) -> GuildChannelPreferenceData:
@@ -114,6 +106,15 @@ class PreferencesInterface(ABC):
         :param user_id
         :param feature: Given feature to check status for. todo: needs one for all features for command inputs?
         :return: Feature availability status.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def user_autoreplies_enabled(self, user_id: int) -> UserPreferenceData:
+        """
+        Gets all user preferences. Use over `is_user_autoreply_enabled` if you intend to request more than one data point.
+        :param user_id: User ID to get for.
+        :return: UserPreferenceData for the given data.
         """
         raise NotImplementedError()
     # endregion
