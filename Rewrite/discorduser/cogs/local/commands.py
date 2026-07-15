@@ -45,9 +45,10 @@ class RestrictedUseException(CustomDiscordException):
         super().__init__(f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
 
 
+
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
-    def __init__(self, client: BotClient,  db: LocalAdminDataInterface, logger: Logger) -> None:
+    def __init__(self, client: BotClient, db: LocalAdminDataInterface, logger: Logger) -> None:
         self.client = client
         self.db = db
         self.logger = logger

@@ -5,7 +5,7 @@ from discord.ext import commands
 from Rewrite.data.interfaces.data import DataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface, _supp_autr_features
 
-
+@app_commands.default_permissions(administrator=True)
 class GuildPreferenceCog(commands.Cog):
     def __init__(self, client: commands.Bot, pref: PreferencesInterface) -> None:
         self.client = client
