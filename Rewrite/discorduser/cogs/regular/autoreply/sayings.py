@@ -23,6 +23,9 @@ class RandomAutoreplyCog(commands.Cog):
         if _r.randint(1, 300) != 1: # todo: config probability
             return
 
+        if self.pref.is_paused_channel(message.guild.id, message.channel.id):
+            return
+
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'saying'):
             return
         

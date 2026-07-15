@@ -45,6 +45,7 @@ class PreferencesInterface(ABC):
         :param guild_id:
         :param channel_id: Leave empty for entire guild.
         """
+        # todo: use!
         raise NotImplementedError()
 
     @abstractmethod

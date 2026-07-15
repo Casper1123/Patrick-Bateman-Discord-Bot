@@ -16,6 +16,8 @@ class NumberAutoreplyCog(commands.Cog):
         if message.author.bot:
             return
 
+        if self.pref.is_paused_channel(message.guild.id, message.channel.id):
+            return
         if not self.pref.is_user_autoreply_enabled(message.author.id, 'number'):
             return
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'number'):
