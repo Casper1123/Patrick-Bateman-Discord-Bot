@@ -96,7 +96,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
 
     async def kill_switch_check(self, interaction: Interaction) -> bool:
-        if self.client.local_fact_kill_switch:
+        if self.db.is_killswitch():
             await interaction.response.send_message(ephemeral=True, content='This feature is currently disabled.')
             return False
         return True
