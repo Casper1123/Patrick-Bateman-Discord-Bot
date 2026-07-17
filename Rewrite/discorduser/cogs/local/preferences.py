@@ -3,7 +3,8 @@ from discord import app_commands
 from discord.ext import commands
 
 from Rewrite.data.interfaces.data import DataInterface
-from Rewrite.data.interfaces.pref import PreferencesInterface, _supp_autr_features
+from Rewrite.data.interfaces.pref import PreferencesInterface, _supp_autr_features, GuildChannelPreferenceData
+
 
 @app_commands.default_permissions(administrator=True)
 class GuildPreferenceCog(commands.Cog):
@@ -24,22 +25,19 @@ class GuildPreferenceCog(commands.Cog):
         channel_id: int | None = interaction.channel_id if here else None
         desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
         feat: set[_supp_autr_features] = set() # noqa because empty set
+        pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)
         if numbers:
             feat.add('number')
-            val: bool = self.pref.is_autoreply_enabled(guild_id, channel_id, 'number') # todo: optimize with one pref call -> take set of feat and open 1 connection.
-            desc += f'**Number:** {not val}\n'
+            desc += f'**Number:** {not pref.number}\n'
         if letters:
             feat.add('letter')
-            val: bool = self.pref.is_autoreply_enabled(guild_id, channel_id, 'letter')
-            desc += f'**Letter:** {not val}\n'
+            desc += f'**Letter:** {not pref.letter}\n'
         if text:
             feat.add('text')
-            val: bool = self.pref.is_autoreply_enabled(guild_id, channel_id,'text')
-            desc += f'**Text:** {not val}\n'
+            desc += f'**Text:** {not pref.text}\n'
         if saying:
             feat.add('saying')
-            val: bool = self.pref.is_autoreply_enabled(guild_id, channel_id,'saying')
-            desc += f'**Saying:** {not val}\n'
+            desc += f'**Saying:** {not pref.saying}\n'
 
         assert feat.__sizeof__() > 0, 'Set of selected features is 0 even though some feature was selected.'
 
