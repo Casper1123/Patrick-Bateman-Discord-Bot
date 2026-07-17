@@ -6,3 +6,14 @@ Preference opt-out
 Local:
 CRUD local facts
 
+Global:
+CRUD global facts
+CRUD local facts
+
+CRUD triggers
+CRUD replies
+CRUD aliases
+
+Guild ban DONE
+User ban DONE
+Killswitch DONE
