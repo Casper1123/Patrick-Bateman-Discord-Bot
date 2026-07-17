@@ -6,6 +6,7 @@ import discord
 from discord import app_commands, Interaction, Embed
 from discord.ext import commands
 
+from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
 from Rewrite.discorduser import BotClient
 from Rewrite.discorduser.logger import Logger
 from Rewrite.discorduser.logger.local_logger import LocalLogger
@@ -45,12 +46,14 @@ class RestrictedUseException(CustomDiscordException):
         super().__init__(f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
 
 
-
+# Unfortunately has to be 1 Cog class
+# todo: move functions and import those
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
-    def __init__(self, client: BotClient, db: LocalAdminDataInterface, logger: Logger) -> None:
+    def __init__(self, client: BotClient, db: LocalAdminDataInterface, pref: PreferencesInterface, logger: Logger) -> None:
         self.client = client
         self.db = db
+        self.pref = pref
         self.logger = logger
         self.local_logger = LocalLogger(self.client, db)
 
@@ -94,7 +97,6 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not edit:
             if self.db.get_fact_count(guild_id) >= FACT_COUNT_MAXIMUM:
                 raise RestrictedUseException(UseRestriction.FACT_LIMIT)
-
 
     async def kill_switch_check(self, interaction: Interaction) -> bool:
         if self.db.is_killswitch():
@@ -241,4 +243,46 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.db.set_log_output(interaction.guild.id, logchannel.id)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description=f'Log output channel set to <#{logchannel.id}>'))
         # todo: Choice to display current value.
+    # endregion
+    # region preferences
+
+    @app_commands.command(name="autoreply_preferences",
+                          description="Toggle automatic features for this, or all, channels. Set to True to toggle.")
+    @app_commands.describe(here="If false, edits general server-wide override instead.",
+                           numbers="Incremental number replies.", letters='Letter-only replies.',
+                           text='Text content replies.')
+    async def guild_toggle_preference(self, interaction: discord.Interaction, here: bool, numbers: bool = False,
+                                      letters: bool = False, text: bool = False, saying: bool = False):
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        if not (numbers or letters or text or saying):
+            await interaction.edit_original_response(content='Please select at least one option.')
+            return
+
+        guild_id: int = interaction.guild_id
+        channel_id: int | None = interaction.channel_id if here else None
+        desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
+        feat: set[_supp_autr_features] = set()  # noqa because empty set
+        pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)
+        if numbers:
+            feat.add('number')
+            desc += f'**Number:** {not pref.number}\n'
+        if letters:
+            feat.add('letter')
+            desc += f'**Letter:** {not pref.letter}\n'
+        if text:
+            feat.add('text')
+            desc += f'**Text:** {not pref.text}\n'
+        if saying:
+            feat.add('saying')
+            desc += f'**Saying:** {not pref.saying}\n'
+
+        assert feat.__sizeof__() > 0, 'Set of selected features is 0 even though some feature was selected.'
+
+        self.pref.toggle_autoreply_feature(guild_id, channel_id, feat)
+
+        desc = desc.removesuffix('\n')
+        await interaction.edit_original_response(embed=discord.Embed(
+            title='Guild autoreply preferences updated',
+            description=desc,
+        ))
     # endregion
