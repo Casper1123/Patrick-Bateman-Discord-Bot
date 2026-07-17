@@ -28,7 +28,6 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
-        # todo: check for duplicates!
         self.db.create_global_fact(interaction.user.id, text)
         await self.logger.global_fact_create(interaction, text)
         await interaction.response.send_message(ephemeral=ephemeral,
@@ -44,7 +43,6 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
-            # todo: check for duplicates!
         old: FactEditorData = self.db.get_global_fact(index)
         self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
         await self.logger.fact_edit(interaction, text, old)
@@ -247,15 +245,3 @@ class GlobalAdminCog(commands.Cog, name='global'):
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
     # endregion
-
-@app_commands.default_permissions(administrator=True)
-@app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
-class GlobalAdminCog(commands.Cog, name='autoreply'):
-    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
-        self.client = client
-        self.db = db
-        self.logger = logger
-
-    # region autoreply
-    # todo: make command list, probably move to autoreply cog?
-    # endregion autoreply
