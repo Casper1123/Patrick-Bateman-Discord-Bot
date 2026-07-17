@@ -30,10 +30,10 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             return
         # todo: check for duplicates!
         self.db.create_global_fact(interaction.user.id, text)
+        await self.logger.global_fact_create(interaction, text)
         await interaction.response.send_message(ephemeral=ephemeral,
                                                 embed=Embed(title='Success',
                                                             description=f'Fact added successfully.'))
-        await self.logger.global_fact_create(interaction, text)
 
     @app_commands.command(name='edit', description='Edit or Remove a global fact. Leave the text empty to remove.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
@@ -47,10 +47,11 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             # todo: check for duplicates!
         old: FactEditorData = self.db.get_global_fact(index)
         self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
+        await self.logger.fact_edit(interaction, text, old)
         await interaction.response.send_message(ephemeral=ephemeral,
                                                 embed=Embed(title='Success',
                                                             description=f'Fact {'deleted' if delete else 'edited'} successfully.'))
-        await self.logger.fact_edit(interaction, text, old)
+
 
     @app_commands.command(name='index',
                           description='Exports an overview of Global (and, optionally, Local) facts. Can be exported to JSON for easier automated use.')
@@ -131,6 +132,10 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             raise CustomDiscordException(tooltip=ErrorTooltip.NONE, cause=e,
                                          message=f'Index ({index}) not in 0 <= index < {len(local_facts)}.')
         self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
+        await self.logger.global_fact_edit(interaction, text, old)
+        if local_log:
+            # todo: log to server locally
+            pass
 
         await interaction.response.send_message(ephemeral=ephemeral, # todo: update to also display guild information
                                                 embed=Embed(title='Success',
@@ -140,10 +145,6 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                                                                                        f'\n'
                                                                                        f'# New:\n'
                                                                                        f'`{text}`'))
-        await self.logger.global_fact_edit(interaction, text, old)
-        if local_log:
-            # todo: log to server locally
-            pass
 
     @app_commands.command(name='list', description='List the local facts of the given guild.')
     @app_commands.describe(ephemeral='Hide the message from the channel. Default: False',

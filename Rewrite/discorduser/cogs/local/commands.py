@@ -119,9 +119,9 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         self.db.create_fact(interaction.guild.id, interaction.user.id, text)
-        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success', description=f'Fact added successfully.'))
         await self.logger.fact_create(interaction, text)
         await self.local_logger.fact_create(interaction, text)
+        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success', description=f'Fact added successfully.'))
 
     @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
@@ -141,11 +141,11 @@ class LocalAdminCog(commands.Cog, name='admin'):
                 return
         old: FactEditorData = self.db.get_local_fact(interaction.guild.id, index)
         self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
+        await self.logger.fact_edit(interaction, text, old)
+        await self.local_logger.fact_edit(interaction, old, index, text)
         await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success',
                                                                         description=f'Fact {'deleted' if delete else 'edited'} successfully.'
                                                                                     f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`'))
-        await self.logger.fact_edit(interaction, text, old)
-        await self.local_logger.fact_edit(interaction, old, index, text)
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide the message from other users.')
@@ -231,6 +231,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
     @app_commands.describe(ephemeral='Hide the message from other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to disable.')
     async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
+        # todo: autocomplete with current channel, having the text display which channel it is set to ('click to set to this channel')
+        # todo: parse <#id> input, so change input to string.
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
             await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description='Logging output removed.'))
