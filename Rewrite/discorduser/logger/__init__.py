@@ -3,11 +3,11 @@ from __future__ import annotations
 from enum import Enum
 
 from discord import Interaction, Embed
+from discord.ext import commands
 
 from Rewrite.data.interfaces.data import FactEditorData
 
 
-# from Rewrite.discorduser import BotClient # fixme: circular import
 
 class LogTypes(Enum):
     GENERAL = 0
@@ -31,7 +31,7 @@ class LoggerConfiguration:
 
 
 class Logger: # todo: make this a bot subclass, to be able to pass it a different token for a different logging account?
-    def __init__(self, client: BotClient, config: LoggerConfiguration) -> None:
+    def __init__(self, client: commands.Bot, config: LoggerConfiguration) -> None:
         self.client = client
         self.config = config
 
