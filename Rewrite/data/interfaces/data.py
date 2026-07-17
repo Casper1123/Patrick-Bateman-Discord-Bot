@@ -81,18 +81,17 @@ class LocalAdminDataInterface(DataInterface):
     """
     # region Facts
     @abstractmethod
-    def create_fact(self, guild_id: int, user_id: int, fact: str) -> bool: # todo: better return information?
+    def create_fact(self, guild_id: int, user_id: int, fact: str):
         """
         Creates a new Local fact under the given user id
         :param guild_id: Guild the new Local fact will belong to.
         :param user_id: The ID of the user adding the new Local fact.
         :param fact: The new Local fact. Ensure it compiles before being added.
-        :return: Creation succes.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None) -> bool: # todo: better return information?
+    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None): # todo: better return information?
         """
         Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
         :param guild_id: Guild of the belonging fact.
@@ -100,7 +99,6 @@ class LocalAdminDataInterface(DataInterface):
         :param old_fact: Old fact string.
         :param editor_id: Id of the editor of the fact.
         :param new_fact: New fact string.
-        :return: Edit success.
         """
         raise NotImplementedError()
 
@@ -191,25 +189,23 @@ class GlobalAdminDataInterface(LocalAdminDataInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def create_global_fact(self,  user_id: int, fact: str) -> bool:  # todo: better return information?
+    def create_global_fact(self,  user_id: int, fact: str):
         """
         Creates a new Global fact under the given user id
         :param user_id: The ID of the user adding the new Local fact.
         :param fact: The new Global fact. Ensure it compiles before being added.
-        :return: Creation succes.
         """
         raise NotImplementedError()
 
     @abstractmethod
     def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int,
-                  new_fact: str | None) -> bool:  # todo: better return information?
+                  new_fact: str | None):
         """
         Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
         :param previous_author_id: ID of the previous author of the fact.
         :param old_fact: Old fact string.
         :param editor_id: Id of the editor of the fact.
         :param new_fact: New fact string.
-        :return: Edit success.
         """
         raise NotImplementedError()
 

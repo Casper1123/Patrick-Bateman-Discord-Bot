@@ -29,10 +29,10 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         # todo: check for duplicates!
-        success: bool = self.db.create_global_fact(interaction.user.id, text)
+        self.db.create_global_fact(interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral,
-                                                embed=Embed(title='Success' if success else 'Failure',
-                                                            description=f'Fact added successfully.' if success else 'Fact creation failed.'))
+                                                embed=Embed(title='Success',
+                                                            description=f'Fact added successfully.'))
         await self.logger.global_fact_create(interaction, text)
 
     @app_commands.command(name='edit', description='Edit or Remove a global fact. Leave the text empty to remove.')
@@ -46,10 +46,10 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                 return
             # todo: check for duplicates!
         old: FactEditorData = self.db.get_global_fact(index)
-        success: bool = self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
+        self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
         await interaction.response.send_message(ephemeral=ephemeral,
-                                                embed=Embed(title='Success' if success else 'Failure',
-                                                            description=f'Fact {'deleted' if delete else 'edited'} successfully.' if success else f'Fact {'deletion' if delete else 'edit'} failed.'))
+                                                embed=Embed(title='Success',
+                                                            description=f'Fact {'deleted' if delete else 'edited'} successfully.'))
         await self.logger.fact_edit(interaction, text, old)
 
     @app_commands.command(name='index',
@@ -130,16 +130,16 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         except IndexError as e:
             raise CustomDiscordException(tooltip=ErrorTooltip.NONE, cause=e,
                                          message=f'Index ({index}) not in 0 <= index < {len(local_facts)}.')
-        success: bool = self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
+        self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
 
         await interaction.response.send_message(ephemeral=ephemeral, # todo: update to also display guild information
-                                                embed=Embed(title='Success' if success else 'Failure',
-                                                            description=f'Fact {'deleted' if delete else 'edited'} {'successfully.' if success else 'failed.'}'
-                                                                                    f'{f'\n# Old:\n'
+                                                embed=Embed(title='Success',
+                                                            description=f'Fact {'deleted' if delete else 'edited'} {'successfully.'}'
+                                                                                    f'\n# Old:\n'
                                                                                        f'`{old.text}`\n'
                                                                                        f'\n'
                                                                                        f'# New:\n'
-                                                                                       f'`{text}`' if success else ''}'))
+                                                                                       f'`{text}`'))
         await self.logger.global_fact_edit(interaction, text, old)
         if local_log:
             # todo: log to server locally

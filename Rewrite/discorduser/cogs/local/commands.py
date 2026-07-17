@@ -118,8 +118,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.fact_limit_check(interaction.guild.id, text)
         if not await input_test(self.client, interaction, text, ephemeral):
             return
-        success: bool = self.db.create_fact(interaction.guild.id, interaction.user.id, text)
-        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure', description=f'Fact added successfully.' if success else 'Fact creation failed.'))
+        self.db.create_fact(interaction.guild.id, interaction.user.id, text)
+        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success', description=f'Fact added successfully.'))
         await self.logger.fact_create(interaction, text)
         await self.local_logger.fact_create(interaction, text)
 
@@ -140,10 +140,10 @@ class LocalAdminCog(commands.Cog, name='admin'):
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
         old: FactEditorData = self.db.get_local_fact(interaction.guild.id, index)
-        success: bool = self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
-        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success' if success else 'Failure',
-                                                                        description=f'Fact {'deleted' if delete else 'edited'} {'successfully.' if success else 'failed.'}'
-                                                                                    f'{f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`' if success else ''}'))
+        self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
+        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success',
+                                                                        description=f'Fact {'deleted' if delete else 'edited'} successfully.'
+                                                                                    f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`'))
         await self.logger.fact_edit(interaction, text, old)
         await self.local_logger.fact_edit(interaction, old, index, text)
 
