@@ -245,7 +245,6 @@ class LocalAdminCog(commands.Cog, name='admin'):
         # todo: Choice to display current value.
     # endregion
     # region preferences
-
     @app_commands.command(name="autoreply_preferences",
                           description="Toggle automatic features for this, or all, channels. Set to True to toggle.")
     @app_commands.describe(here="If false, edits general server-wide override instead.",
@@ -254,15 +253,19 @@ class LocalAdminCog(commands.Cog, name='admin'):
     async def guild_toggle_preference(self, interaction: discord.Interaction, here: bool, numbers: bool = False,
                                       letters: bool = False, text: bool = False, saying: bool = False):
         await interaction.response.defer(ephemeral=True, thinking=True)
-        if not (numbers or letters or text or saying):
-            await interaction.edit_original_response(content='Please select at least one option.')
-            return
-
         guild_id: int = interaction.guild_id
         channel_id: int | None = interaction.channel_id if here else None
-        desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
-        feat: set[_supp_autr_features] = set()  # noqa because empty set
         pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)
+        desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
+        if not (numbers or letters or text or saying):
+            await interaction.edit_original_response(embed=discord.Embed(title=desc.removesuffix('\n'),
+                                                                         description=f'**Number:** {'Off' if not pref.number else 'On'}\n'
+                                                                                     f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
+                                                                                     f'**Text:** {'Off' if not pref.text else 'On'}\n'
+                                                                                     f'**Saying:** {'Off' if not pref.saying else 'On'}\n'))
+            return
+
+        feat: set[_supp_autr_features] = set()  # noqa because empty set
         if numbers:
             feat.add('number')
             desc += f'**Number:** {not pref.number}\n'

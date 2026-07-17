@@ -19,21 +19,24 @@ class UserPreferenceCog(commands.Cog):
     async def user_toggle_preference(self, interaction: discord.Interaction, numbers: bool = False, letters: bool = False, text: bool = False):
         # Not allowing to disable sayings is on purpose.
         await interaction.response.defer(ephemeral=True, thinking=True)
+        pref: UserPreferenceData = self.pref.user_autoreplies_enabled(interaction.user.id)
         if not (numbers or letters or text):
-            await interaction.edit_original_response(content='Please select at least one option.')
+            await interaction.edit_original_response(embed=discord.Embed(title=f'User preference for {interaction.user.name}',
+                                                                         description=f'**Number:** {'Off' if not pref.number else 'On'}\n'
+                                                                                     f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
+                                                                                     f'**Text:** {'Off' if not pref.text else 'On'}\n'))
             return
         desc: str = ''
         feat: set[_supp_autr_features] = set() # noqa because empty set
-        pref: UserPreferenceData = self.pref.user_autoreplies_enabled(interaction.user.id)
         if numbers:
             feat.add('number')
-            desc += f'**Number:** {'Off' if not pref.number else 'On'}\n'
+            desc += f'**Number:** {'Off' if pref.number else 'On'}\n'
         if letters:
             feat.add('letter')
-            desc += f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
+            desc += f'**Letter:** {'Off' if pref.letter else 'On'}\n'
         if text:
             feat.add('text')
-            desc += f'**Text:** {'Off' if not pref.text else 'On'}\n'
+            desc += f'**Text:** {'Off' if pref.text else 'On'}\n'
 
         assert feat.__sizeof__() > 0, 'Set of selected features is 0 even though some feature was selected.'
 
