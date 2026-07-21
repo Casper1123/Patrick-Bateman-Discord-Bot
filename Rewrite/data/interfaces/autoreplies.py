@@ -75,6 +75,50 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
     """
     Extension of the standard authorization interface, which includes methods to modify the autoreply pool.
     """
+    # region alias
+    @abstractmethod
+    def create_alias(self, name: str, rate: int):
+        """
+        Creates an alias with the given name. Raises ValueError if already exists.
+        :param name: New alias name.
+        :param rate: The default activation rate of the new alias in [1..256]
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def edit_alias(self, old_name: str, new_name: str | None, rate: int | None):
+        """
+        Rename given alias name to new name or change it's rate. Raises ValueError if old_name does not exist.
+        :param old_name: Old alias name.
+        :param new_name: New alias name.
+        :param rate: The default activation rate of the alias in [1..256]
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def delete_alias(self, name: str):
+        """
+        Deletes given Alias. Raises ValueError if it did not exist.
+        :param name: Alias name to remove.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_aliases(self) -> list[AliasData]:
+        """
+        Gets all aliases with their activation rates.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def exists_alias(self, name: str) -> bool:
+        """
+        Alias with given name exists or not.
+        """
+        raise NotImplementedError()
+
+    # endregion
+
     @abstractmethod
     def add_trigger(self, alias: str, trigger_type: _trigger_types, data: str, rate: int | None):
         """
