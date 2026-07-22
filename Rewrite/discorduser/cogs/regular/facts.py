@@ -11,7 +11,7 @@ FACT_COOLDOWN: float = 1.0
 
 @app_commands.guild_only()
 class FactsCog(commands.Cog):
-    def __init__(self, client: commands.Bot, db: DataInterface) -> None:
+    def __init__(self, client: BotClient, db: DataInterface) -> None:
         self.client = client
         self.db = db
 
@@ -27,7 +27,7 @@ class FactsCog(commands.Cog):
             return
 
         fact: list[Instruction] = parse_variables(fact_raw)
-        executor: InstructionExecutor = InstructionExecutor(self.client, self.db)
+        executor: InstructionExecutor = InstructionExecutor(self.client)
         await executor.run(fact, interaction=interaction)
 
 

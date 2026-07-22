@@ -23,10 +23,11 @@ class UserPreferenceCog(commands.Cog):
         await interaction.response.defer(ephemeral=True, thinking=True)
         pref: UserPreferenceData = self.pref.user_autoreplies_enabled(interaction.user.id)
         if not (numbers or letters or text):
-            await interaction.edit_original_response(embed=discord.Embed(title=f'User preference for {interaction.user.name}',
-                                                                         description=f'**Number:** {'Off' if not pref.number else 'On'}\n'
-                                                                                     f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
-                                                                                     f'**Text:** {'Off' if not pref.text else 'On'}\n'))
+            await self.client.user_feedback(interaction,
+                                            title=f'User preference for {interaction.user.name}',
+                                            desc=f'**Number:** {'Off' if not pref.number else 'On'}\n'
+                                                 f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
+                                                 f'**Text:** {'Off' if not pref.text else 'On'}\n')
             return
         desc: str = ''
         feat: set[_supp_autr_features] = set() # noqa because empty set
@@ -45,7 +46,7 @@ class UserPreferenceCog(commands.Cog):
         self.pref.toggle_user_autoreply_feature(interaction.user.id, feat)
 
         desc = desc.removesuffix('\n')
-        await interaction.edit_original_response(embed=discord.Embed(
+        await self.client.user_feedback(interaction,
             title='User preferences updated',
-            description=desc,
-        ))
+            desc=desc,
+        )

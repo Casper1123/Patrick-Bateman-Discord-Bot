@@ -31,9 +31,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             return
         self.db.create_global_fact(interaction.user.id, text)
         await self.logger.global_fact_create(interaction, text)
-        await interaction.response.send_message(ephemeral=ephemeral,
-                                                embed=Embed(title='Success',
-                                                            description=f'Fact added successfully.'))
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact added successfully.')
 
     @app_commands.command(name='edit', description='Edit or Remove a global fact. Leave the text empty to remove.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
@@ -47,9 +45,8 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         old: FactEditorData = self.db.get_global_fact(index)
         self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
         await self.logger.fact_edit(interaction, text, old)
-        await interaction.response.send_message(ephemeral=ephemeral,
-                                                embed=Embed(title='Success',
-                                                            description=f'Fact {'deleted' if delete else 'edited'} successfully.'))
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
+                                            desc=f'Fact {'deleted' if delete else 'edited'} successfully.')
 
 
     @app_commands.command(name='index',

@@ -65,7 +65,7 @@ class BotClient(commands.Bot):
 
         self.tree.on_error = on_tree_error
 
-    async def user_feedback(self, interaction: discord.Interaction | discord.Message, title: str, desc: str = None, ephemeral: bool = False) -> None:
+    async def user_feedback(self, interaction: discord.Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None:
         """
         Sends the following title and (optional) description in a standardized embed to the user.
         :param interaction: Interaction or Message to reply to.

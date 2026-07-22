@@ -3,7 +3,7 @@ import json as _json
 from enum import Enum
 
 import discord
-from discord import app_commands, Interaction, Embed
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
@@ -101,7 +101,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
     async def kill_switch_check(self, interaction: Interaction) -> bool:
         if self.db.is_killswitch():
-            await interaction.response.send_message(ephemeral=True, content='This feature is currently disabled.')
+            await self.client.user_feedback(interaction, title='This feature is currently disabled.', ephemeral=True)
             return False
         return True
 
@@ -122,7 +122,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.db.create_fact(interaction.guild.id, interaction.user.id, text)
         await self.logger.fact_create(interaction, text)
         await self.local_logger.fact_create(interaction, text)
-        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success', description=f'Fact added successfully.'))
+        await self.client.user_feedback(interaction, title='Success', desc=f'Fact added successfully.', ephemeral=ephemeral)
 
     @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
@@ -144,16 +144,16 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
         await self.logger.fact_edit(interaction, text, old)
         await self.local_logger.fact_edit(interaction, old, index, text)
-        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Success',
-                                                                        description=f'Fact {'deleted' if delete else 'edited'} successfully.'
-                                                                                    f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`'))
+        await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                        title='Success', desc=f'Fact {'deleted' if delete else 'edited'} successfully.'
+                                                                f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`')
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide the message from other users.')
     @app_commands.checks.cooldown(1, PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description='Performing PISS test.'))
+            await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(description='Performing PISS test.'))
         exception: CustomDiscordException | None = None
         description: str = 'If you see this, something went so wrong it executed neither the test nor the exception handler.'
         try:
@@ -196,7 +196,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not other:
             other = 'no body content'
 
-        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title=title, description=other))
+        await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title=title, description=other))
 
     @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
     @app_commands.describe(ephemeral='Hide the message from other users.', json='Export the facts to an attached JSON file instead.')
@@ -205,7 +205,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             raise RestrictedUseException(UseRestriction.USER)
         local_facts: list[FactEditorData] = self.db.get_local_facts(interaction.guild.id)
         if not local_facts:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='Local Facts', description='There are no local facts. Go add some!'))
+            await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Local Facts', desc='There are no local facts. Go add some!')
             return
 
         if json:
@@ -213,7 +213,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.json")
 
-                await interaction.response.send_message(embed=Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True, file=file)
+                await interaction.response.send_message(embed=discord.Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True, file=file)
                 return
 
         out: list[str] = []
@@ -227,7 +227,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
             file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.txt")
-            await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(title='Local fact data', description='See attached file for fact data.'))
+            await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=discord.Embed(title='Local fact data', description='See attached file for fact data.'))
 
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
     @app_commands.describe(ephemeral='Hide the message from other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to disable.')
@@ -236,15 +236,15 @@ class LocalAdminCog(commands.Cog, name='admin'):
         # todo: parse <#id> input, so change input to string.
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
-            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description='Logging output removed.'))
+            await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
             return
 
         logchannel = interaction.guild.get_channel(channel)
         if not logchannel:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description=f'Input channel ID **{channel}** is invalid or not found.\n'))
+            await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Input channel ID **{channel}** is invalid or not found.')
 
         self.db.set_log_output(interaction.guild.id, logchannel.id)
-        await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(description=f'Log output channel set to <#{logchannel.id}>'))
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Log output channel set to <#{logchannel.id}>')
         # todo: Choice to display current value.
     # endregion
     # region preferences
@@ -261,11 +261,10 @@ class LocalAdminCog(commands.Cog, name='admin'):
         pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)
         desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
         if not (numbers or letters or text or saying):
-            await interaction.edit_original_response(embed=discord.Embed(title=desc.removesuffix('\n'),
-                                                                         description=f'**Number:** {'Off' if not pref.number else 'On'}\n'
+            await self.client.user_feedback(interaction, title=desc.removesuffix('\n'), desc=f'**Number:** {'Off' if not pref.number else 'On'}\n'
                                                                                      f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
                                                                                      f'**Text:** {'Off' if not pref.text else 'On'}\n'
-                                                                                     f'**Saying:** {'Off' if not pref.saying else 'On'}\n'))
+                                                                                     f'**Saying:** {'Off' if not pref.saying else 'On'}\n')
             return
 
         feat: set[_supp_autr_features] = set()  # noqa because empty set
@@ -287,8 +286,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.pref.toggle_autoreply_feature(guild_id, channel_id, feat)
 
         desc = desc.removesuffix('\n')
-        await interaction.edit_original_response(embed=discord.Embed(
+        await self.client.user_feedback(interaction,
             title='Guild autoreply preferences updated',
-            description=desc,
-        ))
+            desc=desc,
+        )
     # endregion

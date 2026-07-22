@@ -16,7 +16,7 @@ class MainCommandsCog(commands.Cog):
     @app_commands.command(name="chinesenukelaunchcodes",
                           description="速度与激情早上好中国现在我有冰激淋 我很喜欢冰激淋但是《速度与激情9》比冰激淋……🍦")
     async def chinese_nuke_launch_codes(self, interaction: discord.Interaction):
-        numlist = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "零"]
+        numlist = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "零"] # todo: update the text
         numbers = "".join([_r.choice(numlist) for _ in range(_r.randint(8, 12))])
         await interaction.response.send_message(
             content=f"哦，亲爱的中华人民共和国领导人，愿您带领我们走向胜利。 准备好你的发射代码，用一阵核辐射来征服胖子的土地。 赞美习近平，赞美中共，赞美中国！ ： {numbers}",
@@ -29,6 +29,7 @@ class MainCommandsCog(commands.Cog):
     @app_commands.command(name="sex", description="sex")
     async def _sex(self, interaction: discord.Interaction):
         await interaction.response.send_message("Yeah, no.")
+        # todo: update
 
     @app_commands.command(name="throwback", description="Replies to a random message in this channel's history.")
     @app_commands.describe(ephemeral="Hide the response; sneaky private throwback")

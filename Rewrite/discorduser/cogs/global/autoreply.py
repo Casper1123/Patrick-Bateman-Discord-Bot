@@ -35,10 +35,10 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
         try:
             self.repl.create_alias(name, rate if rate is not None else 256)
         except ValueError as e:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title='Alias creation failed',
-                                                                        description='This alias already exists.'))
+            await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias creation failed',
+                                                                        desc='This alias already exists.')
             return
-        await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title='Alias created successfully', ))
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias created successfully')
 
     @app_commands.command(name='edit', description='Edit an existing Alias')
     @app_commands.describe(alias='The Alias you wish to edit.',
@@ -48,22 +48,20 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
     @app_commands.rename(new_name='name')
     async def edit_alias(self, interaction: discord.Interaction, alias: str, new_name: str | None = None, rate: int | None = None):
         if rate is None and new_name is None:
-            await interaction.response.send_message(embed=discord.Embed(title='Alias edit failed',
-                                                                        description='Please select an option. '
-                                                                                    'If you intend to delete this alias, select the pre-given option to do so.'))
+            await self.client.user_feedback(interaction, title='Alias edit failed',
+                            desc='Please select an option. If you intend to delete this alias, select the pre-given option to do so.')
         if rate is not None and not (1 <= rate <= 256):
             # Rate not in domain and passed in.
-            await interaction.response.send_message(embed=discord.Embed(
-                title='Alias edit failed',
-                description=f'The given rate **{rate}** is not within the domain **[1..256]**.'))
+            await self.client.user_feedback(interaction, title='Alias edit failed',
+                desc=f'The given rate **{rate}** is not within the domain **[1..256]**.')
             return
         try:
             self.repl.edit_alias(alias, new_name if (new_name and new_name != alias) else None, rate)
         except ValueError as e:
-            await interaction.response.send_message(embed=discord.Embed(title='Alias edit failed',
-                                                                        description='The given alias does not exist, or the new alias name is already taken.'))
+            await self.client.user_feedback(interaction, title='Alias edit failed',
+                                    desc='The given alias does not exist, or the new alias name is already taken.')
             return
-        await interaction.response.send_message(embed=discord.Embed(title='Alias edited successfully'))
+        await self.client.user_feedback(interaction, title='Alias edited successfully')
 
     @app_commands.command(name='delete', description='Delete an existing Alias')
     @app_commands.describe(alias='The Alias you wish to delete.')
@@ -71,10 +69,9 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
         try:
             self.repl.delete_alias(alias)
         except ValueError as e:
-            await interaction.response.send_message(embed=discord.Embed(title='Alias edit failed',
-                                                                        description='Cannot delete a nonexistent Alias.'))
+            await self.client.user_feedback(interaction, title='Alias edit failed', desc='Cannot delete a nonexistent Alias.')
             return
-        await interaction.response.send_message(embed=discord.Embed(title='Alias deleted successfully'))
+        await self.client.user_feedback(interaction, title='Alias deleted successfully')
 
     # region autocomplete
     @edit_alias.autocomplete('alias')
@@ -107,20 +104,16 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                            weight='The relative weight this Trigger will proc to, overriding the Alias rate if given. Range 1-256')
     async def create_trigger(self, interaction: discord.Interaction, alias: str, text: str, weight: int = None):
         if weight is not None and not (1 <= weight <= 256):
-            await interaction.response.send_message(embed=discord.Embed(title='Trigger creation failed',
-                                                                        description='The given weight is not in range **[1..256]**.'))
+            await self.client.user_feedback(interaction, title='Trigger creation failed',
+                      desc='The given weight is not in range **[1..256]**.')
             return
         try:
             self.repl.add_trigger(alias, trigger_type='regex', data=text, rate=weight) # todo: create and support other trigger types.
         except ValueError as e:
-            await interaction.response.send_message(embed=discord.Embed(title='Trigger creation failed',
-                                                                        description=f'The given Alias {alias} does not exist.'))
+            await self.client.user_feedback(interaction, title='Trigger creation failed', desc=f'The given Alias {alias} does not exist.')
             return
 
-        await interaction.response.send_message(embed=discord.Embed(title='Trigger created successfully',
-                                                                    description=f'Alias: {alias}\n'
-                                                                                f'*Type: Regex*\n'
-                                                                                f'Content: **{text}**'))
+        await self.client.user_feedback(interaction, title='Trigger created successfully', desc=f'Alias: {alias}\n*Type: Regex*\nContent: **{text}**')
 
     # @app_commands.command(name='edit', description='Edit a Trigger')
     # @app_commands.describe()
@@ -160,13 +153,10 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     async def create_reply(self, interaction: discord.Interaction, alias: str, reply_type: _reply_types, text: str, weight: int = 1):
         # todo: check, if reply type is reaction, that it is a standard unicode emoji.
         if reply_type == 'reaction':
-            await interaction.response.send_message(embed=discord.Embed(title='Unsupported',
-                                                                        description='The given Reply type is not supported.\n'
-                                                                                    'It will be in the future, but right now it is not. The setting is a placeholder.'))
+            await self.client.user_feedback(interaction, title='Unsupported', desc='The given Reply type is not supported.\nIt will be in the future, but right now it is not. The setting is a placeholder.')
             return
         if weight is not None and not 0 <= weight <= WEIGHT_UPPER_BOUND:
-            await interaction.response.send_message(embed=discord.Embed(title='Reply creation failed',
-                                                                        description=f'Weight not in range [1..{WEIGHT_UPPER_BOUND}].'))
+            await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Weight not in range [1..{WEIGHT_UPPER_BOUND}].')
         if reply_type == 'text':
             # test the reply before adding.
             if not await input_test(self.client, interaction, text, ephemeral=True):
