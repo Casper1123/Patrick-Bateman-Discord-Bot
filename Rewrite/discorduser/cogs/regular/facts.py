@@ -9,7 +9,7 @@ from Rewrite.piss.instructionexecutor import InstructionExecutor
 
 FACT_COOLDOWN: float = 1.0
 
-
+@app_commands.guild_only()
 class FactsCog(commands.Cog):
     def __init__(self, client: commands.Bot, db: DataInterface) -> None:
         self.client = client

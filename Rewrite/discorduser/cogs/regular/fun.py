@@ -7,7 +7,7 @@ from discord.ext import commands
 
 from Rewrite.utilities.messagevisualisation import embedify
 
-
+@app_commands.guild_only()
 class MainCommandsCog(commands.Cog):
     def __init__(self, client: commands.Bot) -> None:
         self.client = client

@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-
+@app_commands.guild_only()
 class AskPatrick(commands.Cog):
     def __init__(self, client: commands.bot) -> None:
         self.client = client

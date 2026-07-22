@@ -48,6 +48,7 @@ class RestrictedUseException(CustomDiscordException):
 
 # Unfortunately has to be 1 Cog class
 # todo: move functions and import those
+@app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
     def __init__(self, client: BotClient, db: LocalAdminDataInterface, pref: PreferencesInterface, logger: Logger) -> None:

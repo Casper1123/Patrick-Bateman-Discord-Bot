@@ -15,6 +15,7 @@ from Rewrite.piss.testing import test_raw_input as input_test
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 DELETE_ALIAS_INPUT: str = '<DELETE>'
 
+@app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _AliasGlobalAdminCog(commands.Cog, name='alias'):

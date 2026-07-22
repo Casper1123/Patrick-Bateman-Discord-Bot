@@ -13,6 +13,7 @@ from Rewrite.piss.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
+@app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalFactAdminCog(commands.Cog, name='gfact'):
@@ -182,6 +183,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         ))
     # endregion
 
+@app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminCog(commands.Cog, name='global'):
