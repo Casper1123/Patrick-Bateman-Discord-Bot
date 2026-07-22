@@ -22,8 +22,3 @@ def write_toml(path: str, data: dict[str, str | int | float | bool | list | dict
 def load_toml(path: str):
     with open(path, "rb") as f:
         return _tomllib.load(f)
-
-
-# Configuration file building
-def build():
-    ...
