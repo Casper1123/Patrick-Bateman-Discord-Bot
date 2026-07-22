@@ -5,11 +5,12 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.messagevisualisation import embedify
 
 @app_commands.guild_only()
 class MainCommandsCog(commands.Cog):
-    def __init__(self, client: commands.Bot) -> None:
+    def __init__(self, client: BotClient) -> None:
         self.client = client
 
     @app_commands.command(name="chinesenukelaunchcodes",

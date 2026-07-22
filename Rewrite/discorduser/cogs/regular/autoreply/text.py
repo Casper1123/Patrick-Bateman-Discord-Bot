@@ -7,11 +7,12 @@ from discord.ext import commands
 from Rewrite.data.interfaces.autoreplies import TextAutorepliesInterface, AliasData, ReplyData
 from Rewrite.data.interfaces.data import DataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import Instruction, parse_variables
 from Rewrite.piss.instructionexecutor import InstructionExecutor
 
 class MessageContentAutoreplyCog(commands.Cog):
-    def __init__(self, client: commands.Bot, db: DataInterface, pref: PreferencesInterface, replies: TextAutorepliesInterface) -> None:
+    def __init__(self, client: BotClient, db: DataInterface, pref: PreferencesInterface, replies: TextAutorepliesInterface) -> None:
         self.client = client
         self.db = db
         self.pref = pref

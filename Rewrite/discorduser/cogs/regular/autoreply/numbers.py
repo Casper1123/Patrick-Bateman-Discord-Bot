@@ -3,10 +3,11 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.data import DataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
+from Rewrite.discorduser.user.abstract import BotClient
 
 
 class NumberAutoreplyCog(commands.Cog):
-    def __init__(self, client: commands.Bot, db: DataInterface, pref: PreferencesInterface) -> None:
+    def __init__(self, client: BotClient, db: DataInterface, pref: PreferencesInterface) -> None:
         self.client = client
         self.db = db
         self.pref = pref

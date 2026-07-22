@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, _reply_types, _trigger_types
 from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss.testing import test_raw_input as input_test
 
@@ -20,7 +21,7 @@ WEIGHT_UPPER_BOUND: int = 1024
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _AliasGlobalAdminCog(commands.Cog, name='alias'):
-    def __init__(self, client: commands.Bot,  db: GlobalAdminDataInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
+    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
         self.client = client
         self.db = db
         self.repl = repl

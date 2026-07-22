@@ -3,13 +3,11 @@ import datetime as _datetime
 import random as _r
 
 import discord
-from discord.ext import commands
 from discord import AllowedMentions, Message, Interaction, Member
 
-from Rewrite.discorduser import BotClient
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES, UserAttributeOptions
-from ..data.interfaces.data import DataInterface
 
 MAX_EXECUTION_RECURSION_DEPTH = 5 # todo: into config file you go.
 
@@ -23,9 +21,8 @@ class InstructionExecutor:
     Executes given instructions using asynchronous run method.
     Create a new instance per attempted execution, as it keeps track of some global execution variables as class attributes.
     """
-    def __init__(self, client: commands.Bot, db: DataInterface):
+    def __init__(self, client: BotClient):
         self.client = client
-        self.db = db
         self.shuffled_memberlist: list[Member] | None = None
         self.fresh: bool = True
         self.guild_id = None
@@ -102,8 +99,8 @@ class InstructionExecutor:
         channel: discord.TextChannel = interaction.channel
         owner: discord.Member = guild.owner  # guild owner
 
-        local_facts: int = self.db.get_fact_count(guild.id)
-        global_facts: int = self.db.get_fact_count(None)
+        local_facts: int = self.client.db.get_fact_count(guild.id)
+        global_facts: int = self.client.db.get_fact_count(None)
         total_facts: int = local_facts + global_facts
 
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
@@ -284,7 +281,7 @@ class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient, pure_output: bool = False):
         self.output: str = ''
         self.pure_output: bool = pure_output
-        super().__init__(client, client.db)
+        super().__init__(client)
 
     def _instruction_log(self, itype: str, extra: str = None):
         if not self.pure_output:
@@ -292,6 +289,7 @@ class DebugInstructionExecutor(InstructionExecutor):
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None, build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
         # todo: determine if any initialization needs to be done here for memory evaluation.
+        # todo: split class here to perform full depth search. Because like, right now you can hide an invalid choice option next to a valid one and it passes the test.
         temp: str = self.output
         self.output = '' # temporarily move output.
         out = await super().run(instructions, interaction, depth, build, push_final_build, memstack)
@@ -306,6 +304,7 @@ class DebugInstructionExecutor(InstructionExecutor):
         self._instruction_log('SLEEP', f'time={time}')
 
     def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
+        # todo: check if basic replace key exists during testing, for the sake of memory safety.
         return '{BASIC_REPLACE;' + key + '}'
 
     async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int, build: str, memstack: list[dict[str, ...]]) -> str:

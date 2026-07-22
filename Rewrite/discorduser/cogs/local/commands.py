@@ -7,7 +7,7 @@ from discord import app_commands, Interaction, Embed
 from discord.ext import commands
 
 from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
-from Rewrite.discorduser import BotClient
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.discorduser.logger import Logger
 from Rewrite.discorduser.logger.local_logger import LocalLogger
 from Rewrite.data.interfaces.data import LocalAdminDataInterface, FactEditorData

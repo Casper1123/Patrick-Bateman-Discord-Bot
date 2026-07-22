@@ -1,6 +1,6 @@
 from discord import Interaction, Message, Embed
 
-from Rewrite.discorduser import BotClient
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import Instruction, parse_variables, InstructionParseError
 from Rewrite.piss.instructionexecutor import DebugInstructionExecutor, ParsedExecutionFailure
 

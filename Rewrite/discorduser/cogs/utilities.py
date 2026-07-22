@@ -1,9 +1,11 @@
 import discord
 from discord.ext import commands
 
+from Rewrite.discorduser.user.abstract import BotClient
+
 
 class ListenerCog(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: BotClient) -> None:
         self.bot = bot
 
     @commands.Cog.listener("on_ready")

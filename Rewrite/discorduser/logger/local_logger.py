@@ -1,7 +1,7 @@
 from discord import Interaction, TextChannel, Guild
 
 from Rewrite.data.interfaces.data import FactEditorData, LocalAdminDataInterface
-from Rewrite.discorduser import BotClient
+from Rewrite.discorduser.user.abstract import BotClient
 
 
 class LocalLogger:

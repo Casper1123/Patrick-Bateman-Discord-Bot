@@ -2,9 +2,12 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from Rewrite.discorduser.user.abstract import BotClient
+
+
 @app_commands.guild_only()
 class AskPatrick(commands.Cog):
-    def __init__(self, client: commands.bot) -> None:
+    def __init__(self, client: BotClient) -> None:
         self.client = client
 
     @commands.Cog.listener("on_message")

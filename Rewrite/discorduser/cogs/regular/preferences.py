@@ -5,10 +5,12 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.data import DataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface, _supp_autr_features, UserPreferenceData
+from Rewrite.discorduser.user.abstract import BotClient
+
 
 @app_commands.guild_only()
 class UserPreferenceCog(commands.Cog):
-    def __init__(self, client: commands.Bot, pref: PreferencesInterface) -> None:
+    def __init__(self, client: BotClient, pref: PreferencesInterface) -> None:
         self.client = client
         self.pref = pref
 
