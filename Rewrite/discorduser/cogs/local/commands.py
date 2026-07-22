@@ -108,7 +108,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
     # region facts
     @app_commands.command(name='add', description='Add a new local fact. Will be test-compiled, but not in detail.')
     @app_commands.describe(text='The fact to add. Will be tested',
-                           ephemeral='Hide the message from other users.')
+                           ephemeral='Hide this command for other users.')
     @app_commands.checks.cooldown(1, ADD_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
@@ -127,7 +127,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
                            text='The replacement fact. Leave empty to remove the original.',
-                           ephemeral='Hide the message from other users.')
+                           ephemeral='Hide this command for other users.')
     @app_commands.checks.cooldown(1, EDIT_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
@@ -149,7 +149,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
                                                                 f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`')
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
-    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide the message from other users.')
+    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide this command for other users.')
     @app_commands.checks.cooldown(1, PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
@@ -184,7 +184,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         await interaction.edit_original_response(embeds=embeds)
 
     @app_commands.command(name='help', description='A small introduction on how to use PISS to construct facts.')
-    @app_commands.describe(ephemeral='Hide the message from other users.')
+    @app_commands.describe(ephemeral='Hide this command for other users.')
     async def help(self, interaction: Interaction, ephemeral: bool = True) -> None:
         with open("data/admin_help.md", "r", encoding="utf-8") as f:
             markdown_content = f.read()
@@ -199,7 +199,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title=title, description=other))
 
     @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
-    @app_commands.describe(ephemeral='Hide the message from other users.', json='Export the facts to an attached JSON file instead.')
+    @app_commands.describe(ephemeral='Hide this command for other users.', json='Export the facts to an attached JSON file instead.')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
@@ -230,7 +230,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=discord.Embed(title='Local fact data', description='See attached file for fact data.'))
 
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
-    @app_commands.describe(ephemeral='Hide the message from other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to disable.')
+    @app_commands.describe(ephemeral='Hide this command for other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to disable.')
     async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
         # todo: autocomplete with current channel, having the text display which channel it is set to ('click to set to this channel')
         # todo: parse <#id> input, so change input to string.
@@ -254,8 +254,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
                            numbers="Incremental number replies.", letters='Letter-only replies.',
                            text='Text content replies.')
     async def guild_toggle_preference(self, interaction: discord.Interaction, here: bool, numbers: bool = False,
-                                      letters: bool = False, text: bool = False, saying: bool = False):
-        await interaction.response.defer(ephemeral=True, thinking=True)
+                                      letters: bool = False, text: bool = False, saying: bool = False, ephemeral: bool = True) -> None:
+        await interaction.response.defer(ephemeral=ephemeral, thinking=True)
         guild_id: int = interaction.guild_id
         channel_id: int | None = interaction.channel_id if here else None
         pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)

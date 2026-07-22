@@ -25,8 +25,8 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     # region facts
     @app_commands.command(name='add', description='Add a new global fact. Will be test-compiled, but not in detail.')
     @app_commands.describe(text='The fact to add. Will be tested',
-                           ephemeral='Hide the message from other users.')
-    async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
+                           ephemeral='Hide this command for other users.')
+    async def add(self, interaction: Interaction, text: str, ephemeral: bool = False) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         self.db.create_global_fact(interaction.user.id, text)
@@ -36,8 +36,8 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     @app_commands.command(name='edit', description='Edit or Remove a global fact. Leave the text empty to remove.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
                            text='The replacement fact. Leave empty to remove the original.',
-                           ephemeral='Hide the message from other users.')
-    async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
+                           ephemeral='Hide this command for other users.')
+    async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = False) -> None:
         delete: bool = text is None
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
@@ -51,7 +51,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 
     @app_commands.command(name='index',
                           description='Exports an overview of Global (and, optionally, Local) facts. Can be exported to JSON for easier automated use.')
-    @app_commands.describe(ephemeral='Hide the message from other users.',
+    @app_commands.describe(ephemeral='Hide this command for other users.',
                            json='Export the facts to an attached JSON file instead.', local='Also export local facts, indexed by guild ID')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False, local: bool = False) -> None:
         global_facts: list[FactEditorData] = self.db.get_global_facts()
@@ -115,7 +115,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                            index='Local fact index.',
                            text='Replacement text. Leave empty to remove entirely.',
                            local_log='Log to the given server\'s local log channel. Author will be denoted as the bot.',
-                           ephemeral='Hide the message from the channel. Default: False')
+                           ephemeral='Hide this command for other users.')
     async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str = None, local_log: bool = True, ephemeral: bool = False) -> None:
         delete: bool = text is None
         if not delete:
@@ -143,7 +143,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                                                                                        f'`{text}`'))
 
     @app_commands.command(name='list', description='List the local facts of the given guild.')
-    @app_commands.describe(ephemeral='Hide the message from the channel. Default: False',
+    @app_commands.describe(ephemeral='Hide this command for other users.',
                            json='Export the facts to an attached JSON file instead.',
                            guild_id='The ID of the guild you wish to index from.',)
     async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False, json: bool = False) -> None:
@@ -190,7 +190,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
         self.logger = logger
 
     @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
-    @app_commands.describe(ephemeral='Hide the message from the channel. Default: False', user_id='The ID of the user you aim to (un)ban.')
+    @app_commands.describe(ephemeral='Hide this command for other users.', user_id='The ID of the user you aim to (un)ban.')
     async def ban_user(self, interaction: Interaction, user_id: int, ephemeral: bool = False) -> None:
         state: bool = self.db.is_banned_user(user_id)
         self.db.unban_user(user_id) if state else self.db.ban_user(user_id)
@@ -205,7 +205,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
 
     @app_commands.command(name='guildban',
                           description='Ban a guild from using Local Fact administrative features. If already banned, unbans it.')
-    @app_commands.describe(ephemeral='Hide the message from the channel. Default: False',
+    @app_commands.describe(ephemeral='Hide this command for other users.',
                            guild_id='The ID of the guild you aim to (un)ban.')
     async def ban_guild(self, interaction: Interaction, guild_id: int, ephemeral: bool = False) -> None:
         state: bool = self.db.is_banned_guild(guild_id)
@@ -222,8 +222,8 @@ class GlobalAdminCog(commands.Cog, name='global'):
     # region other
     @app_commands.command(name='refresh',
                           description='Refresh command tree. ONLY USE IF YOU KNOW WHAT YOU ARE DOING.')
-    @app_commands.describe(ephemeral='Hide the message from the channel. Default: True')
-    async def refresh(self, interaction: Interaction, ephemeral: bool = True):
+    @app_commands.describe(ephemeral='Hide this command for other users.')
+    async def refresh(self, interaction: Interaction, ephemeral: bool = False):
         await interaction.response.defer(ephemeral=ephemeral, thinking=False)
         await interaction.edit_original_response(content=f'Synchronizing Command Tree ...')
         await self.client.tree.sync()
@@ -237,8 +237,8 @@ class GlobalAdminCog(commands.Cog, name='global'):
 
     @app_commands.command(name='DB_KILLSWITCH',
                           description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
-    @app_commands.describe(ephemeral='Hide the message from the channel. Default: True')
-    async def killswitch(self, interaction: Interaction, ephemeral: bool = True):
+    @app_commands.describe(ephemeral='Hide this command for other users.')
+    async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
         state: bool = self.client.toggle_local_fact_killswitch()
         await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
 
