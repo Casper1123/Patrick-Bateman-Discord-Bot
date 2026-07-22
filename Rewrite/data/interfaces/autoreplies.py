@@ -88,7 +88,8 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
     @abstractmethod
     def edit_alias(self, old_name: str, new_name: str | None, rate: int | None):
         """
-        Rename given alias name to new name or change it's rate. Raises ValueError if old_name does not exist.
+        Rename given alias name to new name or change it's rate.
+        Raises ValueError if either old_name does not exist, or new_name is already taken.
         :param old_name: Old alias name.
         :param new_name: New alias name.
         :param rate: The default activation rate of the alias in [1..256]
@@ -119,13 +120,28 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
 
     # endregion
 
+    # region trigger
     @abstractmethod
     def add_trigger(self, alias: str, trigger_type: _trigger_types, data: str, rate: int | None):
         """
         Creates a new Trigger for the given Alias.
-        :param alias: Name of the Alias
+        :param alias: Name of the Alias. Raises ValueError if given Alias does not exist.
         :param trigger_type: Type of the Trigger
         :param data: Trigger Data
         :param rate: Optional Trigger rate in [1..256]
         """
         raise NotImplementedError()
+    # endregion
+
+    # region reply
+    @abstractmethod
+    def add_reply(self, alias: str, reply_type: _reply_types, data, weight):
+        """
+        Creates a new Reply of the given type, with the given weight, for the given Alias.
+        :param alias: Name of the Alias. Raises ValueError if given Alias does not exist.
+        :param reply_type: Type of the Reply. Only supported times may be taken in.
+        :param data: Raw reply data in string form. Input type depends on Reply type.
+        :param weight: Relative reply weight.
+        """
+        raise NotImplementedError()
+    # endregion
