@@ -64,3 +64,20 @@ class BotClient(commands.Bot):
 
 
         self.tree.on_error = on_tree_error
+
+    async def user_feedback(self, interaction: discord.Interaction | discord.Message, title: str, desc: str = None, ephemeral: bool = False) -> None:
+        """
+        Sends the following title and (optional) description in a standardized embed to the user.
+        :param interaction: Interaction or Message to reply to.
+        :param title: Title of the embed.
+        :param desc: Text body of the embed.
+        :param ephemeral: If Interaction, ephemeral?
+        """
+        e = discord.Embed(title=title, description=desc)
+        if isinstance(interaction, discord.Interaction):
+            try:
+                await interaction.response.send_message(embed=e, ephemeral=ephemeral)
+            except discord.InteractionResponded:
+                await interaction.edit_original_response(embed=e) # ephemeral not supported.
+        else:
+            await interaction.reply(embed=e, mention_author=False)
