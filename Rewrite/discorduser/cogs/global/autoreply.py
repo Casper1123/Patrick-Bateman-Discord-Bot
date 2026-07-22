@@ -170,6 +170,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
         if reply_type == 'text':
             # test the reply before adding.
             if not await input_test(self.client, interaction, text, ephemeral=True):
+                return
         try:
             self.repl.add_reply(alias, reply_type, data=text, weight=weight)
         except ValueError as e:
