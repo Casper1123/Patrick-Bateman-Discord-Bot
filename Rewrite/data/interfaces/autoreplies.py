@@ -1,4 +1,3 @@
-from _ast import alias
 from abc import ABC, abstractmethod
 from typing import Literal
 

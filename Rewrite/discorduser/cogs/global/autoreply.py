@@ -14,7 +14,6 @@ from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
-DELETE_ENTRY_INPUT: str = '<DELETE>'
 WEIGHT_UPPER_BOUND: int = 1024
 
 @app_commands.guild_only()
@@ -81,12 +80,6 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
         aliases: list[AliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
-
-    @edit_alias.autocomplete('new_name')
-    async def _delete_alias_option_autocomplete(self, _: discord.Interaction, __: str) -> list[Choice]:
-        return [
-            Choice(name='Delete this Alias.', value=DELETE_ENTRY_INPUT)
-        ]
     # endregion
 
 @app_commands.guild_only()
