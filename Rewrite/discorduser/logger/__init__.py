@@ -5,7 +5,7 @@ from enum import Enum
 from discord import Interaction, Embed
 from discord.ext import commands
 
-from Rewrite.data.interfaces.data import FactEditorData
+from Rewrite.data.interfaces.fact import FactEditorData
 
 
 
