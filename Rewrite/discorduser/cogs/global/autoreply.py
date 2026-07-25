@@ -33,7 +33,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
     async def create_alias(self, interaction: discord.Interaction, name: str, rate: int = None, ephemeral: bool = False) -> None:
         try:
             self.repl.create_alias(name, rate if rate is not None else 256)
-        except ValueError as e:
+        except ValueError:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias creation failed',
                                                                         desc='This alias already exists.')
             return
@@ -56,7 +56,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
             return
         try:
             self.repl.edit_alias(alias, new_name if (new_name and new_name != alias) else None, rate)
-        except ValueError as e:
+        except ValueError:
             await self.client.user_feedback(interaction, title='Alias edit failed',
                                     desc='The given alias does not exist, or the new alias name is already taken.', ephemeral=ephemeral)
             return
@@ -67,7 +67,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
     async def delete_alias(self, interaction: discord.Interaction, alias: str, ephemeral: bool = False) -> None:
         try:
             self.repl.delete_alias(alias)
-        except ValueError as e:
+        except ValueError:
             await self.client.user_feedback(interaction, title='Alias edit failed', desc='Cannot delete a nonexistent Alias.', ephemeral=ephemeral)
             return
         await self.client.user_feedback(interaction, title='Alias deleted successfully', ephemeral=ephemeral)
@@ -103,7 +103,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
             return
         try:
             self.repl.add_trigger(alias, trigger_type='regex', data=text, rate=weight) # todo: create and support other trigger types.
-        except ValueError as e:
+        except ValueError:
             await self.client.user_feedback(interaction, title='Trigger creation failed', desc=f'The given Alias {alias} does not exist.', ephemeral=ephemeral)
             return
 
@@ -138,7 +138,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     # Create
     @app_commands.command(name='create', description='Create a new Reply')
     @app_commands.describe(reply_type='The type of Reply this has to be.',
-                           text='Raw text data for the reply.',
+                           text='Raw text data for the reply. For text replies, PISS-compatible. For reaction replies, unicode emojis only.',
                            weight='The relative weight this Reply will proc to. Defaults to 1.',
                            ephemeral='Hide this command for other users.')
     @app_commands.choices(reply_type=[
@@ -147,11 +147,11 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     ])
     @app_commands.rename(reply_type='type')
     async def create_reply(self, interaction: discord.Interaction, alias: str, reply_type: _reply_types, text: str, weight: int = 1, ephemeral: bool = False):
-        # todo: check, if reply type is reaction, that it is a standard unicode emoji.
+        # todo: check, if reply type is reaction, that it is a string of only standard unicode emojis. Added by separating them using ;?
         if reply_type == 'reaction':
             await self.client.user_feedback(interaction, title='Unsupported', desc='The given Reply type is not supported.\nIt will be in the future, but right now it is not. The setting is a placeholder.', ephemeral=ephemeral)
             return
-        if weight is not None and not 0 <= weight <= WEIGHT_UPPER_BOUND:
+        if weight is not None and not 1 <= weight <= WEIGHT_UPPER_BOUND:
             await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Weight not in range [1..{WEIGHT_UPPER_BOUND}].', ephemeral=ephemeral)
         if reply_type == 'text':
             # test the reply before adding.
@@ -159,7 +159,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
                 return
         try:
             self.repl.add_reply(alias, reply_type, data=text, weight=weight)
-        except ValueError as e:
+        except ValueError:
             ...
             # todo: finish
     # Edit

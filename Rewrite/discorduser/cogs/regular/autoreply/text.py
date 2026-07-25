@@ -12,9 +12,9 @@ from Rewrite.piss import Instruction, parse_variables
 from Rewrite.piss.instructionexecutor import InstructionExecutor
 
 class MessageContentAutoreplyCog(commands.Cog):
-    def __init__(self, client: BotClient, db: FactInterface, pref: PreferencesInterface, replies: TextAutorepliesInterface) -> None:
+    def __init__(self, client: BotClient, fact: FactInterface, pref: PreferencesInterface, replies: TextAutorepliesInterface) -> None:
         self.client = client
-        self.db = db
+        self.fact = fact
         self.pref = pref
         self.repl = replies
 
@@ -37,7 +37,7 @@ class MessageContentAutoreplyCog(commands.Cog):
         for alias, triggers in a_data.items():
             for trigger in triggers:
                 # Calculate if the trigger would be accepted
-                if _r.randint(1, 256) < (trigger.rate if trigger.rate else alias.rate):
+                if _r.randint(1, 256) <= (trigger.rate if trigger.rate else alias.rate):
                     continue
 
                 # For each trigger type, try to match. Raising exception if not to enforce compatibility of types.
@@ -45,7 +45,7 @@ class MessageContentAutoreplyCog(commands.Cog):
                     match = _re.match(trigger.data, message.content)
                     if match:
                         triggering_aliases.append(alias)
-                        break # continue to next alias
+                        break # Prevent repeated entries of same Alias
                 else:
                     raise TypeError(f'Trigger of invalid type **{trigger.type}**')
         if not triggering_aliases:
@@ -62,10 +62,12 @@ class MessageContentAutoreplyCog(commands.Cog):
 
         if reply.type == 'text':
             instructions: list[Instruction] = parse_variables(reply.data)
-            executor: InstructionExecutor = InstructionExecutor(self.client, self.db)
+            executor: InstructionExecutor = InstructionExecutor(self.client)
             await executor.run(instructions, message)
         elif reply.type == 'reaction':
-            await message.add_reaction(reply.data)
+            reactions: list[str] = reply.data.split(';')
+            for reaction in reactions:
+                await message.add_reaction(reaction)
             # FIXME: test on 'non-existent' emotes. That, or enforce that the emote is not server-bound when selected for generality purposes.
         else:
             raise TypeError(f'Reply of invalid type **{reply.type}**')

@@ -29,6 +29,9 @@ class GuildChannelPreferenceData:
         self.saying = saying
 
 class PreferencesInterface(ABC):
+    """
+    Handles preference fetching and setting. Not made into two interfaces with different permision levels as they are widely used in the same areas.
+    """
     @abstractmethod
     async def run_cache_manager(self):
         """
@@ -76,7 +79,7 @@ class PreferencesInterface(ABC):
         Gets enabled state for guild channel's autoreply feature.
         :param guild_id:
         :param channel_id:
-        :param feature: Given feature to check status for. todo: needs one for all features for command inputs?
+        :param feature: Given feature to check status for.
         :return: Feature availability status.
         """
         raise NotImplementedError()

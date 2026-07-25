@@ -18,6 +18,9 @@ class AliasData:
         self.name: str = name
         self.rate: int = rate
 
+    def __hash__(self):
+        return self.name
+
 class TriggerData:
     """
     Record class for trigger data.
@@ -42,6 +45,9 @@ class ReplyData:
     Record for reply data.
     """
     def __init__(self, reply_type: _reply_types, data: str, weight: int, uid: str, alias: AliasData,):
+        """
+        :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
+        """
         self.type: _reply_types = reply_type
         self.data: str = data
         self.alias: AliasData = alias # todo: alias name only?
@@ -58,7 +64,7 @@ class TextAutorepliesInterface(ABC):
         """
         Get a random reply based on the given alias and the corresponding reply pool's weights.
         :param alias: Alias of the reply to get.
-        :return: Unprocessed PISS-compatible string or NONE if no replies exist for this Alias.
+        :return: Unprocessed raw Reply data or NONE if no replies exist for this Alias.
         """
         raise NotImplementedError()
 
@@ -66,7 +72,7 @@ class TextAutorepliesInterface(ABC):
     def get_triggers_by_alias(self) -> dict[AliasData, list[TriggerData]]:
         """
         Gets all triggers bundled by Aliases.
-        :return: Aliases indexed by alias name
+        :return: Triggers indexed by alias name
         """
         raise NotImplementedError()
 
@@ -85,13 +91,13 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_alias(self, old_name: str, new_name: str | None, rate: int | None):
+    def edit_alias(self, old_name: str, new_name: str | None, rate: int | None = None):
         """
         Rename given alias name to new name or change it's rate.
         Raises ValueError if either old_name does not exist, or new_name is already taken.
         :param old_name: Old alias name.
         :param new_name: New alias name.
-        :param rate: The default activation rate of the alias in [1..256]
+        :param rate: The default activation rate of the alias in [1..256] (default 256)
         """
         raise NotImplementedError()
 

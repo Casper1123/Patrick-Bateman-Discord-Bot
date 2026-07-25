@@ -17,9 +17,9 @@ GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalFactAdminCog(commands.Cog, name='gfact'):
-    def __init__(self, client: BotClient, db: GlobalAdminFactInterface, logger) -> None:
+    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger) -> None:
         self.client = client
-        self.db = db
+        self.fact = fact
         self.logger = logger
 
     # region facts
@@ -29,7 +29,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = False) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
-        self.db.create_global_fact(interaction.user.id, text)
+        self.fact.create_global_fact(interaction.user.id, text)
         await self.logger.global_fact_create(interaction, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact added successfully.')
 
@@ -42,8 +42,8 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
-        old: FactEditorData = self.db.get_global_fact(index)
-        self.db.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
+        old: FactEditorData = self.fact.get_global_fact(index)
+        self.fact.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
         await self.logger.fact_edit(interaction, text, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                             desc=f'Fact {'deleted' if delete else 'edited'} successfully.')
@@ -54,8 +54,8 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     @app_commands.describe(ephemeral='Hide this command for other users.',
                            json='Export the facts to an attached JSON file instead.', local='Also export local facts, indexed by guild ID')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False, local: bool = False) -> None:
-        global_facts: list[FactEditorData] = self.db.get_global_facts()
-        local_facts: dict[int, list[FactEditorData]] = {} if not local else self.db.get_all_local_facts()
+        global_facts: list[FactEditorData] = self.fact.get_global_facts()
+        local_facts: dict[int, list[FactEditorData]] = {} if not local else self.fact.get_all_local_facts()
 
         files: list[discord.File] = []
         if json:
@@ -121,13 +121,13 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
-        local_facts: list[FactEditorData] = self.db.get_local_facts(guild_id)
+        local_facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
         try:
             old: FactEditorData = local_facts[index]
         except IndexError as e:
             raise CustomDiscordException(tooltip=ErrorTooltip.NONE, cause=e,
                                          message=f'Index ({index}) not in 0 <= index < {len(local_facts)}.')
-        self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
+        self.fact.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
         await self.logger.global_fact_edit(interaction, text, old)
         if local_log:
             # todo: log to server locally
@@ -147,7 +147,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                            json='Export the facts to an attached JSON file instead.',
                            guild_id='The ID of the guild you wish to index from.',)
     async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False, json: bool = False) -> None:
-        local_facts: list[FactEditorData] = self.db.get_local_facts(guild_id)
+        local_facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
             await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='No local facts found.'))
             return

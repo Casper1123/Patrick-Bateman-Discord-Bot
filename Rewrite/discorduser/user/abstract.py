@@ -35,7 +35,7 @@ class BotClient(commands.Bot):
             try:
                 if (True):  # todo: config to make uncaught public errors hidden or not
                     await interaction.response.defer(ephemeral=True, thinking=False)
-            except Exception as err: # Shoddy attempt at hiding the error from users.
+            except Exception: # noqa Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
 
             # handle exceptions
@@ -45,7 +45,6 @@ class BotClient(commands.Bot):
                     return # Skip 'connection lost' exceptions, also removing them from the logging.
                     # Idk why, but for some reason my host device seems to lose connection at unknown intervals for short periods of time.
                     # So this is temporary glue fix.
-                log: bool = True # just-in-case.
                 if isinstance(error, CommandOnCooldown):
                     log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES
                     error = CustomDiscordException(message=f'Command on cooldown ({error.cooldown}s), try again in **{error.retry_after}s**.', error_type='Command on cooldown.', tooltip=ErrorTooltip.NONE)

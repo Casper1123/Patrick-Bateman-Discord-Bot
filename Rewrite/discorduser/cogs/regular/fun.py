@@ -43,7 +43,7 @@ class MainCommandsCog(commands.Cog):
         oldest: datetime.datetime = \
         [message async for message in interaction.channel.history(limit=1, oldest_first=True)][0].created_at
 
-        if not oldest or not newest:
+        if not oldest or not newest or oldest == newest:
             await interaction.edit_original_response(content='Insufficient messages found')
             return
 

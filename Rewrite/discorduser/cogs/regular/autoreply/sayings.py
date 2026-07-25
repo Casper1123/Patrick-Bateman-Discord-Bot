@@ -5,15 +5,16 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
+from Rewrite.data.interfaces.saying import SayingInterface
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import Instruction, parse_variables
 from Rewrite.piss.instructionexecutor import InstructionExecutor
 
 
 class RandomAutoreplyCog(commands.Cog):
-    def __init__(self, client: BotClient, db: FactInterface, pref: PreferencesInterface) -> None:
+    def __init__(self, client: BotClient, say: SayingInterface, pref: PreferencesInterface) -> None:
         self.client = client
-        self.db = db
+        self.say = say
         self.pref = pref
 
     @commands.Cog.listener("on_message")
@@ -30,7 +31,7 @@ class RandomAutoreplyCog(commands.Cog):
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'saying'):
             return
         
-        line_raw: str = self.db.get_saying()
+        line_raw: str = self.say.get_saying()
         line: list[Instruction] = parse_variables(line_raw)
-        executor: InstructionExecutor = InstructionExecutor(self.client, self.db)
+        executor: InstructionExecutor = InstructionExecutor(self.client)
         await executor.run(line, interaction=message)

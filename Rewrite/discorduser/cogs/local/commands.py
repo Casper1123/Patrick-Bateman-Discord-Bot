@@ -6,6 +6,7 @@ import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 
+from Rewrite.data.interfaces.moderation import LocalAdminModerationInterface
 from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.discorduser.logger import Logger
@@ -51,21 +52,22 @@ class RestrictedUseException(CustomDiscordException):
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
-    def __init__(self, client: BotClient, db: LocalAdminFactInterface, pref: PreferencesInterface, logger: Logger) -> None:
+    def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface, pref: PreferencesInterface, logger: Logger) -> None:
         self.client = client
-        self.db = db
+        self.fact = fact
+        self.mod = mod
         self.pref = pref
         self.logger = logger
-        self.local_logger = LocalLogger(self.client, db)
+        self.local_logger = LocalLogger(self.client, fact)
 
     def restricted(self, guild_id: int, user_id: int) -> UseRestriction:
         """
         Returns the highest level restriction block on the given user/guild.
         """
-        userban: bool = self.db.is_banned_user(user_id)
+        userban: bool = self.mod.is_banned_user(user_id)
         if userban:
             return UseRestriction.USER
-        guildban: bool = self.db.is_banned_guild(guild_id)
+        guildban: bool = self.mod.is_banned_guild(guild_id)
         if guildban:
             return UseRestriction.GUILD
         return UseRestriction.NONE
@@ -89,18 +91,18 @@ class LocalAdminCog(commands.Cog, name='admin'):
         :param edit: If true, ignores fact limit check (considers it as replacing the fact)
         :return: Permission.
         """
-        if self.db.is_super_server(guild_id):
+        if self.fact.is_super_server(guild_id):
             return
 
         if len(text) > FACT_CHAR_LIMIT:
             raise RestrictedUseException(UseRestriction.CHAR_LIMIT)
 
         if not edit:
-            if self.db.get_fact_count(guild_id) >= FACT_COUNT_MAXIMUM:
+            if self.fact.get_fact_count(guild_id) >= FACT_COUNT_MAXIMUM:
                 raise RestrictedUseException(UseRestriction.FACT_LIMIT)
 
     async def kill_switch_check(self, interaction: Interaction) -> bool:
-        if self.db.is_killswitch():
+        if self.fact.is_killswitch():
             await self.client.user_feedback(interaction, title='This feature is currently disabled.', ephemeral=True)
             return False
         return True
@@ -119,7 +121,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         self.fact_limit_check(interaction.guild.id, text)
         if not await input_test(self.client, interaction, text, ephemeral):
             return
-        self.db.create_fact(interaction.guild.id, interaction.user.id, text)
+        self.fact.create_fact(interaction.guild.id, interaction.user.id, text)
         await self.logger.fact_create(interaction, text)
         await self.local_logger.fact_create(interaction, text)
         await self.client.user_feedback(interaction, title='Success', desc=f'Fact added successfully.', ephemeral=ephemeral)
@@ -140,8 +142,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
-        old: FactEditorData = self.db.get_local_fact(interaction.guild.id, index)
-        self.db.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
+        old: FactEditorData = self.fact.get_local_fact(interaction.guild.id, index)
+        self.fact.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
         await self.logger.fact_edit(interaction, text, old)
         await self.local_logger.fact_edit(interaction, old, index, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
@@ -203,7 +205,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
-        local_facts: list[FactEditorData] = self.db.get_local_facts(interaction.guild.id)
+        local_facts: list[FactEditorData] = self.fact.get_local_facts(interaction.guild.id)
         if not local_facts:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Local Facts', desc='There are no local facts. Go add some!')
             return
@@ -235,7 +237,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         # todo: autocomplete with current channel, having the text display which channel it is set to ('click to set to this channel')
         # todo: parse <#id> input, so change input to string.
         if not channel:
-            self.db.set_log_output(interaction.guild.id, None)
+            self.fact.set_log_output(interaction.guild.id, None)
             await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
             return
 
@@ -243,7 +245,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not logchannel:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Input channel ID **{channel}** is invalid or not found.')
 
-        self.db.set_log_output(interaction.guild.id, logchannel.id)
+        self.fact.set_log_output(interaction.guild.id, logchannel.id)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Log output channel set to <#{logchannel.id}>')
         # todo: Choice to display current value.
     # endregion

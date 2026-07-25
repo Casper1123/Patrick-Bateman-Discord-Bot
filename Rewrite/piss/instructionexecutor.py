@@ -238,7 +238,6 @@ class InstructionExecutor:
         Sends the given string into the interaction output channel.
         :param out: Message content string.
         :param interaction: The Interaction or Message.
-        :param fresh: If fresh, will send a new message into the channel. This is not returned.
         :param mention: MentionOptions enum to specify what is pingable/pinged.
         """
         if not isinstance(out, str):

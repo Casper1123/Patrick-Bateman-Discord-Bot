@@ -237,7 +237,7 @@ class Instruction:
                     instructions.append(Instruction(InstructionType.PUSH, pingable=MentionOptions.NONE))
                     continue
                 try:
-                    pingable_val = int(pingable_val)
+                    pingable_val: int = int(pingable_val)
                 except ValueError:
                     raise InstructionParseError(subsection, f'Could not parse {pingable_val} into an Integer.')
                 if not pingable_val in [0, 1, 2]:
