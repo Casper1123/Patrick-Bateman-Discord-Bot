@@ -4,7 +4,8 @@ The Data folder contains a bunch of files that I might want to explain how and w
 ## Interfaces
 The `interfaces` folders contain individually prepared Abstract Base Classes (ABC) that need to be implemented by some implementation to be usable in the application.
 It specifies only the callable functions and specifically required parameters and functionality, but (which an interface does) leaves all implementation to the actual inheritor.
-I'm using this not because I like design patterns (yuck) but because this is my first time trying to screw around with SQL for a hobby project, and I wanted something I could potentially swap out without having to rewrite too much shit.
+I'm using this not because I like design patterns (yuck) but because this is my first time trying to screw around with SQL for a hobby project, and I wanted something I could potentially swap out without having to rewrite too much shit.<BR>
+The interfaces are split per larger-scope purpose; there is a database interface for facts, one for moderation, one for autoreplies and so forth, just to make the files more overseeable (they'd get way too big for my pea brain otherwise).
 
 ## Data
 The subfolder `data` exists to hold actual database files. As such, that is where data is stored.
