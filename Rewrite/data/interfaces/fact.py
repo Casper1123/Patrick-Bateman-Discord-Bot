@@ -25,8 +25,6 @@ class FactInterface(ABC):
     As it is an Abstract Base Class, you are expected to inherit from this class.
     Each method will have descriptions listing the functionality required.
     """
-
-    # region Facts
     @abstractmethod
     def get_fact(self, guild_id: int | None, index: int | None)  -> str:
         """
@@ -60,17 +58,6 @@ class FactInterface(ABC):
         Are local-fact services temporarily disabled?
         """
         raise NotImplementedError()
-    # endregion
-
-    # region Saying
-    @abstractmethod
-    def get_saying(self) -> str:
-        """
-        Gets a random saying.
-        :return: Unprocessed PISS-compatible string.
-        """
-        raise NotImplementedError()
-    # endregion
 
 
 class LocalAdminFactInterface(FactInterface):
@@ -78,7 +65,6 @@ class LocalAdminFactInterface(FactInterface):
     An extra layer of power, stronger than `DataInterface`.
     Can do basic local-administrator operations, like adding local facts.
     """
-    # region Facts
     @abstractmethod
     def create_fact(self, guild_id: int, user_id: int, fact: str):
         """
@@ -119,57 +105,6 @@ class LocalAdminFactInterface(FactInterface):
         Ordered on edit date.
         """
         raise NotImplementedError()
-    # endregion
-
-    # region authorized
-    @abstractmethod
-    def is_banned_user(self, user_id: int) -> bool:
-        """
-        :param user_id: User ID
-        :return: User is banned.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def is_banned_guild(self, guild_id: int) -> bool:
-        """
-        :param guild_id: Guild ID
-        :return: Guild is banned.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def is_super_server(self, guild_id: int) -> bool:
-        """
-        Returns guild Super Server status.
-        :param guild_id: Guild ID for which to check.
-        :return: Whether the Guild is a Super Server.
-        """
-        raise NotImplementedError()
-    # endregion
-
-    # region other
-    @abstractmethod
-    def set_log_output(self, guild_id: int, channel_id: int | None) -> None:
-        """
-        Sets the local logging output channel for a given guild.
-        Unique per guild.
-        :param guild_id: The guild ID.
-        :param channel_id: Channel ID to log to. If none, remove entry.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def get_log_channel(self, guild_id: int) -> int | None:
-        """
-        Gets the ID of  the logging channel for the given guild.
-        Returns None if none found.
-        :param guild_id: Guild for the logging action.
-        :return: Channel ID if found, otherwise None
-        """
-        # todo: DEFINITELY WORK WITH CACHING HERE.
-        raise NotImplementedError()
-    # endregion
 
 
 class GlobalAdminFactInterface(LocalAdminFactInterface):
@@ -177,8 +112,6 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
     The strongest layer of power, stronger than `LocalAdminDataInterface`.
     Can perform operations on the global data other than retrieving.
     """
-
-    # region Facts
     @abstractmethod
     def toggle_local_fact_killswitch(self) -> bool:
         """
@@ -232,75 +165,3 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
         Gets all local facts, indexed by guild ID.
         """
         raise NotImplementedError()
-    # endregion
-
-    @abstractmethod
-    def get_super_server_ids(self) -> list[int]:
-        """
-        Gets the list of super server IDs.
-        Primarily used for tree synchronization.
-        """
-        raise NotImplementedError()
-
-    # region User Moderation
-    @abstractmethod
-    def ban_user(self, user_id: int) -> None:
-        """
-        Bans the given user.
-        :param user_id:
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def unban_user(self, user_id: int) -> None:
-        """
-        Unbans the given user.
-        :param user_id:
-        """
-        raise NotImplementedError()
-    # endregion
-
-    # region Server Moderation
-    @abstractmethod
-    def ban_guild(self, guild_id: int) -> None:
-        """
-        Bans the given guild.
-        :param guild_id:
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def unban_guild(self, guild_id: int) -> None:
-        """
-        Unbans the given guild.
-        :param guild_id:
-        """
-        raise NotImplementedError()
-    # endregion
-
-    # todo: sayings
-    # region saying
-    @abstractmethod
-    def create_saying(self, text: str) -> None:
-        """
-        Creates PISS-compatible autoreply saying using given text.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def edit_saying(self, index: int, text: str) -> None:
-        """
-        Edit a saying at a given index. Raises ValueError if it did not exist.
-        :param index: Index of editing saying.
-        :param text: PISS-compatible replacement text
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def delete_saying(self, index: int):
-        """
-        Delete a saying at the given index. Raises ValueError if it did not exist.
-        :param index: Index of saying to delete.
-        """
-        ...
-    # endregion
