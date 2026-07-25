@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
-from Rewrite.data.interfaces.data import DataInterface
+from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.discorduser.logger.__init__ import Logger, LoggerConfiguration
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -20,9 +20,9 @@ class BotClient(commands.Bot):
     Bot-inherited class with toolkit installed.
     WARNING: DOES NOT CONTAIN COGS.
     """
-    def __init__(self, db: DataInterface, pref: PreferencesInterface, logger_config: LoggerConfiguration) -> None:
+    def __init__(self, db: FactInterface, pref: PreferencesInterface, logger_config: LoggerConfiguration) -> None:
         self.pref: PreferencesInterface = pref
-        self.db: DataInterface = db
+        self.db: FactInterface = db
         self.logger: Logger = Logger(self, logger_config)
 
         intents = discord.Intents.default()

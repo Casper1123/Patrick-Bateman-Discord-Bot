@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from Rewrite.data.interfaces.data import DataInterface
+from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface, _supp_autr_features, UserPreferenceData
 from Rewrite.discorduser.user.abstract import BotClient
 

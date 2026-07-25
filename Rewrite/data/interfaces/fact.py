@@ -19,7 +19,7 @@ class FactEditorData:
         self.author_id: int = author_id
         self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
-class DataInterface(ABC):
+class FactInterface(ABC):
     """
     Class responsible for the most minimal data access, primarily for regular effect data.
     As it is an Abstract Base Class, you are expected to inherit from this class.
@@ -73,7 +73,7 @@ class DataInterface(ABC):
     # endregion
 
 
-class LocalAdminDataInterface(DataInterface):
+class LocalAdminFactInterface(FactInterface):
     """
     An extra layer of power, stronger than `DataInterface`.
     Can do basic local-administrator operations, like adding local facts.
@@ -172,7 +172,7 @@ class LocalAdminDataInterface(DataInterface):
     # endregion
 
 
-class GlobalAdminDataInterface(LocalAdminDataInterface):
+class GlobalAdminFactInterface(LocalAdminFactInterface):
     """
     The strongest layer of power, stronger than `LocalAdminDataInterface`.
     Can perform operations on the global data other than retrieving.

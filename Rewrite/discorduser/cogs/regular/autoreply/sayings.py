@@ -3,7 +3,7 @@ import random as _r
 import discord
 from discord.ext import commands
 
-from Rewrite.data.interfaces.data import DataInterface
+from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import Instruction, parse_variables
@@ -11,7 +11,7 @@ from Rewrite.piss.instructionexecutor import InstructionExecutor
 
 
 class RandomAutoreplyCog(commands.Cog):
-    def __init__(self, client: BotClient, db: DataInterface, pref: PreferencesInterface) -> None:
+    def __init__(self, client: BotClient, db: FactInterface, pref: PreferencesInterface) -> None:
         self.client = client
         self.db = db
         self.pref = pref

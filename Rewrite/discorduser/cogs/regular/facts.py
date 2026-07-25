@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from Rewrite.discorduser.user.abstract import BotClient
-from Rewrite.data.interfaces.data import DataInterface
+from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import InstructionExecutor
 
@@ -11,7 +11,7 @@ FACT_COOLDOWN: float = 1.0
 
 @app_commands.guild_only()
 class FactsCog(commands.Cog):
-    def __init__(self, client: BotClient, db: DataInterface) -> None:
+    def __init__(self, client: BotClient, db: FactInterface) -> None:
         self.client = client
         self.db = db
 

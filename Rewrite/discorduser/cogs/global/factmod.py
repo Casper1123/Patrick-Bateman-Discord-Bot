@@ -7,7 +7,7 @@ from discord import app_commands, Interaction, Embed, Guild
 from discord.ext import commands
 
 from Rewrite.discorduser.user.abstract import BotClient
-from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss.testing import test_raw_input as input_test
 
@@ -17,7 +17,7 @@ GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalFactAdminCog(commands.Cog, name='gfact'):
-    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
+    def __init__(self, client: BotClient, db: GlobalAdminFactInterface, logger) -> None:
         self.client = client
         self.db = db
         self.logger = logger
@@ -184,7 +184,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminCog(commands.Cog, name='global'):
-    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, logger) -> None:
+    def __init__(self, client: BotClient, db: GlobalAdminFactInterface, logger) -> None:
         self.client = client
         self.db = db
         self.logger = logger

@@ -1,10 +1,10 @@
 import sqlite3 as _sql
 import random as _r
 
-from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 
 
-class SQLDataBase(GlobalAdminDataInterface):
+class SQLFactDataBase(GlobalAdminFactInterface):
     def __init__(self, path: str):
         self.path = path
         # setting up table if not existent.

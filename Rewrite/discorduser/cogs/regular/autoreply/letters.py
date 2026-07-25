@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from Rewrite.data.interfaces.data import DataInterface
+from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.discorduser.user.abstract import BotClient
 
@@ -16,7 +16,7 @@ _letterdict = {"a": "b", "b": "c", "c": "d",
               "y": "z", "z": "a"}
 
 class LetterAutoreplyCog(commands.Cog):
-    def __init__(self, client: BotClient, db: DataInterface, pref: PreferencesInterface) -> None:
+    def __init__(self, client: BotClient, db: FactInterface, pref: PreferencesInterface) -> None:
         self.client = client
         self.db = db
         self.pref = pref

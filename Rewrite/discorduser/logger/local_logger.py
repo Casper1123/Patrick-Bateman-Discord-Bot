@@ -1,11 +1,11 @@
 from discord import Interaction, TextChannel, Guild
 
-from Rewrite.data.interfaces.data import FactEditorData, LocalAdminDataInterface
+from Rewrite.data.interfaces.fact import FactEditorData, LocalAdminFactInterface
 from Rewrite.discorduser.user.abstract import BotClient
 
 
 class LocalLogger:
-    def __init__(self, client: BotClient, db: LocalAdminDataInterface):
+    def __init__(self, client: BotClient, db: LocalAdminFactInterface):
         self.db = db
         self.client = client
 

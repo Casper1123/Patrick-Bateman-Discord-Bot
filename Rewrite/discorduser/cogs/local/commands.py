@@ -10,7 +10,7 @@ from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, Preferences
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.discorduser.logger import Logger
 from Rewrite.discorduser.logger.local_logger import LocalLogger
-from Rewrite.data.interfaces.data import LocalAdminDataInterface, FactEditorData
+from Rewrite.data.interfaces.fact import LocalAdminFactInterface, FactEditorData
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
@@ -51,7 +51,7 @@ class RestrictedUseException(CustomDiscordException):
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
-    def __init__(self, client: BotClient, db: LocalAdminDataInterface, pref: PreferencesInterface, logger: Logger) -> None:
+    def __init__(self, client: BotClient, db: LocalAdminFactInterface, pref: PreferencesInterface, logger: Logger) -> None:
         self.client = client
         self.db = db
         self.pref = pref

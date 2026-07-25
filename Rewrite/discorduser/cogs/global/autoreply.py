@@ -8,7 +8,7 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, _reply_types, _trigger_types
-from Rewrite.data.interfaces.data import GlobalAdminDataInterface, FactEditorData
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss.testing import test_raw_input as input_test
@@ -20,7 +20,7 @@ WEIGHT_UPPER_BOUND: int = 1024
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _AliasGlobalAdminCog(commands.Cog, name='alias'):
-    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
+    def __init__(self, client: BotClient, db: GlobalAdminFactInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
         self.client = client
         self.db = db
         self.repl = repl
@@ -86,7 +86,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
-    def __init__(self, client: BotClient,  db: GlobalAdminDataInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
+    def __init__(self, client: BotClient, db: GlobalAdminFactInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
         self.client = client
         self.db = db
         self.repl = repl
@@ -129,7 +129,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
-    def __init__(self, client: BotClient, db: GlobalAdminDataInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
+    def __init__(self, client: BotClient, db: GlobalAdminFactInterface, repl: GlobalTextAutorepliesInterface, logger) -> None:
         self.client = client
         self.db = db
         self.repl = repl
@@ -165,7 +165,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     # Edit
     # Remove
 
-async def attach_cogs(client: BotClient, db: GlobalAdminDataInterface, repl: GlobalTextAutorepliesInterface, logger):
+async def attach_cogs(client: BotClient, db: GlobalAdminFactInterface, repl: GlobalTextAutorepliesInterface, logger):
     await client.add_cog(_AliasGlobalAdminCog(client, db, repl, logger))
     await client.add_cog(_TriggerGlobalAdminCog(client, db, repl, logger))
     await client.add_cog(_ReplyGlobalAdminCog(client, db, repl, logger))
