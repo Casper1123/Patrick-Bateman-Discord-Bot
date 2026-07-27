@@ -149,4 +149,32 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         :param weight: Relative reply weight.
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None):
+        """
+        Edits the reply at the given index, for the given Alias.
+        Raises ValueError if the Alias does not exist.
+        Raises IndexError if given index is out of range.
+        Raises AttributeError if no replacement data was given.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def remove_reply(self, alias: str, index: int):
+        """
+        Removes the reply at the given index, for the given Alias.
+        Raises ValueError if the Alias does not exist.
+        Raises IndexError if given index is out of range.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_reply_by_index(self, alias: str, index: int) -> ReplyData:
+        """
+        Gets a reply with a given index from the Alias.
+        Raises ValueError if the Alias does not exist.
+        Raises IndexError if given index is out of range.
+        """
+        raise NotImplementedError()
     # endregion
