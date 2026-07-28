@@ -136,6 +136,34 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         :param rate: Optional Trigger rate in [1..256]
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_trigger_by_index(self, alias: str, index: int) -> TriggerData:
+        """
+        Gets the  TriggerData for the trigger at the given index.
+        Raises ValueError if the Alias does not exist.
+        Raises IndexError if given index is out of range.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def edit_trigger(self, alias: str, index: int, trigger_type: _trigger_types, data: str | None, rate: int | None):
+        """
+        Edits the Trigger at the given index, for the given Alias.
+        Raises ValueError if the Alias does not exist.
+        Raises IndexError if given index is out of range.
+        Raises AttributeError if no replacement data was given.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def remove_trigger(self, alias: str, index: int):
+        """
+        Removes the trigger at the given index, for the given Alias.
+        Raises ValueError if the Alias does not exist.
+        Raises IndexError if given index is out of range.
+        """
+        raise NotImplementedError()
     # endregion
 
     # region reply

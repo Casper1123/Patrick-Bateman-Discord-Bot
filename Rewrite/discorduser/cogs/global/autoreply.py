@@ -8,7 +8,7 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, _reply_types, _trigger_types, \
-    ReplyData
+    ReplyData, TriggerData
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -92,32 +92,72 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
         self.logger = logger
 
     @app_commands.command(name='create', description='Create a new Trigger')
-    @app_commands.describe(alias='The Alias this Trigger belongs to.', text='Trigger ReGex to match to.',
-                           weight='The relative weight this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
+    @app_commands.describe(alias='The Alias this Trigger belongs to.', text='Trigger RegEx to match to.',
+                           rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
                            ephemeral='Hide this command for other users.')
-    async def create_trigger(self, interaction: discord.Interaction, alias: str, text: str, weight: int = None, ephemeral: bool = False):
-        if weight is not None and not (1 <= weight <= 256):
+    async def create_trigger(self, interaction: discord.Interaction, alias: str, text: str, rate: int = None, ephemeral: bool = False):
+        if rate is not None and not (1 <= rate <= 256):
             await self.client.user_feedback(interaction, title='Trigger creation failed',
-                      desc='The given weight is not in range **[1..256]**.', ephemeral=ephemeral)
+                      desc='The given rate is not in range **[1..256]**.', ephemeral=ephemeral)
             return
         try:
-            self.repl.add_trigger(alias, trigger_type='regex', data=text, rate=weight) # todo: create and support other trigger types.
+            self.repl.add_trigger(alias, trigger_type='regex', data=text, rate=rate) # todo: create and support other trigger types.
         except ValueError:
             await self.client.user_feedback(interaction, title='Trigger creation failed', desc=f'The given Alias {alias} does not exist.', ephemeral=ephemeral)
             return
 
         await self.client.user_feedback(interaction, title='Trigger created successfully', desc=f'Alias: {alias}\n*Type: Regex*\nContent: **{text}**', ephemeral=ephemeral)
 
-    # @app_commands.command(name='edit', description='Edit a Trigger')
-    # @app_commands.describe()
-    async def edit_trigger(self, interaction: discord.Interaction, alias: str, index: ..., ): # todo: how to index into?
-        ... # todo: create
+    @app_commands.command(name='edit', description='Edit a Trigger')
+    @app_commands.describe(alias='The Alias this Trigger belongs to.',
+                           index='The index of this trigger.',
+                           text='Trigger RegEx to match to.',
+                           rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
+                           ephemeral='Hide this command for other users.')
+    async def edit_trigger(self, interaction: discord.Interaction, alias: str, index: int, text: str = None, rate : int = None, ephemeral: bool = False):
+        if text is None and rate is None:
+            await self.client.user_feedback(interaction, title='Trigger edit failed',
+                                            desc='You need to update at least one of text and rate.', ephemeral=ephemeral)
+            return
+        if rate is not None and not (1 <= rate <= 256):
+            await self.client.user_feedback(interaction, title='Trigger edit failed', desc='The given rate is not in range **[1..256]**.', ephemeral=ephemeral)
+            return
 
-    async def delete_trigger(self, interaction: discord.Interaction, alias: str, ):
-        ... # todo: create
+        try:
+            self.repl.edit_trigger(alias, index, trigger_type='regex', data=text, rate=rate)
+        except ValueError:
+            await self.client.user_feedback(interaction, title='Trigger edit failed',
+                                            desc='The given alias does not exist.', ephemeral=ephemeral)
+            return
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Trigger edit failed', desc='Trigger index out of bounds',
+                                            ephemeral=ephemeral)
+            return
+        await self.client.user_feedback(interaction, title='Trigger edited successfully', ephemeral=ephemeral)
+
+
+    @app_commands.command(name='delete', description='Delete a Trigger')
+    @app_commands.describe(alias='The Alias this Trigger belongs to.',
+                           index='The index of this Trigger.',
+                           ephemeral='Hide this command for other users.')
+    async def delete_trigger(self, interaction: discord.Interaction, alias: str, index: int, ephemeral: bool = False):
+        try:
+            self.repl.remove_trigger(alias, index)
+        except ValueError:
+            await self.client.user_feedback(interaction, title='Trigger deletion failed',
+                                            desc='The given alias does not exist.', ephemeral=ephemeral)
+            return
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Trigger deletion failed',
+                                            desc='Trigger index out of bounds',
+                                            ephemeral=ephemeral)
+            return
+        await self.client.user_feedback(interaction, title='Trigger deleted successfully', ephemeral=ephemeral)
 
     # region autocomplete
     @create_trigger.autocomplete('alias')
+    @edit_trigger.autocomplete('alias')
+    @delete_trigger.autocomplete('alias')
     async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
         target = current.lower()  # Prevent repeat transformation
         aliases: list[AliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
@@ -135,7 +175,8 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
         self.logger = logger
 
     @app_commands.command(name='create', description='Create a new Reply')
-    @app_commands.describe(reply_type='The type of Reply this has to be.',
+    @app_commands.describe(alias='The Alias this reply will belong to.',
+                            reply_type='The type of Reply this has to be.',
                            text='Raw text data for the reply. For text replies, PISS-compatible. For reaction replies, unicode emojis only.',
                            weight='The relative weight this Reply will proc to. Defaults to 1.',
                            ephemeral='Hide this command for other users.')
@@ -186,7 +227,9 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
                 return # todo: gotta support this man.
             else:
                 raise ValueError('Received reply with un accounted for type.')
+
             self.repl.edit_reply(alias, index, text, weight)
+
         except ValueError:
             await self.client.user_feedback(interaction, title='Reply edit failed', desc='The given alias does not exist.', ephemeral=ephemeral)
             return
@@ -212,9 +255,8 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
         await self.client.user_feedback(interaction, title='Reply deleted successfully', ephemeral=ephemeral)
 
 
-
-
     # region autocomplete
+    @create_reply.autocomplete('alias')
     @edit_reply.autocomplete('alias')
     @delete_reply.autocomplete('alias')
     async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
