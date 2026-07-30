@@ -25,10 +25,21 @@ loggable = Literal['general', 'error',
 ]
 
 class GlobalLoggerConfig:
-    def __init__(self):
-        self.output_to_console: dict[loggable, bool] = ...
-        self.actively_logging: dict[loggable, bool] = ...
-        self.target_channels: dict[loggable, int] = ...
+    def __init__(self, output_to_console: dict[loggable, bool], actively_logging: dict[loggable, bool], target_channels: dict[loggable, int]):
+        # Validation of input
+        validation: set[str] = set(get_args(loggable))
+        assert set(output_to_console.keys()) == validation, 'output_to_console must contain only and all loggables'
+        assert set(actively_logging.keys()) == validation, 'actively_logging must contain only and all loggables'
+        assert set(target_channels.keys()) == validation, 'target_channels must contain only and all loggables'
+        
+        self.output_to_console: dict[loggable, bool] = output_to_console
+        self.actively_logging: dict[loggable, bool] = actively_logging
+        self.target_channels: dict[loggable, int] = target_channels
+
+    @staticmethod
+    def build_config():
+        from local import console_loggable as local_console_loggable
+        ... # todo: Create YAML file data for all required settings
 
 class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a different token for a different logging account?
     def __init__(self, client: BotClient, config: GlobalLoggerConfig) -> None:
@@ -38,10 +49,15 @@ class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a di
 
     # region log out
     def _console_log(self, out: str, act: loggable) -> None:
-        if self.config.output_to_console[act]:
-            print(out)
+        try:
+            if self.config.output_to_console[act]:
+                print(out)
+        except KeyError:
+            print(f'Could not find output setting for action type {act}.\n\t{out}')
+
 
     # todo: buffer messages for x seconds and then send one thing with multiple embeds in one go to prevent ratelimiting?
+    # Man, knowing that any exception thrown here goes on 'forever' is annoying.
     async def _channel_log(self, embed: Embed, act: loggable) -> None:
         if self.config.actively_logging[act]:
             # Get channel if found, otherwise default to something.
