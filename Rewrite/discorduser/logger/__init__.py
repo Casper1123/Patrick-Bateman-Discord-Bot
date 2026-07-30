@@ -44,7 +44,7 @@ class GlobalLoggerConfig:
 
     @staticmethod
     def build_config():
-        from local import console_loggable as local_console_loggable
+        from local import loggable as local_console_loggable
         ... # todo: Create YAML file data for all required settings
 
 class GlobalLogger:
@@ -107,7 +107,9 @@ class GlobalLogger:
     # region local-action
     # region fact
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
-        raise NotImplementedError()
+        self._console_log(
+            f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.name} in {interaction.guild.id} : {interaction.guild.name} :: {text}',
+            'fact_create')
 
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: FactEditorData, text: str) -> None:
         raise NotImplementedError()

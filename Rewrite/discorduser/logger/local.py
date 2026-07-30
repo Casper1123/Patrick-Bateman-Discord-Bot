@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, get_args
 
 from discord import Interaction, TextChannel, Guild, Embed
 
@@ -6,12 +6,14 @@ from Rewrite.data.interfaces.fact import FactEditorData, LocalAdminFactInterface
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.discorduser.user.abstract import BotClient
 
-console_loggable = Literal['fact_create', 'fact_edit', 'fact_delete', 'set_log_channel']
+loggable = Literal['fact_create', 'fact_edit', 'fact_delete', 'set_log_channel']
 
 class LocalLoggerConfig:
-    def __init__(self):
-        self.output_to_console: dict[console_loggable, bool] = ...
-        self.actively_logging: dict[console_loggable, bool] = ...
+    def __init__(self, actively_logging: dict[loggable, bool]):
+        validation: set[str] = set(get_args(loggable))
+        assert set(actively_logging.keys()) == validation, 'actively_logging must contain only and all loggables'
+
+        self.actively_logging: dict[loggable, bool] = actively_logging
 
 class LocalLogger:
     def __init__(self, client: BotClient, config: LocalLoggerConfig, db: LocalAdminDataInterface):
@@ -30,24 +32,53 @@ class LocalLogger:
         return channel
 
     # region log out
-    def _console_log(self, out: str, act: console_loggable) -> None:
-        if self.config.output_to_console[act]:
-            print(out)
-
     # todo: buffer messages for x seconds and then send one thing with multiple embeds in one go to prevent ratelimiting?
-    async def _channel_log(self, channel: TextChannel, embed: Embed, act: console_loggable) -> None:
+    async def _channel_log(self, guild: Guild, embed: Embed, act: loggable) -> None:
         if self.config.actively_logging[act]:
-            await channel.send(embed=embed)
+            channel: TextChannel = self._get_log_channel(guild)
+            if channel:
+                await channel.send(embed=embed)
     # endregion
 
     async def fact_create(self, interaction: Interaction, text: str) -> None:
-        raise NotImplementedError()
+        embed: Embed = Embed(
+            title='[FACT_CREATE]',
+            description=f'{text}\n'
+                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(interaction.guild, embed=embed, act='fact_create')
 
     async def fact_edit(self, interaction: Interaction, old: FactEditorData, text: str) -> None:
-        raise NotImplementedError()
+        embed: Embed = Embed(
+            title='[FACT_EDIT]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'**New:**\n'
+                        f'{text}\n'
+                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(interaction.guild, embed=embed, act='fact_edit')
 
     async def fact_remove(self, interaction: Interaction, old: FactEditorData) -> None:
-        raise NotImplementedError()
+        embed: Embed = Embed(
+            title='[FACT_REMOVE]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(interaction.guild, embed=embed, act='fact_delete')
 
     async def set_log_channel(self, interaction: Interaction, channel: TextChannel) -> None:
-        raise NotImplementedError()
+        embed: Embed = Embed(
+            title='[LOG_CHANNEL_MOVE]',
+            description=f'**New channel:**:\n'
+                        f'<#{channel.id}> ({channel.name})\n'
+                        f'Set by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(interaction.guild, embed=embed, act='set_log_channel')
