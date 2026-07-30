@@ -12,7 +12,17 @@ from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException
 
-console_loggable = Literal['general'] # todo: expand
+console_loggable = Literal['general', 'error',
+    'local_fact_create', 'local_fact_edit', 'local_fact_delete',
+    'local_log_channel_modify',
+
+    'fact_create', 'fact_edit', 'fact_delete', 'fact_modify',
+    'ban_user', 'ban_guild',
+
+    'create_alias', 'edit_alias', 'delete_alias',
+    'create_trigger', 'edit_trigger', 'delete_trigger',
+    'create_reply', 'edit_reply', 'delete_reply',
+]
 
 class GlobalLoggerConfig:
     def __init__(self):
