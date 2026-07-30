@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from mailbox import Message
-from typing import Literal
+from typing import Literal, get_args
 
 from discord import Interaction, Embed, Guild, TextChannel, User
 from discord.ext import commands
@@ -34,7 +34,7 @@ class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a di
     def __init__(self, client: BotClient, config: GlobalLoggerConfig) -> None:
         self.client = client
         self.config = config
-        self.target_channels: dict[loggable, int | None] = { i: None for i in loggable}
+        self.target_channels: dict[loggable, int | None] = { i: None for i in get_args(loggable)}
 
     # region log out
     def _console_log(self, out: str, act: loggable) -> None:
@@ -46,7 +46,11 @@ class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a di
         if self.config.actively_logging[act]:
             # Get channel if found, otherwise default to something.
             if not self.target_channels[act]:
-                channel = self.client.get_channel(self.config.target_channels[act])
+                try:
+                    channel = self.client.get_channel(self.config.target_channels[act])
+                except KeyError:
+                    channel = None
+
                 if not channel:
                     await self.client.close() # This is harsh. But it's easily the most secure way.
                     print(f'Closed application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
