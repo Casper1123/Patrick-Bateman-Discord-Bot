@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import GlobalAdminDataInterface
-from Rewrite.discorduser.logger import GlobalLogger
+from Rewrite.discorduser.logger import GlobalLogger, loggable
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -253,6 +253,15 @@ class GlobalAdminCog(commands.Cog, name='global'):
     async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
         state: bool = self.fact.toggle_local_fact_killswitch()
         await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
+
+    async def set_log_channel(self, interaction: Interaction, action: loggable, channel: int, ephemeral: bool = False): # todo: <#> parsing
+        channel = self.client.get_channel(channel)
+        if channel:
+            await self.logger.set_log_channel(interaction, action, channel) # doing this first so it at least lands this type of information in the final channel :p
+            self.logger.update_output_channel(action, channel)
+            await self.client.user_feedback(interaction, title='Log output updated', desc=f'Set log output channel for {action} to <#{channel.id}>', ephemeral=ephemeral)
+        else:
+            await self.client.user_feedback(interaction, title='Log output update failed', desc='Channel not found', ephemeral=ephemeral)
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
     # endregion

@@ -132,6 +132,9 @@ class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a di
     async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool) -> None:
         raise NotImplementedError()
 
+    async def set_log_channel(self, interaction: Interaction, action: loggable, target: TextChannel):
+        raise NotImplementedError() # Logged as a general action.
+
     # endregion
     # region autoreply
     # region alias
