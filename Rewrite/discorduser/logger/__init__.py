@@ -31,7 +31,7 @@ class GlobalLoggerConfig:
         assert set(output_to_console.keys()) == validation, 'output_to_console must contain only and all loggables'
         assert set(actively_logging.keys()) == validation, 'actively_logging must contain only and all loggables'
         assert set(target_channels.keys()) == validation, 'target_channels must contain only and all loggables'
-        
+
         self.output_to_console: dict[loggable, bool] = output_to_console
         self.actively_logging: dict[loggable, bool] = actively_logging
         self.target_channels: dict[loggable, int] = target_channels
@@ -45,7 +45,13 @@ class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a di
     def __init__(self, client: BotClient, config: GlobalLoggerConfig) -> None:
         self.client = client
         self.config = config
-        self.target_channels: dict[loggable, int | None] = { i: None for i in get_args(loggable)}
+        self.target_channels: dict[loggable, TextChannel | None] = { i: None for i in get_args(loggable)}
+
+    def update_output_channel(self, act: loggable, target: TextChannel):
+        self.target_channels[act] = target
+        self.config.target_channels[act] = target.id
+        # todo: update read file with new path
+        # todo: create command to set value.
 
     # region log out
     def _console_log(self, out: str, act: loggable) -> None:
@@ -55,28 +61,31 @@ class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a di
         except KeyError:
             print(f'Could not find output setting for action type {act}.\n\t{out}')
 
-
     # todo: buffer messages for x seconds and then send one thing with multiple embeds in one go to prevent ratelimiting?
     # Man, knowing that any exception thrown here goes on 'forever' is annoying.
     async def _channel_log(self, embed: Embed, act: loggable) -> None:
-        if self.config.actively_logging[act]:
-            # Get channel if found, otherwise default to something.
-            if not self.target_channels[act]:
-                try:
-                    channel = self.client.get_channel(self.config.target_channels[act])
-                except KeyError:
-                    channel = None
+        if not self.config.actively_logging[act]:
+            return
 
-                if not channel:
-                    await self.client.close() # This is harsh. But it's easily the most secure way.
-                    print(f'Closed application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
-                          f'{embed.title}\n'
-                          f'{embed.description}')
-                    import sys
-                    sys.exit(1)
-            else:
-                channel = self.target_channels[act]
-            await channel.send(embed=embed)
+        # Get channel if found, otherwise default to something.
+        if self.target_channels[act]:
+            channel = self.target_channels[act]
+        else:
+            try:
+                channel = self.client.get_channel(self.config.target_channels[act])
+            except KeyError:
+                channel = None
+
+            if not channel:
+                await self.client.close() # This is harsh. But it's easily the most secure way.
+                print(f'Closed application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
+                      f'{embed.title}\n'
+                      f'{embed.description}')
+                import sys
+                sys.exit(1)
+
+
+        await channel.send(embed=embed)
     # endregion
 
     async def log_general(self, guild: Guild, message: Message | Interaction, *args, **kwargs) -> None:

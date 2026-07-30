@@ -11,7 +11,8 @@ Simple:
 - Sayings DONE
 
 - number autoreply TODO: numerical conversion and incrementation. Preferences done.
-- Message content autoreply TODO: Needs entire structure worked out.
+- Message content autoreply
 
 - Local moderation
 - Global moderation
+TODO: check autocomplete options for indices, esp for global
