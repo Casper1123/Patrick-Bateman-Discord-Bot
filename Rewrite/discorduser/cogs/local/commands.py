@@ -7,10 +7,10 @@ from discord import app_commands, Interaction
 from discord.ext import commands
 
 from Rewrite.data.interfaces.moderation import LocalAdminModerationInterface
+from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
 from Rewrite.discorduser.user.abstract import BotClient
-from Rewrite.discorduser.logger import Logger
-from Rewrite.discorduser.logger.local_logger import LocalLogger
+from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.data.interfaces.fact import LocalAdminFactInterface, FactEditorData
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss import parse_variables, Instruction
@@ -52,13 +52,13 @@ class RestrictedUseException(CustomDiscordException):
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
-    def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface, pref: PreferencesInterface, logger: Logger) -> None:
+    def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface, pref: PreferencesInterface, db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.fact = fact
         self.mod = mod
         self.pref = pref
+        self.db = db
         self.logger = logger
-        self.local_logger = LocalLogger(self.client, fact)
 
     def restricted(self, guild_id: int, user_id: int) -> UseRestriction:
         """
@@ -91,7 +91,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         :param edit: If true, ignores fact limit check (considers it as replacing the fact)
         :return: Permission.
         """
-        if self.fact.is_super_server(guild_id):
+        if self.mod.is_super_server(guild_id):
             return
 
         if len(text) > FACT_CHAR_LIMIT:
@@ -122,8 +122,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         self.fact.create_fact(interaction.guild.id, interaction.user.id, text)
-        await self.logger.fact_create(interaction, text)
-        await self.local_logger.fact_create(interaction, text)
+        await self.logger.local_fact_create(interaction.guild, interaction, text)
         await self.client.user_feedback(interaction, title='Success', desc=f'Fact added successfully.', ephemeral=ephemeral)
 
     @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
@@ -137,15 +136,14 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
-        delete: bool = text is None
+        delete: bool = text is None # todo: what the fuck is this command man, rework this shit.
         self.fact_limit_check(interaction.guild.id, text, edit=True) # todo: check for duplicates!
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
         old: FactEditorData = self.fact.get_local_fact(interaction.guild.id, index)
-        self.fact.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
-        await self.logger.fact_edit(interaction, text, old)
-        await self.local_logger.fact_edit(interaction, old, index, text)
+        self.fact.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text) # todo: fix
+        await self.logger.local_fact_edit(interaction.guild, interaction, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                         title='Success', desc=f'Fact {'deleted' if delete else 'edited'} successfully.'
                                                                 f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`')
@@ -237,7 +235,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         # todo: autocomplete with current channel, having the text display which channel it is set to ('click to set to this channel')
         # todo: parse <#id> input, so change input to string.
         if not channel:
-            self.fact.set_log_output(interaction.guild.id, None)
+            self.db.set_log_output(interaction.guild.id, None)
             await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
             return
 
@@ -245,7 +243,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not logchannel:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Input channel ID **{channel}** is invalid or not found.')
 
-        self.fact.set_log_output(interaction.guild.id, logchannel.id)
+        self.db.set_log_output(interaction.guild.id, logchannel.id)
+        await self.logger.local_set_log_channel(interaction.guild, interaction, logchannel)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Log output channel set to <#{logchannel.id}>')
         # todo: Choice to display current value.
     # endregion

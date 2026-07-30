@@ -75,17 +75,21 @@ class LocalAdminFactInterface(FactInterface):
         """
         raise NotImplementedError()
 
-    @abstractmethod
-    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None): # todo: better return information?
+    @abstractmethod # todo: remake these functions before implementation.
+    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: int, editor_id: int, new_fact: str | None): # todo: better return information?
         """
         Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
         :param guild_id: Guild of the belonging fact.
         :param previous_author_id: ID of the previous author of the fact.
-        :param old_fact: Old fact string.
+        :param old_fact: Old fact index.
         :param editor_id: Id of the editor of the fact.
         :param new_fact: New fact string.
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def delete_fact(self, guild_id: int, ): # todo: what the fuck? what the hell did I cook, man.
+        ...
 
     @abstractmethod
     def get_local_fact(self, guild_id: int, index: int) -> FactEditorData:

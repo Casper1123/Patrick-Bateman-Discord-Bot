@@ -10,6 +10,7 @@ from discord.ext import commands
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, _reply_types, _trigger_types, \
     ReplyData, TriggerData
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
+from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss.testing import test_raw_input as input_test
@@ -21,7 +22,7 @@ WEIGHT_UPPER_BOUND: int = 1024
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _AliasGlobalAdminCog(commands.Cog, name='alias'):
-    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger) -> None:
+    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.repl = repl
         self.logger = logger
@@ -37,6 +38,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias creation failed',
                                                                         desc='This alias already exists.')
             return
+        await self.logger.create_alias(interaction, name, rate)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias created successfully')
 
     @app_commands.command(name='edit', description='Edit an existing Alias')
@@ -60,6 +62,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
             await self.client.user_feedback(interaction, title='Alias edit failed',
                                     desc='The given alias does not exist, or the new alias name is already taken.', ephemeral=ephemeral)
             return
+        await self.logger.edit_alias(interaction, alias, new_name if (new_name and new_name != alias) else None, rate)
         await self.client.user_feedback(interaction, title='Alias edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete an existing Alias')
@@ -70,6 +73,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
         except ValueError:
             await self.client.user_feedback(interaction, title='Alias edit failed', desc='Cannot delete a nonexistent Alias.', ephemeral=ephemeral)
             return
+        await self.logger.delete_alias(interaction, alias)
         await self.client.user_feedback(interaction, title='Alias deleted successfully', ephemeral=ephemeral)
 
     # region autocomplete
@@ -86,7 +90,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
-    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger) -> None:
+    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.repl = repl
         self.logger = logger
@@ -105,7 +109,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
         except ValueError:
             await self.client.user_feedback(interaction, title='Trigger creation failed', desc=f'The given Alias {alias} does not exist.', ephemeral=ephemeral)
             return
-
+        await self.logger.create_trigger(interaction, alias, text, rate)
         await self.client.user_feedback(interaction, title='Trigger created successfully', desc=f'Alias: {alias}\n*Type: Regex*\nContent: **{text}**', ephemeral=ephemeral)
 
     @app_commands.command(name='edit', description='Edit a Trigger')
@@ -133,8 +137,8 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
             await self.client.user_feedback(interaction, title='Trigger edit failed', desc='Trigger index out of bounds',
                                             ephemeral=ephemeral)
             return
+        await self.logger.edit_trigger(interaction, alias, index, text, rate)
         await self.client.user_feedback(interaction, title='Trigger edited successfully', ephemeral=ephemeral)
-
 
     @app_commands.command(name='delete', description='Delete a Trigger')
     @app_commands.describe(alias='The Alias this Trigger belongs to.',
@@ -152,6 +156,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                                             desc='Trigger index out of bounds',
                                             ephemeral=ephemeral)
             return
+        await self.logger.delete_trigger(interaction, alias, index, old_data='TODO: PUT THIS IN HERE') # FIXME: not passing data
         await self.client.user_feedback(interaction, title='Trigger deleted successfully', ephemeral=ephemeral)
 
     # region autocomplete
@@ -169,7 +174,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
-    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger) -> None:
+    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.repl = repl
         self.logger = logger
@@ -180,27 +185,28 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
                            text='Raw text data for the reply. For text replies, PISS-compatible. For reaction replies, unicode emojis only.',
                            weight='The relative weight this Reply will proc to. Defaults to 1.',
                            ephemeral='Hide this command for other users.')
-    @app_commands.choices(reply_type=[
-        Choice(name='text', value='text'),
-        Choice(name='reaction', value='reaction'),
-    ])
     @app_commands.rename(reply_type='type')
     async def create_reply(self, interaction: discord.Interaction, alias: str, reply_type: _reply_types, text: str, weight: int = 1, ephemeral: bool = False):
-        # todo: check, if reply type is reaction, that it is a string of only standard unicode emojis. Added by separating them using ;?
-        if reply_type == 'reaction':
-            await self.client.user_feedback(interaction, title='Unsupported', desc='The given Reply type is not supported.\nIt will be in the future, but right now it is not. The setting is a placeholder.', ephemeral=ephemeral)
-            return
         if weight is not None and not 1 <= weight <= WEIGHT_UPPER_BOUND:
             await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Weight not in range [1..{WEIGHT_UPPER_BOUND}].', ephemeral=ephemeral)
         if reply_type == 'text':
             # test the reply before adding.
             if not await input_test(self.client, interaction, text, ephemeral=ephemeral):
                 return
+        elif reply_type == 'reaction':
+            # todo: check, if reply type is reaction, that it is a string of only standard unicode emojis. Added by separating them using ;?
+            await self.client.user_feedback(interaction, title='Unsupported',
+                                            desc='The given Reply type is not supported.\nIt will be in the future, but right now it is not. The setting is a placeholder.',
+                                            ephemeral=ephemeral)
+            return
+        else:
+            await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Reply type {reply_type} not supported.', ephemeral=ephemeral)
         try:
             self.repl.add_reply(alias, reply_type, data=text, weight=weight)
         except ValueError:
             await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Alias {alias} does not exist.', ephemeral=ephemeral)
             return
+        await self.logger.create_reply(interaction, alias, reply_type, text, weight)
         await self.client.user_feedback(interaction, title='Reply created successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='edit', description='Edit a Reply; text and weight only!')
@@ -236,6 +242,8 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
         except IndexError:
             await self.client.user_feedback(interaction, title='Reply edit failed', desc='Reply index out of bounds', ephemeral=ephemeral)
             return
+
+        await self.logger.edit_reply(interaction, old, text, weight)
         await self.client.user_feedback(interaction, title='Reply edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete a Reply.')
@@ -252,8 +260,9 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
             await self.client.user_feedback(interaction, title='Reply deletion failed', desc='Reply index out of bounds',
                                             ephemeral=ephemeral)
             return
-        await self.client.user_feedback(interaction, title='Reply deleted successfully', ephemeral=ephemeral)
 
+        await self.logger.delete_reply(interaction, old=None) # FIXME: not passing data!
+        await self.client.user_feedback(interaction, title='Reply deleted successfully', ephemeral=ephemeral)
 
     # region autocomplete
     @create_reply.autocomplete('alias')
@@ -266,7 +275,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
     # endregion
 
-async def attach_cogs(client: BotClient, repl: GlobalTextAutorepliesInterface, logger):
+async def attach_cogs(client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger):
     await client.add_cog(_AliasGlobalAdminCog(client, repl, logger))
     await client.add_cog(_TriggerGlobalAdminCog(client, repl, logger))
     await client.add_cog(_ReplyGlobalAdminCog(client, repl, logger))

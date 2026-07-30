@@ -1,7 +1,16 @@
 from abc import ABC, abstractmethod
 
 class DataInterface(ABC):
-    ...
+    @abstractmethod
+    def get_log_channel(self, guild_id: int) -> int | None:
+        """
+        Gets the ID of  the logging channel for the given guild.
+        Returns None if none found.
+        :param guild_id: Guild for the logging action.
+        :return: Channel ID if found, otherwise None
+        """
+        # todo: DEFINITELY WORK WITH CACHING HERE.
+        raise NotImplementedError()
 
 class LocalAdminDataInterface(DataInterface):
     @abstractmethod
@@ -12,17 +21,6 @@ class LocalAdminDataInterface(DataInterface):
         :param guild_id: The guild ID.
         :param channel_id: Channel ID to log to. If none, remove entry.
         """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def get_log_channel(self, guild_id: int) -> int | None:
-        """
-        Gets the ID of  the logging channel for the given guild.
-        Returns None if none found.
-        :param guild_id: Guild for the logging action.
-        :return: Channel ID if found, otherwise None
-        """
-        # todo: DEFINITELY WORK WITH CACHING HERE.
         raise NotImplementedError()
 
 class GlobalAdminDataInterface(LocalAdminDataInterface):

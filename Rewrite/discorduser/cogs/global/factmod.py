@@ -6,6 +6,9 @@ import discord
 from discord import app_commands, Interaction, Embed, Guild
 from discord.ext import commands
 
+from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
+from Rewrite.data.interfaces.other import GlobalAdminDataInterface
+from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -17,7 +20,7 @@ GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalFactAdminCog(commands.Cog, name='gfact'):
-    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger) -> None:
+    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.fact = fact
         self.logger = logger
@@ -30,7 +33,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         self.fact.create_global_fact(interaction.user.id, text)
-        await self.logger.global_fact_create(interaction, text)
+        await self.logger.fact_create(interaction, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact added successfully.')
 
     @app_commands.command(name='edit', description='Edit or Remove a global fact. Leave the text empty to remove.')
@@ -44,10 +47,9 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                 return
         old: FactEditorData = self.fact.get_global_fact(index)
         self.fact.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
-        await self.logger.fact_edit(interaction, text, old)
+        await self.logger.fact_edit(interaction, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                             desc=f'Fact {'deleted' if delete else 'edited'} successfully.')
-
 
     @app_commands.command(name='index',
                           description='Exports an overview of Global (and, optionally, Local) facts. Can be exported to JSON for easier automated use.')
@@ -127,8 +129,8 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         except IndexError as e:
             raise CustomDiscordException(tooltip=ErrorTooltip.NONE, cause=e,
                                          message=f'Index ({index}) not in 0 <= index < {len(local_facts)}.')
-        self.fact.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text)
-        await self.logger.global_fact_edit(interaction, text, old)
+        self.fact.edit_fact(guild_id, old.author_id, index, interaction.user.id, text)
+        await self.logger.fact_modify(interaction, guild_id, old, text)
         if local_log:
             # todo: log to server locally
             pass
@@ -180,23 +182,29 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         ))
     # endregion
 
+# todo: move to seperate file?
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminCog(commands.Cog, name='global'):
-    def __init__(self, client: BotClient, db: GlobalAdminFactInterface, logger) -> None:
+    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, logger: GlobalLogger) -> None:
         self.client = client
+        self.fact = fact
+        self.mod = mod
         self.db = db
         self.logger = logger
 
     @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
     @app_commands.describe(ephemeral='Hide this command for other users.', user_id='The ID of the user you aim to (un)ban.')
     async def ban_user(self, interaction: Interaction, user_id: int, ephemeral: bool = False) -> None:
-        state: bool = self.db.is_banned_user(user_id)
-        self.db.unban_user(user_id) if state else self.db.ban_user(user_id)
-        await self.logger.user_ban(interaction, user_id, not state)
-        embed = Embed(title=f'User {'un' if state else ''}banned')
+        state: bool = self.mod.is_banned_user(user_id)
+        self.mod.unban_user(user_id) if state else self.mod.ban_user(user_id)
         user = self.client.get_user(user_id)
+
+        await self.logger.ban_user(interaction, user_id, user, not state)
+
+        embed = Embed(title=f'User {'un' if state else ''}banned')
+
         if user:
             embed.set_author(name=user.name, icon_url=user.avatar.url)
         else:
@@ -208,11 +216,14 @@ class GlobalAdminCog(commands.Cog, name='global'):
     @app_commands.describe(ephemeral='Hide this command for other users.',
                            guild_id='The ID of the guild you aim to (un)ban.')
     async def ban_guild(self, interaction: Interaction, guild_id: int, ephemeral: bool = False) -> None:
-        state: bool = self.db.is_banned_guild(guild_id)
-        self.db.unban_guild(guild_id) if state else self.db.ban_guild(guild_id)
-        await self.logger.guild_ban(interaction, guild_id, not state)
-        embed = Embed(title=f'Guild {'un' if state else ''}banned')
+        state: bool = self.mod.is_banned_guild(guild_id)
+        self.mod.unban_guild(guild_id) if state else self.mod.ban_guild(guild_id)
         guild = self.client.get_guild(guild_id)
+
+        await self.logger.ban_guild(interaction, guild_id, guild, not state)
+
+        embed = Embed(title=f'Guild {'un' if state else ''}banned')
+
         if guild:
             embed.set_author(name=guild.name, icon_url=guild.icon.url)
         else:
@@ -227,6 +238,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
         await interaction.response.defer(ephemeral=ephemeral, thinking=False)
         await interaction.edit_original_response(content=f'Synchronizing Command Tree ...')
         await self.client.tree.sync()
+        # todo: this is not required is it.
         await interaction.edit_original_response(content=f'Starting Super Guild overwrites ...')
         for i, guild_id in enumerate(self.db.get_super_server_ids()):
             try:
@@ -239,7 +251,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
                           description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
     @app_commands.describe(ephemeral='Hide this command for other users.')
     async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
-        state: bool = self.client.toggle_local_fact_killswitch()
+        state: bool = self.fact.toggle_local_fact_killswitch()
         await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.

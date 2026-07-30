@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
-from Rewrite.discorduser.logger.__init__ import Logger, LoggerConfiguration
+from Rewrite.discorduser.logger.__init__ import GlobalLogger, GlobalLoggerConfig
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss import InstructionParseError
 
@@ -20,10 +20,10 @@ class BotClient(commands.Bot):
     Bot-inherited class with toolkit installed.
     WARNING: DOES NOT CONTAIN COGS.
     """
-    def __init__(self, db: FactInterface, pref: PreferencesInterface, logger_config: LoggerConfiguration) -> None:
+    def __init__(self, db: FactInterface, pref: PreferencesInterface, logger_config: GlobalLoggerConfig) -> None:
         self.pref: PreferencesInterface = pref
         self.db: FactInterface = db
-        self.logger: Logger = Logger(self, logger_config)
+        self.logger: GlobalLogger = GlobalLogger(self, logger_config)
 
         intents = discord.Intents.default()
         intents.message_content = True # Required for autoreplies
@@ -58,7 +58,7 @@ class BotClient(commands.Bot):
 
                 await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
                 if log:
-                    await self.logger.error(error, interaction)
+                    await self.logger.error(interaction, error)
                     raise error
 
 

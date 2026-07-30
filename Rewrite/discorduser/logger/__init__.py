@@ -1,64 +1,115 @@
 from __future__ import annotations
 
 from enum import Enum
+from mailbox import Message
+from typing import Literal
 
-from discord import Interaction, Embed
+from discord import Interaction, Embed, Guild, TextChannel, User
 from discord.ext import commands
 
+from Rewrite.data.interfaces.autoreplies import AliasData, _reply_types, ReplyData
 from Rewrite.data.interfaces.fact import FactEditorData
+from Rewrite.discorduser.user.abstract import BotClient
+from Rewrite.utilities.exceptions import CustomDiscordException
 
+console_loggable = Literal['general'] # todo: expand
 
-
-class LogTypes(Enum):
-    GENERAL = 0
-    ERROR = 10
-
-    FACT_CREATE = 1
-    FACT_UPDATE = 2
-    FACT_DELETE = 3
-
-    GLOBAL_FACT_CREATE = -1
-    GLOBAL_FACT_UPDATE = -2
-    GLOBAL_FACT_DELETE = -3
-
-class LoggerConfiguration:
+class GlobalLoggerConfig:
     def __init__(self):
-        ...
+        self.output_to_console: dict[console_loggable, bool] = ...
+        self.actively_logging: dict[console_loggable, bool] = ...
 
-    @staticmethod
-    def from_source() -> LoggerConfiguration:
-        raise NotImplementedError()
-
-
-class Logger: # todo: make this a bot subclass, to be able to pass it a different token for a different logging account?
-    def __init__(self, client: commands.Bot, config: LoggerConfiguration) -> None:
+class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a different token for a different logging account?
+    def __init__(self, client: BotClient, config: GlobalLoggerConfig) -> None:
         self.client = client
         self.config = config
 
-    async def general_event(self, embed: Embed):
-        """
-        TODO: REQUIRES HEAVY EXTRA DESIGN
-        """
-        ...
+    # region log out
+    def _console_log(self, out: str, act: console_loggable) -> None:
+        if self.config.output_to_console[act]:
+            print(out)
 
-    async def error(self, error: Exception, interaction: Interaction):
-        ...
+    # todo: buffer messages for x seconds and then send one thing with multiple embeds in one go to prevent ratelimiting?
+    async def _channel_log(self, channel: TextChannel, embed: Embed, act: console_loggable) -> None:
+        if self.config.actively_logging[act]:
+            await channel.send(embed=embed)
+    # endregion
 
-    # region local
-    async def fact_create(self, interaction: Interaction, text: str):
-        ...
-    async def fact_edit(self, interaction: Interaction, text: str | None, old: FactEditorData):
-        ...
+    async def log_general(self, guild: Guild, message: Message | Interaction, *args, **kwargs) -> None:
+        raise NotImplementedError()
+
+    async def error(self, interaction: Interaction | Message, error: CustomDiscordException | Exception) -> None:
+        raise NotImplementedError()
+
+    # region local-action
+    # region fact
+    async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
+        raise NotImplementedError()
+
+    async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: FactEditorData, text: str) -> None:
+        raise NotImplementedError()
+
+    async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: FactEditorData) -> None:
+        raise NotImplementedError()
     # endregion
-    # region global fact
-    async def global_fact_create(self, interaction: Interaction, text: str):
-        ...
-    async def global_fact_edit(self, interaction: Interaction, text: str | None, old: FactEditorData):
-        ...
+    # region other local
+    async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel) -> None:
+        raise NotImplementedError()
     # endregion
-    # region admin
-    async def user_ban(self, interaction: Interaction, user_id: int, ban: bool):
-        ...
-    async def guild_ban(self, interaction: Interaction, guild_id: int, ban: bool):
-        ...
+    # endregion
+
+    # region global-action
+    # region fact
+    async def fact_create(self, interaction: Interaction, text: str) -> None:
+        raise NotImplementedError()
+
+    async def fact_edit(self, interaction: Interaction, old: FactEditorData, text: str) -> None:
+        raise NotImplementedError()
+
+    async def fact_remove(self, interaction: Interaction, old: FactEditorData):
+        raise NotImplementedError()
+
+    async def fact_modify(self, interaction: Interaction, guild_id: int, old: FactEditorData, text: str) -> None:
+        raise NotImplementedError() # note: this is specifically for the moderation of other servers.
+    # endregion
+    # region moderation
+    async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, new_state: bool) -> None:
+        raise NotImplementedError()
+
+    async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool) -> None:
+        raise NotImplementedError()
+
+    # endregion
+    # region autoreply
+    # region alias
+    async def create_alias(self, interaction: Interaction, name: str, rate: int) -> None:
+        raise NotImplementedError()
+
+    async def edit_alias(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
+        raise NotImplementedError()
+
+    async def delete_alias(self, interaction: Interaction, old_name: str):
+        raise NotImplementedError()
+    # endregion
+    # region trigger
+    async def create_trigger(self, interaction: Interaction, alias: str, text: str, rate: int | None):
+        raise NotImplementedError()
+
+    async def edit_trigger(self, interaction: Interaction, alias: str, index: int, text: str | None, rate: int | None) -> None:
+        raise NotImplementedError()
+
+    async def delete_trigger(self, interaction: Interaction, alias: str, index: int, old_data: str):
+        raise NotImplementedError()
+    # endregion
+    # region reply
+    async def create_reply(self, interaction: Interaction, alias: str, reply_type: _reply_types, data: str, weight: int | None):
+        raise NotImplementedError()
+
+    async def edit_reply(self, interaction: Interaction, old: ReplyData, data: str, weight: int | None):
+        raise NotImplementedError()
+
+    async def delete_reply(self, interaction: Interaction, old: ReplyData):
+        raise NotImplementedError()
+    # endregion
+    # endregion
     # endregion
