@@ -26,6 +26,12 @@ loggable = Literal['general', 'error',
 
 class GlobalLoggerConfig:
     def __init__(self, output_to_console: dict[loggable, bool], actively_logging: dict[loggable, bool], target_channels: dict[loggable, int]):
+        """
+        Each dict requires exactly all, and no other, of the `loggable` properties to be set, otherwise it will raise an AssertionError.
+        :param output_to_console: Should this loggable be printed to console?
+        :param actively_logging: Should this loggable be sent into its respective channel?
+        :param target_channels: Channel ids for actively logged actions. **WARNING:** If this channel is not found at runtime, the program will terminate with error code `1`.
+        """
         # Validation of input
         validation: set[str] = set(get_args(loggable))
         assert set(output_to_console.keys()) == validation, 'output_to_console must contain only and all loggables'
@@ -41,8 +47,12 @@ class GlobalLoggerConfig:
         from local import console_loggable as local_console_loggable
         ... # todo: Create YAML file data for all required settings
 
-class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a different token for a different logging account?
+class GlobalLogger:
     def __init__(self, client: BotClient, config: GlobalLoggerConfig) -> None:
+        """
+        :param client: The BotClient to perform the logging. Can be separate from main PB client instance.
+        :param config: Configuration data.
+        """
         self.client = client
         self.config = config
         self.target_channels: dict[loggable, TextChannel | None] = { i: None for i in get_args(loggable)}
@@ -77,7 +87,7 @@ class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a di
                 channel = None
 
             if not channel:
-                await self.client.close() # This is harsh. But it's easily the most secure way.
+                await self.client.close() # This is harsh. But it's easily the most secure way; if cannot log information, crash application.
                 print(f'Closed application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
                       f'{embed.title}\n'
                       f'{embed.description}')
