@@ -12,7 +12,7 @@ from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException
 
-console_loggable = Literal['general', 'error',
+loggable = Literal['general', 'error',
     'local_fact_create', 'local_fact_edit', 'local_fact_delete',
     'local_log_channel_modify',
 
@@ -26,22 +26,36 @@ console_loggable = Literal['general', 'error',
 
 class GlobalLoggerConfig:
     def __init__(self):
-        self.output_to_console: dict[console_loggable, bool] = ...
-        self.actively_logging: dict[console_loggable, bool] = ...
+        self.output_to_console: dict[loggable, bool] = ...
+        self.actively_logging: dict[loggable, bool] = ...
+        self.target_channels: dict[loggable, int] = ...
 
 class GlobalLogger: # todo: make this a bot subclass, to be able to pass it a different token for a different logging account?
     def __init__(self, client: BotClient, config: GlobalLoggerConfig) -> None:
         self.client = client
         self.config = config
+        self.target_channels: dict[loggable, int | None] = { i: None for i in loggable}
 
     # region log out
-    def _console_log(self, out: str, act: console_loggable) -> None:
+    def _console_log(self, out: str, act: loggable) -> None:
         if self.config.output_to_console[act]:
             print(out)
 
     # todo: buffer messages for x seconds and then send one thing with multiple embeds in one go to prevent ratelimiting?
-    async def _channel_log(self, channel: TextChannel, embed: Embed, act: console_loggable) -> None:
+    async def _channel_log(self, embed: Embed, act: loggable) -> None:
         if self.config.actively_logging[act]:
+            # Get channel if found, otherwise default to something.
+            if not self.target_channels[act]:
+                channel = self.client.get_channel(self.config.target_channels[act])
+                if not channel:
+                    await self.client.close() # This is harsh. But it's easily the most secure way.
+                    print(f'Closed application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
+                          f'{embed.title}\n'
+                          f'{embed.description}')
+                    import sys
+                    sys.exit(1)
+            else:
+                channel = self.target_channels[act]
             await channel.send(embed=embed)
     # endregion
 
