@@ -56,6 +56,9 @@ class GlobalLogger:
                       f'{embed.description}')
                 import sys
                 sys.exit(1)
+            else:
+                # update cache
+                self.target_channels[act] = channel
 
 
         await channel.send(embed=embed)
