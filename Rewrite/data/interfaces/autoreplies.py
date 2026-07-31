@@ -105,6 +105,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
     def delete_alias(self, name: str):
         """
         Deletes given Alias. Raises ValueError if it did not exist.
+        Also deletes all of the Alias' components. Tread carefully.
         :param name: Alias name to remove.
         """
         raise NotImplementedError()

@@ -1,54 +1,20 @@
 from __future__ import annotations
 
-from enum import Enum
-from mailbox import Message
-from typing import Literal, get_args
+from typing import get_args
 
-from discord import Interaction, Embed, Guild, TextChannel, User
-from discord.ext import commands
+from discord import Interaction, Embed, Guild, TextChannel, User, Message
 
-from Rewrite.data.interfaces.autoreplies import AliasData, _reply_types, ReplyData
+from Rewrite.discorduser.logger.config.abstract import AbstractJSONConfig
+from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
+from config.local import loggable as local_loggable
+from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, ReplyData, TriggerData
 from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException
-
-loggable = Literal['general', 'error',
-    'local_fact_create', 'local_fact_edit', 'local_fact_delete',
-    'local_log_channel_modify',
-
-    'fact_create', 'fact_edit', 'fact_delete', 'fact_modify',
-    'ban_user', 'ban_guild',
-
-    'create_alias', 'edit_alias', 'delete_alias',
-    'create_trigger', 'edit_trigger', 'delete_trigger',
-    'create_reply', 'edit_reply', 'delete_reply',
-]
-
-class GlobalLoggerConfig:
-    def __init__(self, output_to_console: dict[loggable, bool], actively_logging: dict[loggable, bool], target_channels: dict[loggable, int]):
-        """
-        Each dict requires exactly all, and no other, of the `loggable` properties to be set, otherwise it will raise an AssertionError.
-        :param output_to_console: Should this loggable be printed to console?
-        :param actively_logging: Should this loggable be sent into its respective channel?
-        :param target_channels: Channel ids for actively logged actions. **WARNING:** If this channel is not found at runtime, the program will terminate with error code `1`.
-        """
-        # Validation of input
-        validation: set[str] = set(get_args(loggable))
-        assert set(output_to_console.keys()) == validation, 'output_to_console must contain only and all loggables'
-        assert set(actively_logging.keys()) == validation, 'actively_logging must contain only and all loggables'
-        assert set(target_channels.keys()) == validation, 'target_channels must contain only and all loggables'
-
-        self.output_to_console: dict[loggable, bool] = output_to_console
-        self.actively_logging: dict[loggable, bool] = actively_logging
-        self.target_channels: dict[loggable, int] = target_channels
-
-    @staticmethod
-    def build_config():
-        from local import loggable as local_console_loggable
-        ... # todo: Create YAML file data for all required settings
+from config.universal import loggable, GlobalLoggerLoggerConfig
 
 class GlobalLogger:
-    def __init__(self, client: BotClient, config: GlobalLoggerConfig) -> None:
+    def __init__(self, client: BotClient, config: GlobalLoggerLoggerConfig) -> None:
         """
         :param client: The BotClient to perform the logging. Can be separate from main PB client instance.
         :param config: Configuration data.
@@ -59,9 +25,7 @@ class GlobalLogger:
 
     def update_output_channel(self, act: loggable, target: TextChannel):
         self.target_channels[act] = target
-        self.config.target_channels[act] = target.id
-        # todo: update read file with new path
-        # todo: create command to set value.
+        self.config.update_target_channel(act, target.id)
 
     # region log out
     def _console_log(self, out: str, act: loggable) -> None:
