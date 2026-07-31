@@ -67,7 +67,9 @@ class GlobalLogger:
     async def log_general(self, guild: Guild, message: Message | Interaction, *args, **kwargs) -> None:
         raise NotImplementedError()
 
+    async def error(self, interaction: Interaction | Message, error: CustomDiscordException) -> None:
         raise NotImplementedError()
+        # somehow build a cooldown into the error? As in, if the same error source has been reported recently, don't log it? (maybe based on interaction user)
 
     # region local-action
     # region fact
