@@ -1,11 +1,16 @@
-from Rewrite.data.interfaces.fact import FactInterface
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+from Rewrite.data.interfaces.fact import FactInterface, GlobalAdminFactInterface
+from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
+from Rewrite.data.interfaces.other import GlobalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
-from Rewrite.discorduser.logger import GlobalLoggerLoggerConfig
+from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
+from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig, GlobalLogger
+from Rewrite.discorduser.logger.local import LocalLogger
 from abstract import BotClient as _AbstractClient
 
 class BotClient(_AbstractClient):
-    def __init__(self, db: FactInterface, pref: PreferencesInterface, logger_config: GlobalLoggerLoggerConfig) -> None:
-        super().__init__(db, pref, logger_config)
+    def __init__(self, global_logger: GlobalLogger, local_logger: LocalLogger, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+        super().__init__(global_logger, local_logger, autoreplies, fact, mod, db, pref, saying)
 
     async def setup_hook(self) -> None:
         # todo: Import Cogs here

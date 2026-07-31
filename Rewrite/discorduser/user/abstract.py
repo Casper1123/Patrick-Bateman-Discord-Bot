@@ -6,9 +6,15 @@ from discord import app_commands, Colour
 from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
-from Rewrite.data.interfaces.fact import FactInterface
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface
+from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
+from Rewrite.data.interfaces.other import GlobalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
-from Rewrite.discorduser.logger.__init__ import GlobalLogger, GlobalLoggerLoggerConfig
+from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
+from Rewrite.discorduser.logger import LocalLoggerConfig
+from Rewrite.discorduser.logger.__init__ import GlobalLogger, GlobalLoggerConfig
+from Rewrite.discorduser.logger.local import LocalLogger
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss import InstructionParseError
 
@@ -20,10 +26,15 @@ class BotClient(commands.Bot):
     Bot-inherited class with toolkit installed.
     WARNING: DOES NOT CONTAIN COGS.
     """
-    def __init__(self, db: FactInterface, pref: PreferencesInterface, logger_config: GlobalLoggerLoggerConfig) -> None:
+    def __init__(self, global_logger: GlobalLogger, local_logger: LocalLogger, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+        self.logger: GlobalLogger = global_logger
+        self.local_logger: LocalLogger = local_logger
+        self.autoreplies: GlobalTextAutorepliesInterface = autoreplies
+        self.fact: GlobalAdminFactInterface = fact
+        self.mod: GlobalAdminModerationInterface = mod
+        self.db: GlobalAdminDataInterface = db
         self.pref: PreferencesInterface = pref
-        self.db: FactInterface = db
-        self.logger: GlobalLogger = GlobalLogger(self, logger_config)
+        self.saying: GlobalAdminSayingInterface = saying
 
         intents = discord.Intents.default()
         intents.message_content = True # Required for autoreplies
@@ -37,7 +48,6 @@ class BotClient(commands.Bot):
                     await interaction.response.defer(ephemeral=True, thinking=False)
             except Exception: # noqa Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
-
             # handle exceptions
             finally:
                 if (isinstance(error, aiohttp.client_exceptions.ClientConnectorDNSError)

@@ -6,10 +6,9 @@ from Rewrite.discorduser.user.abstract import BotClient
 from config.local import LocalLoggerConfig, loggable
 
 class LocalLogger:
-    def __init__(self, client: BotClient, config: LocalLoggerConfig, db: LocalAdminDataInterface):
+    def __init__(self, config: LocalLoggerConfig, db: LocalAdminDataInterface):
         self.config = config
         self.db = db
-        self.client = client
 
     def _get_log_channel(self, guild: Guild) -> TextChannel | None:
         res = self.db.get_log_channel(guild.id)
@@ -70,7 +69,7 @@ class LocalLogger:
         embed: Embed = Embed(
             title='[LOG_CHANNEL_MOVE]',
             description=f'**New channel:**:\n'
-                        f'<#{channel.id}> ({channel.name})\n'
+                        f'<#{channel.id}> ({channel.name} / {channel.id})\n'
                         f'Set by: {interaction.user.name} ({interaction.user.id})',
             colour=Colour.blue()
         )

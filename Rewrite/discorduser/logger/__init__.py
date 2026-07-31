@@ -10,15 +10,13 @@ from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, Re
 from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException
-from config.universal import loggable, GlobalLoggerLoggerConfig
+from config.universal import loggable, GlobalLoggerConfig
 
 class GlobalLogger:
-    def __init__(self, client: BotClient, config: GlobalLoggerLoggerConfig) -> None:
+    def __init__(self, config: GlobalLoggerConfig) -> None:
         """
-        :param client: The BotClient to perform the logging. Can be separate from main PB client instance.
         :param config: Configuration data.
         """
-        self.client = client
         self.config = config
         self.target_channels: dict[loggable, TextChannel | None] = { i: None for i in get_args(loggable)}
 
@@ -68,8 +66,21 @@ class GlobalLogger:
         raise NotImplementedError()
 
     async def error(self, interaction: Interaction | Message, error: CustomDiscordException) -> None:
-        raise NotImplementedError()
-        # somehow build a cooldown into the error? As in, if the same error source has been reported recently, don't log it? (maybe based on interaction user)
+        # Errors are logged to console by the command tree handler, but we can still log additional information.
+        # todo: somehow build a cooldown into the error? As in, if the same error source has been reported recently, don't log it? (maybe based on interaction user)
+        # todo: parameters of interaction?
+        self._console_log(f'Upcoming exception raise raised from command {interaction.command.qualified_name} by user {interaction.user.name} ({interaction.user.id})', 'error')
+
+        embed: Embed = Embed(
+            title=error.error_type,
+            description=f'{error.message}\n'
+                        f'{f'\nCaused by: {type(error.cause).__name__} ({str(error.cause)})\n' if error.cause else ''}'
+                        f'Raised by: {interaction.command.qualified_name}',
+            colour=Colour.red()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar.url)
+        await self._channel_log(embed, 'error')
+
 
     # region local-action
     # region fact
@@ -84,6 +95,7 @@ class GlobalLogger:
                         f'\n'
                         f'Created by: {interaction.user.name} ({interaction.user.id})\n'
                         f'In: {guild.name} : {guild.id}',
+            colour=Colour.green()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_create')
@@ -103,6 +115,7 @@ class GlobalLogger:
                         f'\n'
                         f'Edited by: {interaction.user.name} ({interaction.user.id})\n'
                         f'In: {guild.name} : {guild.id}',
+            colour=Colour.yellow()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_edit')
@@ -119,45 +132,172 @@ class GlobalLogger:
                         f'\n'
                         f'Removed by: {interaction.user.name} ({interaction.user.id})\n'
                         f'In: {guild.name} : {guild.id}',
+            colour=Colour.red()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_delete')
     # endregion
     # region other local
     async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel) -> None:
-        raise NotImplementedError()
+        self._console_log(f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.name} : {interaction.user.id}', 'local_log_channel_modify')
+
+        embed: Embed = Embed(
+            title='[LOCAL_SET_LOG_CHANNEL]',
+            description=f'Set to: {channel.name} ({channel.id})\n'
+                        f'\n'
+                        f'Set by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.blue()
+        )
+        embed.set_author(name=guild.name, icon_url=guild.icon.url)
     # endregion
     # endregion
 
     # region global-action
     # region fact
     async def fact_create(self, interaction: Interaction, text: str) -> None:
-        raise NotImplementedError()
+        self._console_log(
+            f'[FACT_CREATE] {interaction.user.id} : {interaction.user.name} :: {text}',
+            'fact_create')
+
+        embed: Embed = Embed(
+            title='[FACT_CREATE]',
+            description=f'{text}\n'
+                        f'\n'
+                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.green()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='local_fact_create')
 
     async def fact_edit(self, interaction: Interaction, old: FactEditorData, text: str) -> None:
-        raise NotImplementedError()
+        self._console_log(
+            f'[FACT_EDIT] {interaction.user.id} : {interaction.user.name} :: {text}',
+            'fact_edit')
+
+        embed: Embed = Embed(
+            title='[FACT_EDIT]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'**New:**\n'
+                        f'{text}\n'
+                        f'\n'
+                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.yellow()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='fact_edit')
 
     async def fact_remove(self, interaction: Interaction, old: FactEditorData):
-        raise NotImplementedError()
+        self._console_log(
+            f'[FACT_DELETE] {interaction.user.id} : {interaction.user.name} :: {old.text}',
+            'fact_delete')
+
+        embed: Embed = Embed(
+            title='[FACT_DELETE]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.red()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='local_fact_delete')
 
     async def fact_modify(self, interaction: Interaction, guild_id: int, old: FactEditorData, text: str) -> None:
-        raise NotImplementedError() # note: this is specifically for the moderation of other servers.
+        self._console_log(
+            f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.name} :: {text}',
+            'fact_modify')
+
+        try:
+            guild = await self.client.fetch_guild(guild_id)
+        except:
+            guild = None
+
+        embed: Embed = Embed(
+            title='[FACT_MODIFY]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'**New:**\n'
+                        f'{text}\n'
+                        f'\n'
+                        f'Edited by: {interaction.user.name} ({interaction.user.id})'
+                        f'For Guild **{guild.name if guild else '[fetch failed]'}** ({guild_id})',
+            colour=Colour.orange()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='fact_modify')
     # endregion
     # region moderation
-    async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, new_state: bool) -> None:
-        raise NotImplementedError()
+    async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, new_state: bool, reason: str | None) -> None:
+        self._console_log(
+            f'[BAN USER] {interaction.user.id} : {interaction.user.name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not user else user.name} : {user_id} {'' if not reason else f'({reason})'}',
+            'ban_user')
+        # todo: api call for this information? Should be a rare command.
+        embed: Embed = Embed(
+            title='[BAN USER]',
+            description=f'**{'UN' if not new_state else ''}BANNED**\n'
+                        f'\n'
+                        f'{'NO NAME AVAILABLE' if not user else user.name} : {user_id}\n'
+                        f'\n'
+                        f'Done by: {interaction.user.name} ({interaction.user.id})\n'
+                        f'{'' if not reason else f'\nReason: *{reason}*'}',
+            colour=Colour.red()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed, 'ban_user')
 
-    async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool) -> None:
-        raise NotImplementedError()
+    async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool, reason: str | None) -> None:
+        self._console_log(f'[BAN GUILD] {interaction.user.id} : {interaction.user.name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id} {'' if not reason else f'({reason})'}', 'ban_guild')
+        # todo: api call for this information? Should be a rare command.
+        embed: Embed = Embed(
+            title='[BAN GUILD]',
+            description=f'**{'UN' if not new_state else ''}BANNED**\n'
+                        f'\n'
+                        f'{'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id}\n'
+                        f'\n'
+                        f'Done by: {interaction.user.name} ({interaction.user.id})\n'
+                        f'{'' if not reason else f'\nReason: *{reason}*'}',
+            colour=Colour.red()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed, 'ban_guild')
 
     async def set_log_channel(self, interaction: Interaction, action: loggable, target: TextChannel):
-        raise NotImplementedError() # Logged as a general action.
+        """
+        Call BEFORE moving channel!
+        """
+        self._console_log(f'[SET LOG CHANNEL] {interaction.user.id} : {interaction.user.name} set {action} to {target.id} : {target.name}', 'general')
+
+        embed: Embed = Embed(
+            title='[SET_LOG_CHANNEL]',
+            description=f'Moving of {action} logging to {target.name} ({target.id})\n'
+                        f'\n'
+                        f'Moved by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.blue()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act=action) # logging to old output channel that it's been moved
+        await self._channel_log(embed=embed, act='general')
 
     # endregion
     # region autoreply
     # region alias
     async def create_alias(self, interaction: Interaction, name: str, rate: int) -> None:
-        raise NotImplementedError()
+        self._console_log(
+            f'[ALIAS_CREATE] {interaction.user.id} : {interaction.user.name} :: [Rate: {rate}; Name: {name}]',
+            'create_alias')
+        embed: Embed = Embed(
+            title='[ALIAS_CREATE]',
+            description=f'Name: {name}\n'
+                        f'Rate: {rate}\n'
+                        f'\n'
+                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.green()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='create_alias')
 
     async def edit_alias(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
         self._console_log(
@@ -169,6 +309,7 @@ class GlobalLogger:
                         f'\t{old_name}\n'
                         f'\n'
                         f'Removed by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_alias')
@@ -183,6 +324,7 @@ class GlobalLogger:
                         f'\t{old_name}\n'
                         f'\n'
                         f'Removed by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_alias')
@@ -201,6 +343,7 @@ class GlobalLogger:
                         f'\tRate: {rate}\n'
                         f'\n'
                         f'Created by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_trigger')
@@ -222,6 +365,7 @@ class GlobalLogger:
                         f'\tRate: {rate}\n'
                         f'\n'
                         f'Edited by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_trigger')
@@ -239,6 +383,7 @@ class GlobalLogger:
                         f'\tRate: {old.rate}\n'
                         f'\n'
                         f'Removed by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_trigger')
@@ -257,6 +402,7 @@ class GlobalLogger:
                         f'\tWeight: {weight}\n'
                         f'\n'
                         f'Created by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_reply')
@@ -278,6 +424,7 @@ class GlobalLogger:
                         f'\tWeight: {weight}\n'
                         f'\n'
                         f'Edited by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_reply')
@@ -295,6 +442,7 @@ class GlobalLogger:
                         f'\tWeight: {old.weight}\n'
                         f'\n'
                         f'Removed by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_reply')

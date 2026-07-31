@@ -13,7 +13,7 @@ loggable = Literal['general', 'error',
     'create_reply', 'edit_reply', 'delete_reply',
 ]
 
-class GlobalLoggerLoggerConfig(AbstractJSONConfig):
+class GlobalLoggerConfig(AbstractJSONConfig):
     def __init__(self, output_to_console: dict[loggable, bool], actively_logging: dict[loggable, bool], target_channels: dict[loggable, int], update_filepath: str):
         """
         Each dict requires exactly all, and no other, of the `loggable` properties to be set, otherwise it will raise an AssertionError.

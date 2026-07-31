@@ -2,7 +2,7 @@ from typing import get_args
 from Rewrite.utilities import write_json, load_json
 
 from local import LocalLoggerConfig, loggable as local_loggable
-from universal import GlobalLoggerLoggerConfig, loggable
+from universal import GlobalLoggerConfig, loggable
 
 
 def build_config(filepath: str):
@@ -24,7 +24,7 @@ def build_config(filepath: str):
     }
     write_json(filepath, cfg, sort_keys=False, indent=4)
 
-def from_json(filepath: str)-> tuple[GlobalLoggerLoggerConfig, LocalLoggerConfig]:
+def from_json(filepath: str)-> tuple[GlobalLoggerConfig, LocalLoggerConfig]:
     """
     Parses input filepath as json to create logger configurations.
     """
@@ -57,6 +57,6 @@ def from_json(filepath: str)-> tuple[GlobalLoggerLoggerConfig, LocalLoggerConfig
     integ('local_active_logging', bool, lal, set(get_args(local_loggable)))
 
     # Now construct stuff
-    global_config = GlobalLoggerLoggerConfig(otc, al, tc, filepath)
+    global_config = GlobalLoggerConfig(otc, al, tc, filepath)
     local_config = LocalLoggerConfig(lal, filepath)
     return global_config, local_config
