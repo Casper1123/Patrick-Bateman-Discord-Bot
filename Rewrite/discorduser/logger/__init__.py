@@ -108,8 +108,17 @@ class GlobalLogger:
     # region fact
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
         self._console_log(
-            f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.name} in {interaction.guild.id} : {interaction.guild.name} :: {text}',
-            'fact_create')
+            f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {text}',
+            'local_fact_create')
+
+        embed: Embed = Embed(
+            title='[FACT_CREATE]',
+            description=f'{text}\n'
+                        f'Created by: {interaction.user.name} ({interaction.user.id})\n'
+                        f'In: {guild.name} : {guild.id}',
+        )
+        embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        await self._channel_log(embed=embed, act='fact_create')
 
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: FactEditorData, text: str) -> None:
         raise NotImplementedError()
