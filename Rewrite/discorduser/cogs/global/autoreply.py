@@ -65,13 +65,19 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
         await self.logger.edit_alias(interaction, alias, new_name if (new_name and new_name != alias) else None, rate)
         await self.client.user_feedback(interaction, title='Alias edited successfully', ephemeral=ephemeral)
 
-    @app_commands.command(name='delete', description='Delete an existing Alias')
-    @app_commands.describe(alias='The Alias you wish to delete.', ephemeral='Hide this command for other users.')
-    async def delete_alias(self, interaction: discord.Interaction, alias: str, ephemeral: bool = False) -> None:
+    @app_commands.command(name='delete', description='Delete an existing Alias, as well as all of its contents.')
+    @app_commands.describe(alias='The Alias you wish to delete.', confirm='YOU REMOVE ALL TRIGGERS AND REPLIES TOO.', ephemeral='Hide this command for other users.')
+    async def delete_alias(self, interaction: discord.Interaction, alias: str, confirm: bool = None, ephemeral: bool = False) -> None:
+        if not confirm:
+            await self.client.user_feedback(interaction, title='Alias removal failed', desc='Confirm your decision.\n'
+                                                                                            'This is done so you have to think twice about removing the Alias.\n'
+                                                                                            '**NOTE:** REMOVING THE ALIAS WILL ALSO DELETE ALL TRIGGERS AND REPLIES ATTACHED.')
+            return
+
         try:
             self.repl.delete_alias(alias)
         except ValueError:
-            await self.client.user_feedback(interaction, title='Alias edit failed', desc='Cannot delete a nonexistent Alias.', ephemeral=ephemeral)
+            await self.client.user_feedback(interaction, title='Alias removal failed', desc='Cannot delete a nonexistent Alias.', ephemeral=ephemeral)
             return
         await self.logger.delete_alias(interaction, alias)
         await self.client.user_feedback(interaction, title='Alias deleted successfully', ephemeral=ephemeral)

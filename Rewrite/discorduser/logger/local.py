@@ -1,19 +1,9 @@
-from typing import Literal, get_args
-
 from discord import Interaction, TextChannel, Guild, Embed
 
-from Rewrite.data.interfaces.fact import FactEditorData, LocalAdminFactInterface
+from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.discorduser.user.abstract import BotClient
-
-loggable = Literal['fact_create', 'fact_edit', 'fact_delete', 'set_log_channel']
-
-class LocalLoggerConfig:
-    def __init__(self, actively_logging: dict[loggable, bool]):
-        validation: set[str] = set(get_args(loggable))
-        assert set(actively_logging.keys()) == validation, 'actively_logging must contain only and all loggables'
-
-        self.actively_logging: dict[loggable, bool] = actively_logging
+from config.local import LocalLoggerConfig, loggable
 
 class LocalLogger:
     def __init__(self, client: BotClient, config: LocalLoggerConfig, db: LocalAdminDataInterface):

@@ -1,10 +1,10 @@
 from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
-from Rewrite.discorduser.logger import GlobalLoggerConfig
+from Rewrite.discorduser.logger import GlobalLoggerLoggerConfig
 from abstract import BotClient as _AbstractClient
 
 class BotClient(_AbstractClient):
-    def __init__(self, db: FactInterface, pref: PreferencesInterface, logger_config: GlobalLoggerConfig) -> None:
+    def __init__(self, db: FactInterface, pref: PreferencesInterface, logger_config: GlobalLoggerLoggerConfig) -> None:
         super().__init__(db, pref, logger_config)
 
     async def setup_hook(self) -> None:
