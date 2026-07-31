@@ -77,13 +77,13 @@ class GlobalLogger:
             'local_fact_create')
 
         embed: Embed = Embed(
-            title='[FACT_CREATE]',
+            title='[LOCAL_FACT_CREATE]',
             description=f'{text}\n'
                         f'Created by: {interaction.user.name} ({interaction.user.id})\n'
                         f'In: {guild.name} : {guild.id}',
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
-        await self._channel_log(embed=embed, act='fact_create')
+        await self._channel_log(embed=embed, act='local_fact_create')
 
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: FactEditorData, text: str) -> None:
         raise NotImplementedError()
