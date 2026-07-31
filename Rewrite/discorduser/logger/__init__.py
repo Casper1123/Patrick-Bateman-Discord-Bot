@@ -4,7 +4,6 @@ from typing import get_args
 
 from discord import Interaction, Embed, Guild, TextChannel, User, Message
 
-from Rewrite.discorduser.logger.config.abstract import AbstractJSONConfig
 from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
 from config.local import loggable as local_loggable
 from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, ReplyData, TriggerData
@@ -71,7 +70,6 @@ class GlobalLogger:
     # region local-action
     # region fact
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
-        # todo: double check that this is well implemented
         self._console_log(
             f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {text}',
             'local_fact_create')

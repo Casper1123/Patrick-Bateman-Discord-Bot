@@ -1,5 +1,5 @@
 from typing import Literal, get_args
-from abstract import AbstractJSONConfig
+from Rewrite.configuration.abstract import AbstractJSONConfig
 
 loggable = Literal['general', 'error',
     'local_fact_create', 'local_fact_edit', 'local_fact_delete',
