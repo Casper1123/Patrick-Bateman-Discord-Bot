@@ -71,6 +71,7 @@ class GlobalLogger:
     # region local-action
     # region fact
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
+        # todo: double check that this is well implemented
         self._console_log(
             f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.name} in {interaction.guild.id} : {interaction.guild.name} :: {text}',
             'fact_create')
@@ -118,30 +119,144 @@ class GlobalLogger:
         raise NotImplementedError()
 
     async def edit_alias(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
-        raise NotImplementedError()
+        self._console_log(
+            f'[ALIAS_EDIT] {interaction.user.id} : {interaction.user.name} from [{old_name}] :: [Name: {new_name}; Rate: {rate}]',
+            'edit_alias')
+        embed: Embed = Embed(
+            title='[ALIAS_EDIT]',
+            description=f'**Old:**\n'
+                        f'\t{old_name}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='edit_alias')
 
     async def delete_alias(self, interaction: Interaction, old_name: str):
-        raise NotImplementedError()
+        self._console_log(
+            f'[ALIAS_DELETE] {interaction.user.id} : {interaction.user.name} :: [{old_name}]',
+            'delete_alias')
+        embed: Embed = Embed(
+            title='[ALIAS_DELETE]',
+            description=f'**Old:**\n'
+                        f'\t{old_name}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='delete_alias')
     # endregion
     # region trigger
-    async def create_trigger(self, interaction: Interaction, alias: str, text: str, rate: int | None):
-        raise NotImplementedError()
+    async def create_trigger(self, interaction: Interaction, alias: str, trigger_type: _trigger_types, data: str, rate: int | None):
+        self._console_log(
+            f'[TRIGGER_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
+            'edit_trigger')
+        embed: Embed = Embed(
+            title='[TRIGGER_CREATE]',
+            description=f'**Alias:** {alias}\n'
+                        f'**New:**\n'
+                        f'\tType: {trigger_type}'
+                        f'\tData: {data}\n'
+                        f'\tRate: {rate}\n'
+                        f'\n'
+                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='create_trigger')
 
-    async def edit_trigger(self, interaction: Interaction, alias: str, index: int, text: str | None, rate: int | None) -> None:
-        raise NotImplementedError()
+    async def edit_trigger(self, interaction: Interaction, old: TriggerData, data: str, rate: int | None) -> None:
+        self._console_log(
+            f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
+            'edit_trigger')
+        embed: Embed = Embed(
+            title='[REPLY_EDIT]',
+            description=f'**Alias:** {old.alias.name}\n'
+                        f'**Old:**\n'
+                        f'\tType: {old.type}\n'
+                        f'\tData: {old.data}\n'
+                        f'\tRate: {old.rate}\n'
+                        f'\n'
+                        f'**New:**\n'
+                        f'\tData: {data}\n'
+                        f'\tRate: {rate}\n'
+                        f'\n'
+                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='edit_trigger')
 
-    async def delete_trigger(self, interaction: Interaction, alias: str, index: int, old_data: str):
-        raise NotImplementedError()
+    async def delete_trigger(self, interaction: Interaction, alias: str, old: TriggerData):
+        self._console_log(
+            f'[TRIGGER_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
+            'delete_trigger')
+        embed: Embed = Embed(
+            title='[TRIGGER_DELETE]',
+            description=f'**Alias:** {alias}\n'
+                        f'**Old:**\n'
+                        f'\tType: {old.type}\n'
+                        f'\tData: {old.data}\n'
+                        f'\tRate: {old.rate}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='delete_trigger')
     # endregion
     # region reply
     async def create_reply(self, interaction: Interaction, alias: str, reply_type: _reply_types, data: str, weight: int | None):
-        raise NotImplementedError()
+        self._console_log(
+            f'[REPLY_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
+            'edit_reply')
+        embed: Embed = Embed(
+            title='[REPLY_CREATE]',
+            description=f'**Alias:** {alias}\n'
+                        f'**New:**\n'
+                        f'\tType: {reply_type}'
+                        f'\tData: {data}\n'
+                        f'\tWeight: {weight}\n'
+                        f'\n'
+                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='create_reply')
 
     async def edit_reply(self, interaction: Interaction, old: ReplyData, data: str, weight: int | None):
-        raise NotImplementedError()
+        self._console_log(
+            f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
+            'edit_reply')
+        embed: Embed = Embed(
+            title='[REPLY_EDIT]',
+            description=f'**Alias:** {old.alias.name}\n'
+                        f'**Old:**\n'
+                        f'\tType: {old.type}\n'
+                        f'\tData: {old.data}\n'
+                        f'\tWeight: {old.weight}\n'
+                        f'\n'
+                        f'**New:**\n'
+                        f'\tData: {data}\n'
+                        f'\tWeight: {weight}\n'
+                        f'\n'
+                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='edit_reply')
 
     async def delete_reply(self, interaction: Interaction, old: ReplyData):
-        raise NotImplementedError()
+        self._console_log(
+            f'[REPLY_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
+            'delete_reply')
+        embed: Embed = Embed(
+            title='[REPLY_DELETE]',
+            description=f'**Alias:** {old.alias.name}\n'
+                        f'**Old:**\n'
+                        f'\tType: {old.type}\n'
+                        f'\tData: {old.data}\n'
+                        f'\tWeight: {old.weight}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='delete_reply')
     # endregion
     # endregion
     # endregion
