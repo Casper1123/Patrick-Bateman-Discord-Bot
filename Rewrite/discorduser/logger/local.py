@@ -1,4 +1,4 @@
-from discord import Interaction, TextChannel, Guild, Embed
+from discord import Interaction, TextChannel, Guild, Embed, Colour
 
 from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
@@ -35,6 +35,7 @@ class LocalLogger:
             title='[FACT_CREATE]',
             description=f'{text}\n'
                         f'Created by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='fact_create')
@@ -48,6 +49,7 @@ class LocalLogger:
                         f'**New:**\n'
                         f'{text}\n'
                         f'Edited by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='fact_edit')
@@ -59,6 +61,7 @@ class LocalLogger:
                         f'{old.text}\n'
                         f'\n'
                         f'Removed by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='fact_delete')
@@ -69,6 +72,7 @@ class LocalLogger:
             description=f'**New channel:**:\n'
                         f'<#{channel.id}> ({channel.name})\n'
                         f'Set by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.blue()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='set_log_channel')

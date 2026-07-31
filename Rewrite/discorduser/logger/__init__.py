@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import get_args
 
-from discord import Interaction, Embed, Guild, TextChannel, User, Message
+from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colour
 
 from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
 from config.local import loggable as local_loggable

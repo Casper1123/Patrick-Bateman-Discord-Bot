@@ -195,13 +195,14 @@ class GlobalAdminCog(commands.Cog, name='global'):
         self.logger = logger
 
     @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
-    @app_commands.describe(ephemeral='Hide this command for other users.', user_id='The ID of the user you aim to (un)ban.')
-    async def ban_user(self, interaction: Interaction, user_id: int, ephemeral: bool = False) -> None:
+    @app_commands.describe(ephemeral='Hide this command for other users.', user_id='The ID of the user you aim to (un)ban.',
+                           reason='A reason, for logging purposes.')
+    async def ban_user(self, interaction: Interaction, user_id: int, reason: str = None, ephemeral: bool = False) -> None:
         state: bool = self.mod.is_banned_user(user_id)
         self.mod.unban_user(user_id) if state else self.mod.ban_user(user_id)
         user = self.client.get_user(user_id)
 
-        await self.logger.ban_user(interaction, user_id, user, not state)
+        await self.logger.ban_user(interaction, user_id, user, not state, reason)
 
         embed = Embed(title=f'User {'un' if state else ''}banned')
 
@@ -214,13 +215,14 @@ class GlobalAdminCog(commands.Cog, name='global'):
     @app_commands.command(name='guildban',
                           description='Ban a guild from using Local Fact administrative features. If already banned, unbans it.')
     @app_commands.describe(ephemeral='Hide this command for other users.',
-                           guild_id='The ID of the guild you aim to (un)ban.')
-    async def ban_guild(self, interaction: Interaction, guild_id: int, ephemeral: bool = False) -> None:
+                           guild_id='The ID of the guild you aim to (un)ban.',
+                           reason='A reason, for logging purposes.')
+    async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str = None, ephemeral: bool = False) -> None:
         state: bool = self.mod.is_banned_guild(guild_id)
         self.mod.unban_guild(guild_id) if state else self.mod.ban_guild(guild_id)
         guild = self.client.get_guild(guild_id)
 
-        await self.logger.ban_guild(interaction, guild_id, guild, not state)
+        await self.logger.ban_guild(interaction, guild_id, guild, not state, reason)
 
         embed = Embed(title=f'Guild {'un' if state else ''}banned')
 

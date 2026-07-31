@@ -1,6 +1,6 @@
 from enum import Enum
 
-from discord import Embed
+from discord import Embed, Colour
 
 SUPPORT_SERVER_INVITE: str = 'XNQwUHAbDh'  # storing invite suffix here. If anyone ever forks this, feel free to alter this.
 # Explicitly not leaving url in here, for one for scrapers and for two for my mental wellbeing
@@ -42,6 +42,7 @@ class CustomDiscordException(Exception):
                         f"{_tooltips[self.tooltip]}"
                         f"{f'\n**Error:**\n{self.message}' if self.message else ''}"
                         f"{'\n\n**Caused by:**' + type(self.cause).__name__ + '\n' + str(self.cause) if self.cause else ''}",
+            colour=Colour.red()
         )
         return embed
 

@@ -2,7 +2,7 @@ import socket
 
 import aiohttp
 import discord
-from discord import app_commands
+from discord import app_commands, Colour
 from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
@@ -72,7 +72,7 @@ class BotClient(commands.Bot):
         :param desc: Text body of the embed.
         :param ephemeral: If Interaction, ephemeral?
         """
-        e = discord.Embed(title=title, description=desc)
+        e = discord.Embed(title=title, description=desc, colour=Colour.blue())
         if isinstance(interaction, discord.Interaction):
             try:
                 await interaction.response.send_message(embed=e, ephemeral=ephemeral)
