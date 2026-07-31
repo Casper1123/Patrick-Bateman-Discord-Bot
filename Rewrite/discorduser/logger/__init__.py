@@ -67,7 +67,6 @@ class GlobalLogger:
     async def log_general(self, guild: Guild, message: Message | Interaction, *args, **kwargs) -> None:
         raise NotImplementedError()
 
-    async def error(self, interaction: Interaction | Message, error: CustomDiscordException | Exception) -> None:
         raise NotImplementedError()
 
     # region local-action
@@ -80,6 +79,7 @@ class GlobalLogger:
         embed: Embed = Embed(
             title='[LOCAL_FACT_CREATE]',
             description=f'{text}\n'
+                        f'\n'
                         f'Created by: {interaction.user.name} ({interaction.user.id})\n'
                         f'In: {guild.name} : {guild.id}',
         )
@@ -87,10 +87,39 @@ class GlobalLogger:
         await self._channel_log(embed=embed, act='local_fact_create')
 
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: FactEditorData, text: str) -> None:
-        raise NotImplementedError()
+        self._console_log(
+            f'[LOCAL FACT_EDIT] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {text}',
+            'local_fact_edit')
+
+        embed: Embed = Embed(
+            title='[LOCAL_FACT_EDIT]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'**New:**\n'
+                        f'{text}\n'
+                        f'\n'
+                        f'Edited by: {interaction.user.name} ({interaction.user.id})\n'
+                        f'In: {guild.name} : {guild.id}',
+        )
+        embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        await self._channel_log(embed=embed, act='local_fact_edit')
 
     async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: FactEditorData) -> None:
-        raise NotImplementedError()
+        self._console_log(
+            f'[LOCAL FACT_DELETE] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {old.text}',
+            'local_fact_delete')
+
+        embed: Embed = Embed(
+            title='[LOCAL_FACT_DELETE]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})\n'
+                        f'In: {guild.name} : {guild.id}',
+        )
+        embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        await self._channel_log(embed=embed, act='local_fact_delete')
     # endregion
     # region other local
     async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel) -> None:
