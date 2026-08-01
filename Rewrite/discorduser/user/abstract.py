@@ -26,9 +26,9 @@ class BotClient(commands.Bot):
     Bot-inherited class with toolkit installed.
     WARNING: DOES NOT CONTAIN COGS.
     """
-    def __init__(self, global_logger: GlobalLogger, local_logger: LocalLogger, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
-        self.logger: GlobalLogger = global_logger
-        self.local_logger: LocalLogger = local_logger
+    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+        self.logger: GlobalLogger = GlobalLogger(self, global_logger_config)
+        self.local_logger: LocalLogger = LocalLogger(local_logger_config, db)
         self.autoreplies: GlobalTextAutorepliesInterface = autoreplies
         self.fact: GlobalAdminFactInterface = fact
         self.mod: GlobalAdminModerationInterface = mod

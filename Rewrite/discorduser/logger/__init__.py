@@ -3,20 +3,23 @@ from __future__ import annotations
 from typing import get_args
 
 from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colour
+from discord.ext import commands
 
 from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
 from config.local import loggable as local_loggable
 from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, ReplyData, TriggerData
 from Rewrite.data.interfaces.fact import FactEditorData
-from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.exceptions import CustomDiscordException
 from config.universal import loggable, GlobalLoggerConfig
 
 class GlobalLogger:
-    def __init__(self, config: GlobalLoggerConfig) -> None:
+    def __init__(self, client: commands.Bot, config: GlobalLoggerConfig) -> None:
         """
+        :param client: Client to look for data for (i.e. logging channels).
+        Usually should be the same as the one handling the interactions.
         :param config: Configuration data.
         """
+        self.client = client
         self.config = config
         self.target_channels: dict[loggable, TextChannel | None] = { i: None for i in get_args(loggable)}
 
@@ -43,11 +46,12 @@ class GlobalLogger:
             channel = self.target_channels[act]
         else:
             try:
-                channel = self.client.get_channel(self.config.target_channels[act])
+                channel = self.client.get_channel(self.config.target_channels[act]) # FIXME TODO: CIRCULAR IMPORT FIX
             except KeyError:
                 channel = None
 
             if not channel:
+                # FIXME TODO: CIRCULAR IMPORT FIX
                 await self.client.close() # This is harsh. But it's easily the most secure way; if cannot log information, crash application.
                 print(f'Closed application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
                       f'{embed.title}\n'

@@ -21,7 +21,7 @@ if __name__ == '__main__':
         print('Config built, please edit accordingly.')
         sys.exit()
 
-    global_logger_config: GlobalLoggerConfig
+    global_logger_config: GlobalLoggerConfig # TODO: CIRCULAR IMPORT FIX (SOME PARTS REQUIRE CLIENT)
     local_logger_config: LocalLoggerConfig
     global_logger_config, local_logger_config = from_json(config_fp)
 
@@ -33,11 +33,8 @@ if __name__ == '__main__':
     pref: PreferencesInterface = ...
     saying: GlobalAdminSayingInterface = ...
 
-    # Logger Instances
-    global_logger: GlobalLogger = GlobalLogger(global_logger_config)
-    local_logger: LocalLogger = LocalLogger(local_logger_config, db)
 
-    client = BotClient(global_logger, local_logger, autoreplies, fact, mod, db, pref, saying)
+    client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
     TOKEN = '' # TODO: TOKEN LOADING
     client.run(token=TOKEN)

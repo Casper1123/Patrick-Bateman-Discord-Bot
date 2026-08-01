@@ -9,8 +9,8 @@ from Rewrite.discorduser.logger.local import LocalLogger
 from abstract import BotClient as _AbstractClient
 
 class BotClient(_AbstractClient):
-    def __init__(self, global_logger: GlobalLogger, local_logger: LocalLogger, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
-        super().__init__(global_logger, local_logger, autoreplies, fact, mod, db, pref, saying)
+    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+        super().__init__(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
     async def setup_hook(self) -> None:
         # todo: Import Cogs here
