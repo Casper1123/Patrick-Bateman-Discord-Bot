@@ -12,6 +12,7 @@ from Rewrite.discorduser.logger.config import from_json, build_config
 from Rewrite.discorduser.logger.local import LocalLogger
 from Rewrite.discorduser.user import BotClient
 
+
 if __name__ == '__main__':
     # Loggers
     ## Logger config
