@@ -7,9 +7,8 @@ from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import GlobalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
-from Rewrite.discorduser.logger import GlobalLogger, GlobalLoggerConfig, LocalLoggerConfig
+from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
 from Rewrite.discorduser.logger.config import from_json, build_config
-from Rewrite.discorduser.logger.local import LocalLogger
 from Rewrite.discorduser.user import BotClient
 
 

@@ -2,7 +2,6 @@ from discord import Interaction, TextChannel, Guild, Embed, Colour
 
 from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
-from Rewrite.discorduser.user.abstract import BotClient
 from config.local import LocalLoggerConfig, loggable
 
 class LocalLogger:

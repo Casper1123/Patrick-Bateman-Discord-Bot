@@ -1,11 +1,10 @@
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface
-from Rewrite.data.interfaces.fact import FactInterface, GlobalAdminFactInterface
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import GlobalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
-from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig, GlobalLogger
-from Rewrite.discorduser.logger.local import LocalLogger
+from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
 from abstract import BotClient as _AbstractClient
 
 from Rewrite.discorduser.cogs.universal.factmod import GlobalFactAdminCog, GlobalAdminCog

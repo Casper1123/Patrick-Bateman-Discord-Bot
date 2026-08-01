@@ -1,6 +1,4 @@
 # NOTE: COMMANDS ARE NOT GLOBALLY USABLE, THEY ARE GLOBAL ADMIN
-import io as _io
-import json as _json
 
 import discord
 from discord import app_commands
@@ -12,7 +10,6 @@ from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, 
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
-from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
