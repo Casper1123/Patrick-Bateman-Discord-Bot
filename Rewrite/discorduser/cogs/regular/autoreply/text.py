@@ -12,9 +12,8 @@ from Rewrite.piss import Instruction, parse_variables
 from Rewrite.piss.instructionexecutor import InstructionExecutor
 
 class MessageContentAutoreplyCog(commands.Cog):
-    def __init__(self, client: BotClient, fact: FactInterface, pref: PreferencesInterface, replies: TextAutorepliesInterface) -> None:
+    def __init__(self, client: BotClient, pref: PreferencesInterface, replies: TextAutorepliesInterface) -> None:
         self.client = client
-        self.fact = fact
         self.pref = pref
         self.repl = replies
 

@@ -16,9 +16,8 @@ _letterdict = {"a": "b", "b": "c", "c": "d",
               "y": "z", "z": "a"}
 
 class LetterAutoreplyCog(commands.Cog):
-    def __init__(self, client: BotClient, db: FactInterface, pref: PreferencesInterface) -> None:
+    def __init__(self, client: BotClient, pref: PreferencesInterface) -> None:
         self.client = client
-        self.db = db
         self.pref = pref
 
     @commands.Cog.listener("on_message")
