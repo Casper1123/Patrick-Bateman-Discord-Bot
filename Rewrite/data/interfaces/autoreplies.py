@@ -49,7 +49,15 @@ class TriggerData:
         self.editor_id: int = editor_id
         self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
-class ReplyData:
+class SimpleReplyData:
+    """
+    Simple record for reply data. Really only used for direct usage of data.
+    """
+    def __init__(self, reply_type: _reply_types, data: str):
+        self.type = reply_type
+        self.data: str = data
+
+class ReplyData(SimpleReplyData):
     """
     Record for reply data.
     """
@@ -57,8 +65,7 @@ class ReplyData:
         """
         :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
         """
-        self.type: _reply_types = reply_type
-        self.data: str = data
+        super().__init__(reply_type, data)
         self.alias: AliasData = alias
         self.weight: int = weight
         self.id = uid
@@ -73,7 +80,7 @@ class TextAutorepliesInterface(ABC):
     """
 
     @abstractmethod
-    def get_reply(self, alias: str) -> ReplyData | None:
+    def get_reply(self, alias: str) -> SimpleReplyData | None:
         """
         Get a random reply based on the given alias and the corresponding reply pool's weights.
         :param alias: Alias of the reply to get.

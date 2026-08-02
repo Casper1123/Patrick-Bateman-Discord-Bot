@@ -9,7 +9,8 @@ class TestAutoreplyDatabase(AbstractSQLDatabase, GlobalTextAutorepliesInterface)
 
     # region Regular
     def get_reply(self, alias: str) -> ReplyData | None:
-        pass
+        if alias == 'reaction':
+            return ReplyData('reaction', data='🐑;🙃', weight=1, )
 
     def get_triggers_by_alias(self) -> dict[AliasData, list[TriggerData]]:
         pass
