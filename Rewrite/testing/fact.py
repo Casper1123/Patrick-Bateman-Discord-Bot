@@ -1,4 +1,5 @@
 import random as _r
+from datetime import datetime
 
 from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
@@ -23,10 +24,10 @@ class TestFactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
 
     # region Regular
     def get_fact(self, guild_id: int | None, index: int | None) -> str:
-        pass
+        return f'Fact for guildid {guild_id} at index {index}'
 
     def get_fact_count(self, guild_id: int | None) -> int:
-        pass
+        return 0 if guild_id is None else guild_id
     # endregion
 
     # region Local
@@ -40,10 +41,10 @@ class TestFactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
         pass
 
     def get_local_fact(self, guild_id: int, index: int) -> FactEditorData:
-        pass
+        return FactEditorData(guild_id, index, str(index), index)
 
     def get_local_facts(self, guild_id: int) -> list[FactEditorData]:
-        pass
+        return [FactEditorData(guild_id, i, str(i), i) for i in range(10)]
     # endregion
 
     # region Global
@@ -54,11 +55,16 @@ class TestFactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
         pass
 
     def get_global_fact(self, index: int) -> FactEditorData:
-        pass
+        return FactEditorData(None , index, str(index), index)
 
     def get_global_facts(self) -> list[FactEditorData]:
-        pass
+        return [FactEditorData(None, i, str(i), i) for i in range(10)]
 
     def get_all_local_facts(self) -> dict[int, list[FactEditorData]]:
-        pass
+        return {
+            g: [
+                FactEditorData(g, i, str(i), i) for i in range(10)
+            ]
+            for g in range(5)
+        }
     # endregion
