@@ -11,13 +11,15 @@ class TestGlobalLoggerConfig(GlobalLoggerConfig):
         for k in get_args(loggable):
             otc[k] = True
             al[k] = False
-            tc[k] = 0
+            tc[k] = 0 # Values are fine as al[k] being False means it never checks for the channel.
+            # Or at least, it should never.
+            # Because if it does, it will crash. Good test, huh.
 
         super().__init__(
             output_to_console=otc,
             actively_logging=al,
             target_channels=tc,
-            update_filepath=None
+            update_filepath=None # Never used as long as we override all its use cases. Which there is only one.
         )
 
     def update_config_json(self):
