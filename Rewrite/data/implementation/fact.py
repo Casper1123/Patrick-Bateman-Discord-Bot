@@ -119,13 +119,13 @@ class FactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
     # endregion
 
     # region Local
-    def create_fact(self, guild_id: int, user_id: int, fact: str):
+    def create_fact(self, guild_id: int, user_id: int, fact: str) -> None:
         pass
 
-    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: int, editor_id: int, new_fact: str | None):
+    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: int, editor_id: int, new_fact: str | None) -> None:
         pass
 
-    def delete_fact(self, guild_id: int):
+    def delete_fact(self, guild_id: int) -> None:
         pass
 
     def get_local_fact(self, guild_id: int, index: int) -> FactEditorData:
@@ -136,10 +136,10 @@ class FactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
     # endregion
 
     # region Global
-    def create_global_fact(self, user_id: int, fact: str):
+    def create_global_fact(self, user_id: int, fact: str) -> None:
         pass
 
-    def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None):
+    def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None) -> None:
         pass
 
     def get_global_fact(self, index: int) -> FactEditorData:

@@ -6,7 +6,7 @@ class FactEditorData:
     """
     Purely a record class to hold Fact data.
     """
-    def __init__(self, guild_id: int | None, author_id: int, text: str, modified_at: int):
+    def __init__(self, text: str, guild_id: int, created_at: int, author_id: int, modified_at: int):
         """
         Represents the object data that should be returned for some subfunctions.
         :param guild_id: Only None when Global fact
@@ -16,6 +16,7 @@ class FactEditorData:
         """
         self.text: str = text
         self.guild_id: int | None = guild_id
+        self.created_at: datetime = datetime.fromtimestamp(created_at, timezone.utc)
         self.author_id: int = author_id
         self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
@@ -66,7 +67,7 @@ class LocalAdminFactInterface(FactInterface):
     Can do basic local-administrator operations, like adding local facts.
     """
     @abstractmethod
-    def create_fact(self, guild_id: int, user_id: int, fact: str):
+    def create_fact(self, guild_id: int, user_id: int, fact: str) -> None:
         """
         Creates a new Local fact under the given user id
         :param guild_id: Guild the new Local fact will belong to.
@@ -76,7 +77,7 @@ class LocalAdminFactInterface(FactInterface):
         raise NotImplementedError()
 
     @abstractmethod # todo: remake these functions before implementation.
-    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: int, editor_id: int, new_fact: str | None): # todo: better return information?
+    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: int, editor_id: int, new_fact: str | None) -> None:
         """
         Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
         :param guild_id: Guild of the belonging fact.
@@ -125,7 +126,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def create_global_fact(self,  user_id: int, fact: str):
+    def create_global_fact(self,  user_id: int, fact: str) -> None:
         """
         Creates a new Global fact under the given user id
         :param user_id: The ID of the user adding the new Local fact.
@@ -135,7 +136,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
 
     @abstractmethod
     def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int,
-                  new_fact: str | None):
+                  new_fact: str | None) -> None:
         """
         Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
         :param previous_author_id: ID of the previous author of the fact.
@@ -159,7 +160,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
     def get_global_facts(self) -> list[FactEditorData]:
         """
         Gets all global facts.
-        Ordered on edit date. todo: why the fuck did I make this up?
+        Ordered on creation date.
         """
         raise NotImplementedError()
 
