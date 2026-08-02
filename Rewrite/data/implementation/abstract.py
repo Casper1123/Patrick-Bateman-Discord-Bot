@@ -3,9 +3,9 @@ from abc import ABC
 
 
 class AbstractSQLDatabase(ABC):
-    def __init__(self, path: str, schema_path: str) -> None:
-        self.path = path
-        with _sql.connect(path) as conn:
+    def __init__(self, db_path: str, schema_path: str) -> None:
+        self.path = db_path
+        with _sql.connect(db_path) as conn:
             with open(schema_path, "r") as f:
                 conn.executescript(f.read())
 

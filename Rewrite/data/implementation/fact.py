@@ -3,10 +3,31 @@ import random as _r
 from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 
+"""
+Table(s) and design:
+
+# GlobalFacts:
+- str; Text
+- int; CreatedAt (UNIX Timestamp) (order on for index offset; needs to remain static regardless of edits)
+- int; AuthorID (keep track of last modified user ID)
+- int; ModifiedAt (UNIX Timestamp) (Moderation purposes)
+PK: Text
+
+# LocalFacts:
+- str; Text
+- int; GuildID (Guild local fact belongs to)
+- int; CreatedAt (UNIX Timestamp) (to order for indexing)
+- int; AuthorID (keep track of last modified user ID)
+- int; ModifiedAt (UNIX Timestamp) (Moderation purposes)
+PK: (GuildID, Text)
+
+Order by CreatedAt for Indexing purposes.
+Disallows users adding duplicate facts, which is good.
+"""
 
 class SQLFactDataBase(AbstractSQLDatabase, GlobalAdminFactInterface):
     def __init__(self, path: str):
-        super().__init__(path, "data/schemas/data.sql")
+        super().__init__(path, "data/schemas/fact.sql")
 
         self.local_fact_kill_switch: bool = False
         # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
@@ -19,26 +40,9 @@ class SQLFactDataBase(AbstractSQLDatabase, GlobalAdminFactInterface):
         return self.local_fact_kill_switch
 
     def is_killswitch(self) -> bool:
-        """
-        Are local fact services disabled?
-        BTW did you know the only reason this is here is such that I don't screw with the Interface design pattern?
-        Man, this OOP crap fucking SUCKS.
-        :return:
-        """
         return self.local_fact_kill_switch
-    """
-    Table(s) and design:
-    # LocalFacts:
-    - int; AuthorID (keep track of last modified user ID)
-    - str; Text
-    - int; GuildID
-    - int; ModifiedAt (UNIX Timestamp) (Moderation purposes)
-    - int; CreatedAt (UNIX Timestamp) (to order for indices)
-    PK: (GuildID, Text)
-    Order by ModifiedAt for Indexing purposes.
-    Disallows users adding duplicate facts.
-    """
-    # region FactInterface
+
+    # region Regular
     def get_fact(self, guild_id: int | None, index: int | None) -> str:
         if index is not None and index < 1:
             raise IndexError('Index must not be smaller than 1.')
@@ -114,7 +118,7 @@ class SQLFactDataBase(AbstractSQLDatabase, GlobalAdminFactInterface):
             return int(cursor.fetchone()[0])
     # endregion
 
-    # region LocalFactInterface
+    # region Local
     def create_fact(self, guild_id: int, user_id: int, fact: str):
         pass
 
@@ -128,5 +132,22 @@ class SQLFactDataBase(AbstractSQLDatabase, GlobalAdminFactInterface):
         pass
 
     def get_local_facts(self, guild_id: int) -> list[FactEditorData]:
+        pass
+    # endregion
+
+    # region Global
+    def create_global_fact(self, user_id: int, fact: str):
+        pass
+
+    def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None):
+        pass
+
+    def get_global_fact(self, index: int) -> FactEditorData:
+        pass
+
+    def get_global_facts(self) -> list[FactEditorData]:
+        pass
+
+    def get_all_local_facts(self) -> dict[int, list[FactEditorData]]:
         pass
     # endregion
