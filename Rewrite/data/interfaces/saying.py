@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import datetime
+from abc import ABC, abstractmethod
 
 
 class SayingEditorData:
@@ -28,7 +28,6 @@ class GlobalAdminSayingInterface(SayingInterface):
         """
         raise NotImplementedError()
 
-    # todo: how to index into? -> creation date
     @abstractmethod
     def edit_saying(self, index: int, text: str) -> None:
         """

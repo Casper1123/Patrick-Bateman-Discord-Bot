@@ -1,4 +1,5 @@
 from typing import Literal, get_args
+
 from Rewrite.configuration.abstract import AbstractJSONConfig
 
 loggable = Literal['general', 'error',

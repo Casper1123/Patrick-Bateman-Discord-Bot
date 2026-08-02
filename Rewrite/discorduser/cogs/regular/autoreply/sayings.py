@@ -3,7 +3,6 @@ import random as _r
 import discord
 from discord.ext import commands
 
-from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import SayingInterface
 from Rewrite.discorduser.user.abstract import BotClient

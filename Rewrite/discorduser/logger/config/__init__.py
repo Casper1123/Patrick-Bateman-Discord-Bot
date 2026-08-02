@@ -1,6 +1,6 @@
 from typing import get_args
-from Rewrite.utilities import write_json, load_json
 
+from Rewrite.utilities import write_json, load_json
 from local import LocalLoggerConfig, loggable as local_loggable
 from universal import GlobalLoggerConfig, loggable
 

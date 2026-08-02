@@ -5,9 +5,7 @@ from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, _reply_types, _trigger_types, \
-    ReplyData, TriggerData
-from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, _reply_types, ReplyData
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test

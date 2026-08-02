@@ -1,6 +1,5 @@
 import asyncio
 
-from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import parse_variables
 from Rewrite.piss.instructionexecutor import *
 

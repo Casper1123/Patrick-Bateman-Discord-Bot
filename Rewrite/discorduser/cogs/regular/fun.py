@@ -8,6 +8,7 @@ from discord.ext import commands
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.utilities.messagevisualisation import embedify
 
+
 @app_commands.guild_only()
 class MainCommandsCog(commands.Cog):
     def __init__(self, client: BotClient) -> None:

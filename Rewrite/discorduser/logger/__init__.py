@@ -5,12 +5,13 @@ from typing import get_args
 from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colour
 from discord.ext import commands
 
-from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
-from config.local import loggable as local_loggable
 from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, ReplyData, TriggerData
 from Rewrite.data.interfaces.fact import FactEditorData
+from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
 from Rewrite.utilities.exceptions import CustomDiscordException
+from config.local import loggable as local_loggable
 from config.universal import loggable, GlobalLoggerConfig
+
 
 class GlobalLogger:
     def __init__(self, client: commands.Bot, config: GlobalLoggerConfig) -> None:

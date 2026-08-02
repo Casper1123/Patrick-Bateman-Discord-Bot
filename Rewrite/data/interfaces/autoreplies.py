@@ -34,9 +34,9 @@ class TriggerData:
         :param rate: If present, overrides rate of alias in [1..256].
         :param uid: Unique ID of trigger. Primarily for internal use.
         """
-        self.type: _trigger_types = trigger_type # todo: validate type correctness?
+        self.type: _trigger_types = trigger_type
         self.data: str = data
-        self.alias: AliasData = alias # todo: alias name only?
+        self.alias: AliasData = alias
         self.rate: int | None = rate
         self.id: str = uid
 
@@ -50,7 +50,7 @@ class ReplyData:
         """
         self.type: _reply_types = reply_type
         self.data: str = data
-        self.alias: AliasData = alias # todo: alias name only?
+        self.alias: AliasData = alias
         self.weight: int = weight
         self.id = uid
 

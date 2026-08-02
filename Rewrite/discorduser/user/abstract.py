@@ -12,12 +12,11 @@ from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import GlobalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
-
 from Rewrite.discorduser.logger import LocalLoggerConfig
 from Rewrite.discorduser.logger.__init__ import GlobalLogger, GlobalLoggerConfig
 from Rewrite.discorduser.logger.local import LocalLogger
-from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss import InstructionParseError
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 UNLOGGED_EXCEPTION_TYPES = [InstructionParseError.__name__, CommandOnCooldown.__name__] # using __name__ to ensure that when I change the class names this updates.
 

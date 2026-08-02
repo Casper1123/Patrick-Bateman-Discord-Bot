@@ -4,6 +4,7 @@ from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from config.local import LocalLoggerConfig, loggable
 
+
 class LocalLogger:
     def __init__(self, config: LocalLoggerConfig, db: LocalAdminDataInterface):
         self.config = config

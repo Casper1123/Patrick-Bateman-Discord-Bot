@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.data.interfaces.fact import FactInterface
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import InstructionExecutor
 

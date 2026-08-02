@@ -4,21 +4,21 @@ from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import GlobalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
-from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
-from abstract import BotClient as _AbstractClient
-
-from Rewrite.discorduser.cogs.universal.factmod import GlobalFactAdminCog, GlobalAdminCog
-from Rewrite.discorduser.cogs.universal.autoreply import attach_cogs as attach_autoreply_cogs
 from Rewrite.discorduser.cogs.local.commands import LocalAdminCog
 from Rewrite.discorduser.cogs.regular.ask import AskPatrick
-from Rewrite.discorduser.cogs.regular.facts import FactsCog
-from Rewrite.discorduser.cogs.regular.fun import MainCommandsCog
-from Rewrite.discorduser.cogs.regular.preferences import UserPreferenceCog
 from Rewrite.discorduser.cogs.regular.autoreply.letters import LetterAutoreplyCog
 from Rewrite.discorduser.cogs.regular.autoreply.numbers import NumberAutoreplyCog
 from Rewrite.discorduser.cogs.regular.autoreply.sayings import RandomAutoreplyCog
 from Rewrite.discorduser.cogs.regular.autoreply.text import MessageContentAutoreplyCog
+from Rewrite.discorduser.cogs.regular.facts import FactsCog
+from Rewrite.discorduser.cogs.regular.fun import MainCommandsCog
+from Rewrite.discorduser.cogs.regular.preferences import UserPreferenceCog
+from Rewrite.discorduser.cogs.universal.autoreply import attach_cogs as attach_autoreply_cogs
+from Rewrite.discorduser.cogs.universal.factmod import GlobalFactAdminCog, GlobalAdminCog
 from Rewrite.discorduser.cogs.utilities import ListenerCog
+from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
+from abstract import BotClient as _AbstractClient
+
 
 class BotClient(_AbstractClient):
     def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:

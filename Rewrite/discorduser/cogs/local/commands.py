@@ -6,16 +6,16 @@ import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 
+from Rewrite.data.interfaces.fact import LocalAdminFactInterface, FactEditorData
 from Rewrite.data.interfaces.moderation import LocalAdminModerationInterface
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
-from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.discorduser.logger import GlobalLogger
-from Rewrite.data.interfaces.fact import LocalAdminFactInterface, FactEditorData
-from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
+from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
 from Rewrite.piss.testing import test_raw_input as input_test
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
 FACT_COUNT_MAXIMUM: int = 50

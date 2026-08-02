@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 
-from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.discorduser.user.abstract import BotClient
 

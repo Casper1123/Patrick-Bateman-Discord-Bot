@@ -6,13 +6,13 @@ import discord
 from discord import app_commands, Interaction, Embed, Guild
 from discord.ext import commands
 
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import GlobalAdminDataInterface
 from Rewrite.discorduser.logger import GlobalLogger, loggable
 from Rewrite.discorduser.user.abstract import BotClient
-from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
-from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 from Rewrite.piss.testing import test_raw_input as input_test
+from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
