@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 
 
@@ -6,10 +6,12 @@ class SayingEditorData:
     """
     Record class for Saying Editor data
     """
-    def __init__(self, text: str, modified_at: datetime.datetime, author_id: int) -> None:
+    def __init__(self, text: str, author_id: int, modified_at: int,) -> None:
         self.text: str = text
-        self.modified_at: datetime.datetime = modified_at
+
+        # Moderation purposes
         self.author_id: int = author_id
+        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
 class SayingInterface(ABC):
     @abstractmethod

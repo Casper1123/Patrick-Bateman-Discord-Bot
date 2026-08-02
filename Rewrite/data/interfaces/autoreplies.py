@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from typing import Literal
 
 _trigger_types = Literal['regex']
@@ -8,7 +9,7 @@ class AliasData:
     """
     Record class for alias data
     """
-    def __init__(self, name: str, rate: int):
+    def __init__(self, name: str, rate: int, editor_id: int, modified_at: int):
         """
         Represents Data Transfer Object for Alias data.
         :param name: Alias name. Unique.
@@ -18,6 +19,10 @@ class AliasData:
         self.name: str = name
         self.rate: int = rate
 
+        # Moderation purposes
+        self.editor_id: int = editor_id
+        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
+
     def __hash__(self):
         return self.name
 
@@ -25,7 +30,7 @@ class TriggerData:
     """
     Record class for trigger data.
     """
-    def __init__(self, trigger_type: _trigger_types, data: str, rate: int | None, uid: str, alias: AliasData,):
+    def __init__(self, trigger_type: _trigger_types, data: str, rate: int | None, uid: str, alias: AliasData, editor_id: int, modified_at: int):
         """
         Represents Data Transfer Object for Trigger data.
         :param trigger_type: Type of trigger. Needs to be supported.
@@ -40,11 +45,15 @@ class TriggerData:
         self.rate: int | None = rate
         self.id: str = uid
 
+        # Moderation purposes
+        self.editor_id: int = editor_id
+        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
+
 class ReplyData:
     """
     Record for reply data.
     """
-    def __init__(self, reply_type: _reply_types, data: str, weight: int, uid: str, alias: AliasData,):
+    def __init__(self, reply_type: _reply_types, data: str, weight: int, uid: str, alias: AliasData, editor_id: int, modified_at: int):
         """
         :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
         """
@@ -53,6 +62,10 @@ class ReplyData:
         self.alias: AliasData = alias
         self.weight: int = weight
         self.id = uid
+
+        # Moderation purposes
+        self.editor_id: int = editor_id
+        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
 class TextAutorepliesInterface(ABC):
     """

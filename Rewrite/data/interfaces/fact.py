@@ -17,6 +17,8 @@ class FactEditorData:
         self.text: str = text
         self.guild_id: int | None = guild_id
         self.created_at: datetime = datetime.fromtimestamp(created_at, timezone.utc)
+
+        # Moderation purposes
         self.author_id: int = author_id
         self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
