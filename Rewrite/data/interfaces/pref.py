@@ -32,14 +32,6 @@ class PreferencesInterface(ABC):
     """
     Handles preference fetching and setting. Not made into two interfaces with different permision levels as they are widely used in the same areas.
     """
-    @abstractmethod
-    async def run_cache_manager(self):
-        """
-        Asynchronous function to manage the cache.
-        Can be left empty in implementation, but is here to enforce caching compatibility.
-        """
-        raise NotImplementedError()
-
     # region Server - Channel Pause
     @abstractmethod
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None) -> None:

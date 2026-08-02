@@ -1,10 +1,15 @@
 import sqlite3 as _sql
 from abc import ABC
+import os
 
-
+# todo: general caching handler? How to do caching?
 class AbstractSQLDatabase(ABC):
     def __init__(self, db_path: str, schema_path: str) -> None:
         self.path = db_path
+
+        if not os.path.isfile(schema_path):
+            raise FileNotFoundError(f"Schema at {schema_path} does not exist")
+
         with _sql.connect(db_path) as conn:
             with open(schema_path, "r") as f:
                 conn.executescript(f.read())

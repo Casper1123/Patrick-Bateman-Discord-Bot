@@ -25,7 +25,7 @@ Order by CreatedAt for Indexing purposes.
 Disallows users adding duplicate facts, which is good.
 """
 
-class SQLFactDataBase(AbstractSQLDatabase, GlobalAdminFactInterface):
+class FactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
     def __init__(self, path: str):
         super().__init__(path, "data/schemas/fact.sql")
 
