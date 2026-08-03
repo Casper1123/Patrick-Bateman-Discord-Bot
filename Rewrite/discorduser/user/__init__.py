@@ -15,6 +15,7 @@ from Rewrite.discorduser.cogs.regular.fun import MainCommandsCog
 from Rewrite.discorduser.cogs.regular.preferences import UserPreferenceCog
 from Rewrite.discorduser.cogs.universal.autoreply import attach_cogs as attach_autoreply_cogs
 from Rewrite.discorduser.cogs.universal.factmod import GlobalFactAdminCog, GlobalAdminCog
+from Rewrite.discorduser.cogs.universal.saying import GlobalAdminSayingCog
 from Rewrite.discorduser.cogs.utilities import ListenerCog
 from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
 from abstract import BotClient as _AbstractClient
@@ -32,6 +33,7 @@ class BotClient(_AbstractClient):
         await attach_autoreply_cogs(self, self.autoreplies, self.logger)
         await self.add_cog(GlobalFactAdminCog(self, self.fact, self.logger))
         await self.add_cog(GlobalAdminCog(self, self.fact, self.mod, self.db, self.logger))
+        await self.add_cog(GlobalAdminSayingCog(self, self.saying, self.logger))
 
         # Local
         await self.add_cog(LocalAdminCog(self, self.fact, self.mod, self.pref, self.db, self.logger, self.local_logger))

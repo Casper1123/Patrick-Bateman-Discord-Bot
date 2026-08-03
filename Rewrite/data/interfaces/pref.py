@@ -103,7 +103,7 @@ class PreferencesInterface(ABC):
         """
         Gets enabled state for user's autoreply feature.
         :param user_id
-        :param feature: Given feature to check status for. todo: needs one for all features for command inputs?
+        :param feature: Given feature to check status for.
         :return: Feature availability status.
         """
         raise NotImplementedError()

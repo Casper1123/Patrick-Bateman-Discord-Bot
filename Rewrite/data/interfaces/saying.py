@@ -2,12 +2,19 @@ from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 
 
-class SayingEditorData:
+class SimpleSayingEditorData:
+    """
+    Simplified record class for Saying Editor data.
+    """
+    def __init__(self, text: str) -> None:
+        self.text = text
+
+class SayingEditorData(SimpleSayingEditorData):
     """
     Record class for Saying Editor data
     """
     def __init__(self, text: str, author_id: int, modified_at: int,) -> None:
-        self.text: str = text
+        super().__init__(text)
 
         # Moderation purposes
         self.author_id: int = author_id
@@ -33,7 +40,7 @@ class GlobalAdminSayingInterface(SayingInterface):
     @abstractmethod
     def edit_saying(self, index: int, text: str) -> None:
         """
-        Edit a saying at a given index. Raises ValueError if it did not exist.
+        Edit a saying at a given index. Raises IndexError if index is out of range.
         :param index: Index of editing saying.
         :param text: PISS-compatible replacement text
         """
@@ -42,20 +49,21 @@ class GlobalAdminSayingInterface(SayingInterface):
     @abstractmethod
     def delete_saying(self, index: int):
         """
-        Delete a saying at the given index. Raises ValueError if it did not exist.
+        Delete a saying at the given index. Raises IndexError if index is out of range.
         :param index: Index of saying to delete.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_sayings(self) -> list[SayingEditorData]:
+    def get_sayings(self) -> list[SimpleSayingEditorData]:
         """
         Get all sayings, ordered by creation date (index).
         """
         raise NotImplementedError()
 
-    def get_saying_by_index(self, index: int) -> SayingEditorData:
+    @abstractmethod
+    def get_saying_by_index(self, index: int) -> SimpleSayingEditorData:
         """
-        Get a saying at a given index. Throws IndexError if out of bounds.
+        Get a saying at a given index. Raises IndexError if index is out of range.
         """
         raise NotImplementedError()
