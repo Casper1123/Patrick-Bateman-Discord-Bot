@@ -117,37 +117,3 @@ class FactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
                 )
             return int(cursor.fetchone()[0])
     # endregion
-
-    # region Local
-    def create_fact(self, guild_id: int, user_id: int, fact: str) -> None:
-        pass
-
-    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: int, editor_id: int, new_fact: str | None) -> None:
-        pass
-
-    def delete_fact(self, guild_id: int) -> None:
-        pass
-
-    def get_local_fact(self, guild_id: int, index: int) -> FactEditorData:
-        pass
-
-    def get_local_facts(self, guild_id: int) -> list[FactEditorData]:
-        pass
-    # endregion
-
-    # region Global
-    def create_global_fact(self, user_id: int, fact: str) -> None:
-        pass
-
-    def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int, new_fact: str | None) -> None:
-        pass
-
-    def get_global_fact(self, index: int) -> FactEditorData:
-        pass
-
-    def get_global_facts(self) -> list[FactEditorData]:
-        pass
-
-    def get_all_local_facts(self) -> dict[int, list[FactEditorData]]:
-        pass
-    # endregion
