@@ -54,7 +54,8 @@ class MessageContentAutoreplyCog(commands.Cog):
         while reply is None and triggering_aliases:
             index: int = _r.randint(0, len(triggering_aliases) - 1)
             alias: SimpleAliasData = triggering_aliases.pop(index)
-            reply: SimpleReplyData | None = self.repl.get_reply(alias.name)
+            reply: SimpleReplyData | None = self.repl.get_reply(alias.name) # Can throw an error on bad Alias name.
+            # However, if that happens, we wanna pass it through.
         if not reply:
             return # todo: log that the given message triggered a bunch of aliases, but did not get a reply. Maybe even log which aliases it were and the trigger it hit.
             # also do not be a dumbo and put a cooldown on that log pretty please.

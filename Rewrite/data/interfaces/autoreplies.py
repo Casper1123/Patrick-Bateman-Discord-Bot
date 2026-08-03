@@ -106,7 +106,7 @@ class TextAutorepliesInterface(ABC):
     def get_reply(self, alias: str) -> SimpleReplyData | None:
         """
         Get a random reply based on the given alias and the corresponding reply pool's weights.
-        :param alias: Alias of the reply to get.
+        :param alias: Alias of the reply to get. Raises ValueError if not found.
         :return: Unprocessed raw Reply data or NONE if no replies exist for this Alias.
         """
         raise NotImplementedError()
