@@ -2,9 +2,9 @@ from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SayingEditorData
 
 
-class TestSayingDatabase(AbstractSQLDatabase, GlobalAdminSayingInterface):
+class TestSayingDatabase(GlobalAdminSayingInterface):
     def __init__(self, path: str) -> None:
-        super().__init__(path, 'data/schemas/saying.sql')
+        ...
 
     # region Regular
     def get_saying(self) -> str:

@@ -2,9 +2,9 @@ from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 
 
-class TestModerationDatabase(AbstractSQLDatabase, GlobalAdminModerationInterface):
-    def __init__(self, path: str) -> None:
-        super().__init__(path, 'data/schemas/mod.sql')
+class TestModerationDatabase(GlobalAdminModerationInterface):
+    def __init__(self) -> None:
+        ...
 
     # region Local
     def is_banned_user(self, user_id: int) -> bool:

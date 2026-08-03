@@ -4,7 +4,7 @@ from Rewrite.data.interfaces.pref import PreferencesInterface, UserPreferenceDat
 
 
 
-class TestPreferencesDatabase(AbstractSQLDatabase, PreferencesInterface):
+class TestPreferencesDatabase(PreferencesInterface):
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None) -> None:
         pass
 
@@ -31,5 +31,5 @@ class TestPreferencesDatabase(AbstractSQLDatabase, PreferencesInterface):
         pass
 
     def __init__(self, path: str):
-        super().__init__(path, 'data/schemas/pref.sql')
+        ...
 

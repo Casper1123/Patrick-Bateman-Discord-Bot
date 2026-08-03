@@ -5,10 +5,8 @@ from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 
 
-class TestFactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
-    def __init__(self, path: str):
-        super().__init__(path, "data/schemas/fact.sql")
-
+class TestFactDatabase(GlobalAdminFactInterface):
+    def __init__(self):
         self.local_fact_kill_switch: bool = False
         # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
         # Mostly intended for Moderation purposes.
