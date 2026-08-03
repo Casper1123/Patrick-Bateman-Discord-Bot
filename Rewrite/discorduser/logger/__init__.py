@@ -7,6 +7,7 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, SimpleReplyData, SimpleTriggerData
 from Rewrite.data.interfaces.fact import FactEditorData
+from Rewrite.data.interfaces.saying import SimpleSayingEditorData
 from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
 from Rewrite.utilities.exceptions import CustomDiscordException
 from config.local import loggable as local_loggable
@@ -174,7 +175,7 @@ class GlobalLogger:
             colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
-        await self._channel_log(embed=embed, act='local_fact_create')
+        await self._channel_log(embed=embed, act='fact_create')
 
     async def fact_edit(self, interaction: Interaction, old: FactEditorData, text: str) -> None:
         self._console_log(
@@ -209,7 +210,7 @@ class GlobalLogger:
             colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
-        await self._channel_log(embed=embed, act='local_fact_delete')
+        await self._channel_log(embed=embed, act='fact_delete')
 
     async def fact_modify(self, interaction: Interaction, guild_id: int, old: FactEditorData, text: str) -> None:
         self._console_log(
@@ -454,5 +455,54 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_reply')
     # endregion
+    # endregion
+    # region saying
+    async def create_saying(self, interaction: Interaction, text: str):
+        self._console_log(f'[SAYING_CREATE] {interaction.user.id} : {interaction.user.name} :: {text}', 'saying_create')
+
+        embed: Embed = Embed(
+            title='[SAYING_CREATE]',
+            description=f'{text}\n'
+                        f'\n'
+                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.green()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='saying_create')
+
+    async def edit_saying(self, interaction: Interaction, old: SimpleSayingEditorData, text: str):
+        self._console_log(
+            f'[SAYING_EDIT] {interaction.user.id} : {interaction.user.name} [{old.text}] :: {text}',
+            'saying_edit')
+
+        embed: Embed = Embed(
+            title='[SAYING_EDIT]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'**New:**\n'
+                        f'{text}\n'
+                        f'\n'
+                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.yellow()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='saying_edit')
+
+    async def delete_saying(self, interaction: Interaction, old: SimpleSayingEditorData):
+        self._console_log(
+            f'[SAYING_DELETE] {interaction.user.id} : {interaction.user.name} :: {old.text}',
+            'saying_delete')
+
+        embed: Embed = Embed(
+            title='[SAYING_DELETE]',
+            description=f'**Old:**\n'
+                        f'{old.text}\n'
+                        f'\n'
+                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+            colour=Colour.red()
+        )
+        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        await self._channel_log(embed=embed, act='saying_delete')
     # endregion
     # endregion

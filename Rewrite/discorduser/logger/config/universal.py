@@ -12,6 +12,8 @@ loggable = Literal['general', 'error',
     'create_alias', 'edit_alias', 'delete_alias',
     'create_trigger', 'edit_trigger', 'delete_trigger',
     'create_reply', 'edit_reply', 'delete_reply',
+
+    'saying_create', 'saying_edit', 'saying_delete',
 ]
 
 class GlobalLoggerConfig(AbstractJSONConfig):
