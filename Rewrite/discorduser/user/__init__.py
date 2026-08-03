@@ -26,7 +26,7 @@ class BotClient(_AbstractClient):
 
     async def setup_hook(self) -> None:
         # Util
-        await self.add_cog(ListenerCog(self))
+        await self.add_cog(ListenerCog(self, self.logger))
 
         # Global
         await attach_autoreply_cogs(self, self.autoreplies, self.logger)
@@ -34,7 +34,7 @@ class BotClient(_AbstractClient):
         await self.add_cog(GlobalAdminCog(self, self.fact, self.mod, self.db, self.logger))
 
         # Local
-        await self.add_cog(LocalAdminCog(self, self.fact, self.mod, self.pref, self.db, self.logger))
+        await self.add_cog(LocalAdminCog(self, self.fact, self.mod, self.pref, self.db, self.logger, self.local_logger))
 
         # Common
         await self.add_cog(AskPatrick(self))

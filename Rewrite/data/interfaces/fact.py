@@ -6,7 +6,7 @@ class FactEditorData:
     """
     Purely a record class to hold Fact data.
     """
-    def __init__(self, text: str, guild_id: int, created_at: int, author_id: int, modified_at: int):
+    def __init__(self, text: str, guild_id: int | None, created_at: int, author_id: int, modified_at: int):
         """
         Represents the object data that should be returned for some subfunctions.
         :param guild_id: Only None when Global fact
@@ -39,7 +39,7 @@ class FactInterface(ABC):
         If passed guild_id as None, retrieves only from the global fact pool.
         If passed a known guild_id, appends local fact pool to the index range and fact pool.
         :param guild_id: Guild ID for local facts. Can be None to use only global.
-        :param index: If not None, will try getting the fact at the given index. Throws IndexError when out of bounds.
+        :param index: If not None, will try getting the fact at the given index. Otherwise picks randomly.
         :return: Unprocessed PISS-compatible string.
         """
         raise NotImplementedError()
@@ -78,35 +78,34 @@ class LocalAdminFactInterface(FactInterface):
         """
         raise NotImplementedError()
 
-    @abstractmethod # todo: remake these functions before implementation.
-    def edit_fact(self, guild_id: int, previous_author_id: int, old_fact: int, editor_id: int, new_fact: str | None) -> None:
+    @abstractmethod
+    def edit_fact(self, guild_id: int, index: int, new_fact: str, editor_id: int) -> FactEditorData:
         """
-        Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
+        Edits a fact, setting the old content to the new.
+        Raises IndexError if index is out of range.
+
         :param guild_id: Guild of the belonging fact.
-        :param previous_author_id: ID of the previous author of the fact.
-        :param old_fact: Old fact index.
+        :param index: index of the fact to be edited.
         :param editor_id: Id of the editor of the fact.
         :param new_fact: New fact string.
+        :returns: The old fact, before modification.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_fact(self, guild_id: int, ): # todo: what the fuck? what the hell did I cook, man.
-        ...
-
-    @abstractmethod
-    def get_local_fact(self, guild_id: int, index: int) -> FactEditorData:
+    def delete_fact(self, guild_id: int, index: int) -> FactEditorData:
         """
-        Get a local fact for the purpose of editing. Needs to be directly indexed.
+        Deletes the local fact at the given index.
         Raises IndexError if index is out of range.
-        :param guild_id: Guild to look in.
-        :param index: Index of the fact.
-        :return: FactEditorData object containing author and edit data of the fact, as well as fact content.
+
+        :param guild_id: Guild of the belonging fact.
+        :param index: Index to delete.
+        :return: The old fact.
         """
         raise NotImplementedError()
 
-    @abstractmethod # todo: add filter parameters?
-    def get_local_facts(self, guild_id:int) -> list[FactEditorData]:
+    @abstractmethod
+    def get_local_facts(self, guild_id: int) -> list[FactEditorData]:
         """
         Gets all local facts for guild.
         Ordered on edit date.
@@ -128,7 +127,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def create_global_fact(self,  user_id: int, fact: str) -> None:
+    def create_global_fact(self, user_id: int, fact: str) -> None:
         """
         Creates a new Global fact under the given user id
         :param user_id: The ID of the user adding the new Local fact.
@@ -137,28 +136,31 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_global_fact(self, previous_author_id: int, old_fact: str, editor_id: int,
-                  new_fact: str | None) -> None:
+    def edit_global_fact(self, index: int, editor_id: int,
+                  new_fact: str) -> FactEditorData:
         """
-        Edits a fact, setting the new content to the old. If new_fact is empty or None, it is removed instead.
-        :param previous_author_id: ID of the previous author of the fact.
-        :param old_fact: Old fact string.
+        Edits a fact, setting the new content to the old.
+        Raises IndexError if index is out of range.
+
+        :param index: Index of the fact to be edited.
         :param editor_id: Id of the editor of the fact.
         :param new_fact: New fact string.
+        :returns: The old fact, before modification.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_global_fact(self, index: int) -> FactEditorData:
+    def delete_global_fact(self, index: int) -> FactEditorData:
         """
-        Get a local fact for the purpose of editing. Needs to be directly indexed.
+        Deletes the global fact at the given index.
         Raises IndexError if index is out of range.
+
         :param index: Index of the fact.
-        :return: FactEditorData object containing author and edit data of the fact, as well as fact content.
+        :returns: The old fact.
         """
         raise NotImplementedError()
 
-    @abstractmethod  # todo: add filter parameters?
+    @abstractmethod
     def get_global_facts(self) -> list[FactEditorData]:
         """
         Gets all global facts.

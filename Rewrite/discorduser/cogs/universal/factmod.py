@@ -3,7 +3,7 @@ import io as _io
 import json as _json
 
 import discord
-from discord import app_commands, Interaction, Embed, Guild
+from discord import app_commands, Interaction, Embed, Guild, Colour
 from discord.ext import commands
 
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
@@ -36,20 +36,35 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         await self.logger.fact_create(interaction, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact added successfully.')
 
-    @app_commands.command(name='edit', description='Edit or Remove a global fact. Leave the text empty to remove.')
+    @app_commands.command(name='edit', description='Edit or Remove a global fact.')
     @app_commands.describe(index='The index of the fact you\'re editing/removing',
-                           text='The replacement fact. Leave empty to remove the original.',
+                           text='The replacement fact.',
                            ephemeral='Hide this command for other users.')
-    async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = False) -> None:
-        delete: bool = text is None
-        if not delete:
-            if not await input_test(self.client, interaction, text, ephemeral):
-                return
-        old: FactEditorData = self.fact.get_global_fact(index)
-        self.fact.edit_global_fact(old.author_id, old.text, interaction.user.id, text)
+    async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = False) -> None:
+        if not await input_test(self.client, interaction, text, ephemeral):
+            return
+        try:
+            old: FactEditorData = self.fact.edit_global_fact(index, interaction.user.id , text)
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
+            return
+
         await self.logger.fact_edit(interaction, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
-                                            desc=f'Fact {'deleted' if delete else 'edited'} successfully.')
+                                            desc=f'Fact edited successfully.')
+
+    @app_commands.command(name='delete', description='Delete a global fact.')
+    @app_commands.describe(index='The index of the fact to delete', ephemeral='Hide this command for other users.')
+    async def delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
+        try:
+            old: FactEditorData = self.fact.delete_global_fact(index)
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
+            return
+
+        await self.logger.fact_remove(interaction, old)
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
+                                        desc=f'Fact deleted successfully.')
 
     @app_commands.command(name='index',
                           description='Exports an overview of Global (and, optionally, Local) facts. Can be exported to JSON for easier automated use.')
@@ -123,13 +138,15 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
-        local_facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
         try:
-            old: FactEditorData = local_facts[index]
-        except IndexError as e:
-            raise CustomDiscordException(tooltip=ErrorTooltip.NONE, cause=e,
-                                         message=f'Index ({index}) not in 0 <= index < {len(local_facts)}.')
-        self.fact.edit_fact(guild_id, old.author_id, index, interaction.user.id, text)
+            if not delete:
+                old: FactEditorData = self.fact.edit_fact(guild_id, index, text, interaction.user.id)
+            else:
+                old: FactEditorData = self.fact.delete_fact(guild_id, index)
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Fact modification failed', desc=f'Index {index} out of range.', ephemeral=ephemeral)
+            return
+
         await self.logger.fact_modify(interaction, guild_id, old, text)
         if local_log:
             # todo: log to server locally
@@ -254,7 +271,15 @@ class GlobalAdminCog(commands.Cog, name='global'):
     @app_commands.describe(ephemeral='Hide this command for other users.')
     async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
         state: bool = self.fact.toggle_local_fact_killswitch()
-        await interaction.response.send_message(ephemeral=ephemeral, content=f'Killswitch state set to {state}')
+        await self.client.user_feedback(interaction, desc=f'Killswitch state set to {state}', ephemeral=ephemeral)
+        await self.logger.log_general(
+            console=f'[[ KILLSWITCH TOGGLE ]] :: Set to {state} by {interaction.user.name} : {interaction.user.id}',
+            channel=Embed(
+                title='[[ KILLSWITCH TOGGLE ]]',
+                description=f'Set to **{state}**',
+                colour=Colour.red()
+            ).set_author(name=interaction.user.name, icon_url=interaction.user.avatar.url)
+        )
 
     async def set_log_channel(self, interaction: Interaction, action: loggable, channel: int, ephemeral: bool = False): # todo: <#> parsing
         channel = self.client.get_channel(channel)

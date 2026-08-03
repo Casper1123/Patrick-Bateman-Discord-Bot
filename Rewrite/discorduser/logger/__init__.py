@@ -67,8 +67,10 @@ class GlobalLogger:
         await channel.send(embed=embed)
     # endregion
 
-    async def log_general(self, guild: Guild, message: Message | Interaction, *args, **kwargs) -> None:
-        raise NotImplementedError()
+    async def log_general(self, console: str, channel: Embed) -> None:
+        self._console_log(console, 'general')
+
+        await self._channel_log(channel, 'general')
 
     async def error(self, interaction: Interaction | Message, error: CustomDiscordException) -> None:
         # Errors are logged to console by the command tree handler, but we can still log additional information.
@@ -211,7 +213,7 @@ class GlobalLogger:
 
     async def fact_modify(self, interaction: Interaction, guild_id: int, old: FactEditorData, text: str) -> None:
         self._console_log(
-            f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.name} :: {text}',
+            f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.name} in GuildID {guild_id}, from {old.text} by {old.author_id} :: {text if text else 'Deleted'}',
             'fact_modify')
 
         try:
@@ -225,7 +227,7 @@ class GlobalLogger:
                         f'{old.text}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'{text}\n'
+                        f'{text if text else 'Deleted'}\n'
                         f'\n'
                         f'Edited by: {interaction.user.name} ({interaction.user.id})'
                         f'For Guild **{guild.name if guild else '[fetch failed]'}** ({guild_id})',

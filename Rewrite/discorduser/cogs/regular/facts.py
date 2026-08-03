@@ -22,8 +22,7 @@ class FactsCog(commands.Cog):
         try:
             fact_raw: str = self.fact.get_fact(interaction.guild_id if not self.fact.is_killswitch() else None, index)
         except IndexError:
-            fact: str = f"Given index {index} is out of range." # todo: embed nicely
-            await interaction.response.send_message(fact, ephemeral=True)
+            await self.client.user_feedback(interaction, ephemeral=True, desc=f'Index {index} is out of range.')
             return
 
         fact: list[Instruction] = parse_variables(fact_raw)
@@ -39,9 +38,9 @@ class FactsCog(commands.Cog):
         global_fact_count: int = self.fact.get_fact_count(None)
         local_fact_count: int = self.fact.get_fact_count(interaction.guild_id) if not self.fact.is_killswitch() else 0
         total_fact_count: int = global_fact_count + local_fact_count
-        embed = discord.Embed(title="Current fact count",
-                              description=f"Total: {total_fact_count}\n"
-                                          f"Global: {global_fact_count}\n"
-                                          f"Local: {local_fact_count}\n"
-                                          f"Index range: **{'NONE' if not total_fact_count else f'1..{total_fact_count}'}**")
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        title ="Current fact count"
+        desc =f"Total: {total_fact_count}\n" \
+              f"Global: {global_fact_count}\n" \
+              f"Local: {local_fact_count}\n" \
+              f"Index range: **{'NONE' if not total_fact_count else f'1..{total_fact_count}'}**"
+        await self.client.user_feedback(interaction, ephemeral=True, title=title, desc=desc)

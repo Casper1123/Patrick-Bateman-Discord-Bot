@@ -11,6 +11,7 @@ from Rewrite.data.interfaces.moderation import LocalAdminModerationInterface
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
 from Rewrite.discorduser.logger import GlobalLogger
+from Rewrite.discorduser.logger.local import LocalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
@@ -22,6 +23,7 @@ FACT_COUNT_MAXIMUM: int = 50
 FACT_CHAR_LIMIT: int = 256
 
 PREVIEW_COOLDOWN_SECONDS: float = 5.0
+DELETE_COOLDOWN_SECONDS: float = 5.0
 EDIT_COOLDOWN_SECONDS: float = 5.0
 ADD_COOLDOWN_SECONDS: float = 5.0
 
@@ -52,13 +54,14 @@ class RestrictedUseException(CustomDiscordException):
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
-    def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface, pref: PreferencesInterface, db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
+    def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface, pref: PreferencesInterface, db: LocalAdminDataInterface, logger: GlobalLogger, local_logger: LocalLogger) -> None:
         self.client = client
         self.fact = fact
         self.mod = mod
         self.pref = pref
         self.db = db
         self.logger = logger
+        self.local_logger = local_logger
 
     def restricted(self, guild_id: int, user_id: int) -> UseRestriction:
         """
@@ -123,30 +126,56 @@ class LocalAdminCog(commands.Cog, name='admin'):
             return
         self.fact.create_fact(interaction.guild.id, interaction.user.id, text)
         await self.logger.local_fact_create(interaction.guild, interaction, text)
-        await self.client.user_feedback(interaction, title='Success', desc=f'Fact added successfully.', ephemeral=ephemeral)
+        await self.local_logger.fact_create(interaction, text)
+        await self.client.user_feedback(interaction, title='Success', desc=f'Fact created successfully.', ephemeral=ephemeral)
 
-    @app_commands.command(name='edit', description='Edit or Remove a local fact. Leave the text empty to remove.')
-    @app_commands.describe(index='The index of the fact you\'re editing/removing',
-                           text='The replacement fact. Leave empty to remove the original.',
+    @app_commands.command(name='edit', description='Edit or Remove a local fact.')
+    @app_commands.describe(index='The index of the fact you\'re editing.',
+                           text='The replacement fact.',
                            ephemeral='Hide this command for other users.')
     @app_commands.checks.cooldown(1, EDIT_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
-    async def edit(self, interaction: Interaction, index: int, text: str = None, ephemeral: bool = True) -> None:
+    async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
+
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
-        delete: bool = text is None # todo: what the fuck is this command man, rework this shit.
-        self.fact_limit_check(interaction.guild.id, text, edit=True) # todo: check for duplicates!
-        if not delete:
-            if not await input_test(self.client, interaction, text, ephemeral):
-                return
-        old: FactEditorData = self.fact.get_local_fact(interaction.guild.id, index)
-        self.fact.edit_fact(interaction.guild_id, old.author_id, old.text, interaction.user.id, text) # todo: fix
+        self.fact_limit_check(interaction.guild.id, text, edit=True)
+
+        if not await input_test(self.client, interaction, text, ephemeral):
+            return
+        try:
+            old: FactEditorData = self.fact.edit_fact(interaction.guild_id, index, text, interaction.user.id)
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
+            return
+
         await self.logger.local_fact_edit(interaction.guild, interaction, old, text)
+        await self.local_logger.fact_edit(interaction, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
-                                        title='Success', desc=f'Fact {'deleted' if delete else 'edited'} successfully.'
-                                                                f'\n# Old:\n`{old.text}`\n\n# New:\n`{text}`')
+                                        title='Success', desc=f'Fact edited successfully.'
+                                                                f'\n# Old:\n{old.text}\n\n# New:\n{text}')
+
+    @app_commands.command(name='delete', description='Delete a local fact.')
+    @app_commands.describe(index='The index of the fact you\'re deleting.',
+                           ephemeral='Hide this command for other users.')
+    @app_commands.checks.cooldown(1, DELETE_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
+    async def delete(self, interaction: Interaction, index: int, ephemeral: bool = True) -> None:
+        if not await self.kill_switch_check(interaction):
+            return
+
+        try:
+            old: FactEditorData = self.fact.delete_fact(interaction.guild_id, index)
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
+            return
+
+        await self.logger.local_fact_remove(guild=interaction.guild, interaction=interaction, old=old)
+        await self.local_logger.fact_remove(interaction, old)
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact deleted successfully.\n'
+                                                                                                f'# Old:\n{old.text}')
+
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide this command for other users.')
@@ -161,10 +190,10 @@ class LocalAdminCog(commands.Cog, name='admin'):
             executor: DebugInstructionExecutor = DebugInstructionExecutor(self.client)
             await executor.run(compiled, interaction)
             description = (f'# Taken input:\n'
-                           f'`{text}`\n'
+                           f'{text}\n'
                            f'\n'
                            f'# Chat output:\n'
-                           f'`{executor.output}`\n'
+                           f'{executor.output}\n'
                            f'\n'
                            f'# Compiled and executed Instructions:\n'
                            f'{'\n'.join(f'`{i}`'.replace('InstructionType.', '') for i in compiled)}')
@@ -177,7 +206,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
         # Create output embed
         embed: discord.Embed = discord.Embed(
-            title=f'PISS input {'compiled sucessfully' if exception is None else 'failed to compile'}',
+            title=f'PISS input {'compiled successfully' if exception is None else 'failed to compile'}',
             description=description + f'\n\nMore information on Debugger output and functionality can be found [here]({DEBUGGER_OUTPUT_WIKI_URL})'
         )
         embeds = [embed] + ([exception.as_embed()] if exception else [])
@@ -245,9 +274,11 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
         self.db.set_log_output(interaction.guild.id, logchannel.id)
         await self.logger.local_set_log_channel(interaction.guild, interaction, logchannel)
+        await self.local_logger.set_log_channel(interaction, logchannel)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Log output channel set to <#{logchannel.id}>')
         # todo: Choice to display current value.
     # endregion
+
     # region preferences
     @app_commands.command(name="autoreply_preferences",
                           description="Toggle automatic features for this, or all, channels. Set to True to toggle.")
