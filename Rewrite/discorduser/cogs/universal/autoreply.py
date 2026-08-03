@@ -120,6 +120,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                            text='Trigger RegEx to match to.',
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
                            ephemeral='Hide this command for other users.')
+    # todo: index autocomplete based on passed-in alias.
     async def edit_trigger(self, interaction: discord.Interaction, alias: str, index: int, text: str = None, rate : int = None, ephemeral: bool = False):
         if text is None and rate is None:
             await self.client.user_feedback(interaction, title='Trigger edit failed',
@@ -147,6 +148,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     @app_commands.describe(alias='The Alias this Trigger belongs to.',
                            index='The index of this Trigger.',
                            ephemeral='Hide this command for other users.')
+    # todo: index autocomplete based on passed-in alias.
     async def delete_trigger(self, interaction: discord.Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
             old: SimpleTriggerData = self.repl.remove_trigger(alias, index)
@@ -215,6 +217,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     @app_commands.command(name='edit', description='Edit a Reply; text and weight only!')
     @app_commands.describe(alias='The alias the reply belongs to.', index='The index of the Reply (autocomplete requires the Alias first!)',
                            ephemeral='Hide this command for other users.')
+    # todo: index autocomplete based on passed-in alias.
     async def edit_reply(self, interaction: discord.Interaction, alias: str, index: int, text: str = None, weight: int = None, ephemeral: bool = False):
         if text is None and weight is None:
             await self.client.user_feedback(interaction, title='Reply edit failed', desc='You need to update at least one of text and weight.')
@@ -252,6 +255,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     @app_commands.command(name='delete', description='Delete a Reply.')
     @app_commands.describe(alias='The alias the reply belongs to.', index='The index of the Reply (autocomplete requires the Alias first!)',
                            ephemeral='Hide this command for other users.')
+    # todo: index autocomplete based on passed-in alias.
     async def delete_reply(self, interaction: discord.Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
             old: SimpleReplyData = self.repl.remove_reply(alias, index)

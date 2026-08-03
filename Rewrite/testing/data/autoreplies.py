@@ -134,7 +134,7 @@ class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):
             raise ValueError('invalid alias name')
         if not index == 1:
             raise IndexError('index out of bounds')
-        
+
         if alias == 'reaction':
             return SimpleReplyData('reaction', data='🐑;🙃', weight=1)
         elif alias == 'text':
