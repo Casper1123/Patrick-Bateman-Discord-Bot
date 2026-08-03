@@ -5,7 +5,8 @@ from discord import app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, _reply_types, ReplyData
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, _reply_types, \
+    SimpleAliasData, SimpleTriggerData, SimpleReplyData
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
@@ -82,7 +83,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
     @delete_alias.autocomplete('alias')
     async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
         target = current.lower() # Prevent repeat transformation
-        aliases: list[AliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
+        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
     # endregion
@@ -110,7 +111,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
         except ValueError:
             await self.client.user_feedback(interaction, title='Trigger creation failed', desc=f'The given Alias {alias} does not exist.', ephemeral=ephemeral)
             return
-        await self.logger.create_trigger(interaction, alias, text, rate)
+        await self.logger.create_trigger(interaction, alias, 'regex', text, rate)
         await self.client.user_feedback(interaction, title='Trigger created successfully', desc=f'Alias: {alias}\n*Type: Regex*\nContent: **{text}**', ephemeral=ephemeral)
 
     @app_commands.command(name='edit', description='Edit a Trigger')
@@ -129,6 +130,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
             return
 
         try:
+            old: SimpleTriggerData = self.repl.get_trigger_by_index(alias, index)
             self.repl.edit_trigger(alias, index, trigger_type='regex', data=text, rate=rate)
         except ValueError:
             await self.client.user_feedback(interaction, title='Trigger edit failed',
@@ -138,7 +140,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
             await self.client.user_feedback(interaction, title='Trigger edit failed', desc='Trigger index out of bounds',
                                             ephemeral=ephemeral)
             return
-        await self.logger.edit_trigger(interaction, alias, index, text, rate)
+        await self.logger.edit_trigger(interaction, alias, old, text, rate)
         await self.client.user_feedback(interaction, title='Trigger edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete a Trigger')
@@ -147,7 +149,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                            ephemeral='Hide this command for other users.')
     async def delete_trigger(self, interaction: discord.Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
-            self.repl.remove_trigger(alias, index)
+            old: SimpleTriggerData = self.repl.remove_trigger(alias, index)
         except ValueError:
             await self.client.user_feedback(interaction, title='Trigger deletion failed',
                                             desc='The given alias does not exist.', ephemeral=ephemeral)
@@ -157,7 +159,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                                             desc='Trigger index out of bounds',
                                             ephemeral=ephemeral)
             return
-        await self.logger.delete_trigger(interaction, alias, index, old_data='TODO: PUT THIS IN HERE') # FIXME: not passing data
+        await self.logger.delete_trigger(interaction, alias, old)
         await self.client.user_feedback(interaction, title='Trigger deleted successfully', ephemeral=ephemeral)
 
     # region autocomplete
@@ -166,7 +168,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     @delete_trigger.autocomplete('alias')
     async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
         target = current.lower()  # Prevent repeat transformation
-        aliases: list[AliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
+        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
     # endregion
@@ -224,7 +226,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
 
 
         try:
-            old: ReplyData = self.repl.get_reply_by_index(alias, index)
+            old: SimpleReplyData = self.repl.get_reply_by_index(alias, index)
             # Test new input data
             if old.type == 'text':
                 if not await input_test(self.client, interaction, text, ephemeral):
@@ -244,7 +246,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
             await self.client.user_feedback(interaction, title='Reply edit failed', desc='Reply index out of bounds', ephemeral=ephemeral)
             return
 
-        await self.logger.edit_reply(interaction, old, text, weight)
+        await self.logger.edit_reply(interaction, alias, old, text, weight)
         await self.client.user_feedback(interaction, title='Reply edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete a Reply.')
@@ -252,7 +254,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
                            ephemeral='Hide this command for other users.')
     async def delete_reply(self, interaction: discord.Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
-            self.repl.remove_reply(alias, index)
+            old: SimpleReplyData = self.repl.remove_reply(alias, index)
         except ValueError:
             await self.client.user_feedback(interaction, title='Reply deletion failed',
                                             desc='The given alias does not exist.', ephemeral=ephemeral)
@@ -262,7 +264,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
                                             ephemeral=ephemeral)
             return
 
-        await self.logger.delete_reply(interaction, old=None) # FIXME: not passing data!
+        await self.logger.delete_reply(interaction, alias, old) # FIXME: not passing data!
         await self.client.user_feedback(interaction, title='Reply deleted successfully', ephemeral=ephemeral)
 
     # region autocomplete
@@ -271,7 +273,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     @delete_reply.autocomplete('alias')
     async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
         target = current.lower()  # Prevent repeat transformation
-        aliases: list[AliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
+        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
     # endregion

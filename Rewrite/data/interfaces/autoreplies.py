@@ -5,45 +5,68 @@ from typing import Literal
 _trigger_types = Literal['regex']
 _reply_types = Literal['text', 'reaction']
 
-class AliasData:
+class SimpleAliasData:
+    """
+    Simplified Record class for alias data
+    """
+    def __init__(self, name: str, rate: int):
+        """
+        Represents Data Transfer Object for Alias data.
+        :param name: Alias name. Unique.
+        :param rate: Rate of alias in [1..256]. Probability of trigger in alias activating, if not overridden by trigger.
+        """
+        self.name: str = name
+        self.rate: int = rate
+
+    def __hash__(self):
+        return self.name
+
+class AliasData(SimpleAliasData):
     """
     Record class for alias data
     """
     def __init__(self, name: str, rate: int, editor_id: int, modified_at: int):
         """
-        Represents Data Transfer Object for Alias data.
+        Represents expanded Data Transfer Object for Alias data.
         :param name: Alias name. Unique.
         :param rate: Rate of alias in [1..256]. Probability of trigger in alias activating, if not overridden by trigger.
-        :param uid: Unique ID of alias. Primarily for internal use.
+        :param editor_id: ID of last editor of Alias.
+        :param modified_at: int timestamp of last modification of Alias.
         """
-        self.name: str = name
-        self.rate: int = rate
+        super().__init__(name, rate)
 
         # Moderation purposes
         self.editor_id: int = editor_id
         self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
-    def __hash__(self):
-        return self.name
-
-class TriggerData:
-    """
-    Record class for trigger data.
-    """
-    def __init__(self, trigger_type: _trigger_types, data: str, rate: int | None, uid: str, alias: AliasData, editor_id: int, modified_at: int):
+class SimpleTriggerData:
+    def __init__(self, trigger_type: _trigger_types, data: str, rate: int | None):
         """
         Represents Data Transfer Object for Trigger data.
         :param trigger_type: Type of trigger. Needs to be supported.
         :param data: Unprocess PISS-compatible string.
-        :param alias: Alias of the trigger.
         :param rate: If present, overrides rate of alias in [1..256].
-        :param uid: Unique ID of trigger. Primarily for internal use.
         """
         self.type: _trigger_types = trigger_type
         self.data: str = data
-        self.alias: AliasData = alias
         self.rate: int | None = rate
-        self.id: str = uid
+
+class TriggerData(SimpleTriggerData):
+    """
+    Record class for trigger data.
+    """
+    def __init__(self, trigger_type: _trigger_types, data: str, rate: int | None, alias: AliasData, editor_id: int, modified_at: int):
+        """
+        Represents Data Transfer Object for Trigger data.
+        :param trigger_type: Type of trigger. Needs to be supported.
+        :param data: Unprocess PISS-compatible string.
+        :param rate: If present, overrides rate of alias in [1..256].
+        :param alias: Alias of the trigger.
+        :param editor_id: ID of last editor of Trigger.
+        :param modified_at: int timestamp of last modification of Trigger.
+        """
+        super().__init__(trigger_type, data, rate)
+        self.alias: AliasData = alias
 
         # Moderation purposes
         self.editor_id: int = editor_id
@@ -53,9 +76,10 @@ class SimpleReplyData:
     """
     Simple record for reply data. Really only used for direct usage of data.
     """
-    def __init__(self, reply_type: _reply_types, data: str):
+    def __init__(self, reply_type: _reply_types, data: str, weight: int):
         self.type = reply_type
         self.data: str = data
+        self.weight: int = weight
 
 class ReplyData(SimpleReplyData):
     """
@@ -65,9 +89,8 @@ class ReplyData(SimpleReplyData):
         """
         :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
         """
-        super().__init__(reply_type, data)
+        super().__init__(reply_type, data, weight)
         self.alias: AliasData = alias
-        self.weight: int = weight
         self.id = uid
 
         # Moderation purposes
@@ -89,7 +112,7 @@ class TextAutorepliesInterface(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_triggers_by_alias(self) -> dict[AliasData, list[TriggerData]]:
+    def get_triggers_by_alias(self) -> dict[SimpleAliasData, list[SimpleTriggerData]]:
         """
         Gets all triggers bundled by Aliases.
         :return: Triggers indexed by alias name
@@ -102,7 +125,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
     """
     # region alias
     @abstractmethod
-    def create_alias(self, name: str, rate: int):
+    def create_alias(self, name: str, rate: int) -> None:
         """
         Creates an alias with the given name. Raises ValueError if already exists.
         :param name: New alias name.
@@ -111,7 +134,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_alias(self, old_name: str, new_name: str | None, rate: int | None = None):
+    def edit_alias(self, old_name: str, new_name: str | None, rate: int | None = None) -> None:
         """
         Rename given alias name to new name or change it's rate.
         Raises ValueError if either old_name does not exist, or new_name is already taken.
@@ -122,7 +145,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_alias(self, name: str):
+    def delete_alias(self, name: str) -> SimpleAliasData:
         """
         Deletes given Alias. Raises ValueError if it did not exist.
         Also deletes all of the Alias' components. Tread carefully.
@@ -131,7 +154,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_aliases(self) -> list[AliasData]:
+    def get_aliases(self) -> list[SimpleAliasData]:
         """
         Gets all aliases with their activation rates.
         """
@@ -142,13 +165,14 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         """
         Alias with given name exists or not.
         """
+        # todo: is this used?
         raise NotImplementedError()
 
     # endregion
 
     # region trigger
     @abstractmethod
-    def add_trigger(self, alias: str, trigger_type: _trigger_types, data: str, rate: int | None):
+    def add_trigger(self, alias: str, trigger_type: _trigger_types, data: str, rate: int | None) -> None:
         """
         Creates a new Trigger for the given Alias.
         :param alias: Name of the Alias. Raises ValueError if given Alias does not exist.
@@ -159,7 +183,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_trigger_by_index(self, alias: str, index: int) -> TriggerData:
+    def get_trigger_by_index(self, alias: str, index: int) -> SimpleTriggerData:
         """
         Gets the  TriggerData for the trigger at the given index.
         Raises ValueError if the Alias does not exist.
@@ -168,7 +192,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_trigger(self, alias: str, index: int, trigger_type: _trigger_types, data: str | None, rate: int | None):
+    def edit_trigger(self, alias: str, index: int, trigger_type: _trigger_types, data: str | None, rate: int | None) -> None:
         """
         Edits the Trigger at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
@@ -178,18 +202,19 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def remove_trigger(self, alias: str, index: int):
+    def remove_trigger(self, alias: str, index: int) -> SimpleTriggerData:
         """
         Removes the trigger at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
         Raises IndexError if given index is out of range.
+        :return: Trigger data of removed trigger.
         """
         raise NotImplementedError()
     # endregion
 
     # region reply
     @abstractmethod
-    def add_reply(self, alias: str, reply_type: _reply_types, data, weight):
+    def add_reply(self, alias: str, reply_type: _reply_types, data, weight) -> None:
         """
         Creates a new Reply of the given type, with the given weight, for the given Alias.
         :param alias: Name of the Alias. Raises ValueError if given Alias does not exist.
@@ -200,7 +225,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None):
+    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None) -> None:
         """
         Edits the reply at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
@@ -210,16 +235,17 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def remove_reply(self, alias: str, index: int):
+    def remove_reply(self, alias: str, index: int) -> SimpleReplyData:
         """
         Removes the reply at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
         Raises IndexError if given index is out of range.
+        :returns: Reply data of removed reply.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_reply_by_index(self, alias: str, index: int) -> ReplyData:
+    def get_reply_by_index(self, alias: str, index: int) -> SimpleReplyData:
         """
         Gets a reply with a given index from the Alias.
         Raises ValueError if the Alias does not exist.
@@ -227,3 +253,5 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         """
         raise NotImplementedError()
     # endregion
+
+    # todo: create indexing command options to dump complete data into file.

@@ -5,7 +5,7 @@ from typing import get_args
 from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colour
 from discord.ext import commands
 
-from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, ReplyData, TriggerData
+from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, SimpleReplyData, SimpleTriggerData
 from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
 from Rewrite.utilities.exceptions import CustomDiscordException
@@ -54,7 +54,7 @@ class GlobalLogger:
             if not channel:
                 # FIXME TODO: CIRCULAR IMPORT FIX
                 await self.client.close() # This is harsh. But it's easily the most secure way; if cannot log information, crash application.
-                print(f'Closed application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
+                print(f'Closing application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
                       f'{embed.title}\n'
                       f'{embed.description}')
                 import sys
@@ -353,13 +353,13 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_trigger')
 
-    async def edit_trigger(self, interaction: Interaction, old: TriggerData, data: str, rate: int | None) -> None:
+    async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str, rate: int | None) -> None:
         self._console_log(
-            f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
+            f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
             'edit_trigger')
         embed: Embed = Embed(
             title='[REPLY_EDIT]',
-            description=f'**Alias:** {old.alias.name}\n'
+            description=f'**Alias:** {alias}\n'
                         f'**Old:**\n'
                         f'\tType: {old.type}\n'
                         f'\tData: {old.data}\n'
@@ -375,9 +375,9 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_trigger')
 
-    async def delete_trigger(self, interaction: Interaction, alias: str, old: TriggerData):
+    async def delete_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData):
         self._console_log(
-            f'[TRIGGER_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
+            f'[TRIGGER_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {alias} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
             'delete_trigger')
         embed: Embed = Embed(
             title='[TRIGGER_DELETE]',
@@ -412,13 +412,13 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_reply')
 
-    async def edit_reply(self, interaction: Interaction, old: ReplyData, data: str, weight: int | None):
+    async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str, weight: int | None):
         self._console_log(
-            f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
+            f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
             'edit_reply')
         embed: Embed = Embed(
             title='[REPLY_EDIT]',
-            description=f'**Alias:** {old.alias.name}\n'
+            description=f'**Alias:** {alias}\n'
                         f'**Old:**\n'
                         f'\tType: {old.type}\n'
                         f'\tData: {old.data}\n'
@@ -434,13 +434,13 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_reply')
 
-    async def delete_reply(self, interaction: Interaction, old: ReplyData):
+    async def delete_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData):
         self._console_log(
-            f'[REPLY_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {old.alias.name} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
+            f'[REPLY_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {alias} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
             'delete_reply')
         embed: Embed = Embed(
             title='[REPLY_DELETE]',
-            description=f'**Alias:** {old.alias.name}\n'
+            description=f'**Alias:** {alias}\n'
                         f'**Old:**\n'
                         f'\tType: {old.type}\n'
                         f'\tData: {old.data}\n'

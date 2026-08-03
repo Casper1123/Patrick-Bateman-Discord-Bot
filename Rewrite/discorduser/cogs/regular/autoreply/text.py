@@ -4,7 +4,7 @@ import re as _re
 import discord
 from discord.ext import commands
 
-from Rewrite.data.interfaces.autoreplies import TextAutorepliesInterface, AliasData, ReplyData
+from Rewrite.data.interfaces.autoreplies import TextAutorepliesInterface, SimpleAliasData, SimpleReplyData
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import Instruction, parse_variables
@@ -31,7 +31,7 @@ class MessageContentAutoreplyCog(commands.Cog):
 
         a_data = self.repl.get_triggers_by_alias()
 
-        triggering_aliases: list[AliasData] = []
+        triggering_aliases: list[SimpleAliasData] = []
 
         for alias, triggers in a_data.items():
             for trigger in triggers:
@@ -50,11 +50,11 @@ class MessageContentAutoreplyCog(commands.Cog):
         if not triggering_aliases:
             return
 
-        reply: ReplyData | None = None
+        reply: SimpleReplyData | None = None
         while reply is None and triggering_aliases:
             index: int = _r.randint(0, len(triggering_aliases) - 1)
-            alias: AliasData = triggering_aliases.pop(index)
-            reply: ReplyData | None = self.repl.get_reply(alias.name)
+            alias: SimpleAliasData = triggering_aliases.pop(index)
+            reply: SimpleReplyData | None = self.repl.get_reply(alias.name)
         if not reply:
             return # todo: log that the given message triggered a bunch of aliases, but did not get a reply. Maybe even log which aliases it were and the trigger it hit.
             # also do not be a dumbo and put a cooldown on that log pretty please.
