@@ -9,7 +9,6 @@ class DataInterface(ABC):
         :param guild_id: Guild for the logging action.
         :return: Channel ID if found, otherwise None
         """
-        # todo: DEFINITELY WORK WITH CACHING HERE.
         raise NotImplementedError()
 
 class LocalAdminDataInterface(DataInterface):

@@ -48,12 +48,11 @@ class GlobalLogger:
             channel = self.target_channels[act]
         else:
             try:
-                channel = self.client.get_channel(self.config.target_channels[act]) # FIXME TODO: CIRCULAR IMPORT FIX
+                channel = self.client.get_channel(self.config.target_channels[act])
             except KeyError:
                 channel = None
 
             if not channel:
-                # FIXME TODO: CIRCULAR IMPORT FIX
                 await self.client.close() # This is harsh. But it's easily the most secure way; if cannot log information, crash application.
                 print(f'Closing application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
                       f'{embed.title}\n'
@@ -88,7 +87,6 @@ class GlobalLogger:
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar.url)
         await self._channel_log(embed, 'error')
-
 
     # region local-action
     # region fact

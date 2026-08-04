@@ -28,11 +28,10 @@ class GlobalLoggerConfig(AbstractJSONConfig):
         super().__init__(update_filepath)
 
         # Validation of input
-        validation: set[str] = set(get_args(loggable))
-        # todo: this can be improved to tell which keys are missing.
-        assert set(output_to_console.keys()) == validation, 'output_to_console must contain only and all loggables'
-        assert set(actively_logging.keys()) == validation, 'actively_logging must contain only and all loggables'
-        assert set(target_channels.keys()) == validation, 'target_channels must contain only and all loggables'
+        validation: set[loggable] = set(get_args(loggable))
+        assert set(output_to_console.keys()) == validation, f'output_to_console must contain only and all loggables, currently missing {validation - set(output_to_console.keys())} and includes unneeded {set(output_to_console.keys()) - validation}'
+        assert set(actively_logging.keys()) == validation, f'actively_logging must contain only and all loggables, currently missing {validation - set(actively_logging.keys())} and includes unneeded {set(actively_logging.keys()) - validation}'
+        assert set(target_channels.keys()) == validation, f'target_channels must contain only and all loggables, currently missing {validation - set(target_channels.keys())} and includes unneeded {set(target_channels.keys()) - validation}'
 
         self.output_to_console: dict[loggable, bool] = output_to_console
         self.actively_logging: dict[loggable, bool] = actively_logging

@@ -33,10 +33,10 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             return
         self.fact.create_global_fact(interaction.user.id, text)
         await self.logger.fact_create(interaction, text)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact added successfully.')
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact created successfully.')
 
     @app_commands.command(name='edit', description='Edit or Remove a global fact.')
-    @app_commands.describe(index='The index of the fact you\'re editing/removing',
+    @app_commands.describe(index='The index of the fact you\'re editing.',
                            text='The replacement fact.',
                            ephemeral='Hide this command for other users.')
     async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = False) -> None:

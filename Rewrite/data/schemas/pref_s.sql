@@ -1,6 +1,0 @@
--- Server preferences
--- Stores:
--- For each FEAT supported,
--- PK: (GuildID, ChannelID)
--- if ChannelID = 0, entire guild
--- If present, represents feature disabled.

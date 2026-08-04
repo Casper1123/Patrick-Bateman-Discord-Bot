@@ -10,7 +10,7 @@ Regex --> Substring is implied unless properly indicated.
 Triggers have optional rate in (0..1] that overrides alias / bucket rate
 
 Replies:
-PISS-compatible string. Has a weight [1..256] (todo: internally decrement by 1 to use exactly 8 bits, and make a weight of 0 incompatible.)
+PISS-compatible string. Has a weight [1..256]
 Weights relate relative picking chance: reply A with weight 256 is picked 256x as often as reply B with weight 1 and 128x as often as reply C with weight 2
 
 As such, as is required:

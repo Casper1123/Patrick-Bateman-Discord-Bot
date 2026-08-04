@@ -38,19 +38,21 @@ class GlobalAdminSayingInterface(SayingInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_saying(self, index: int, text: str) -> None:
+    def edit_saying(self, index: int, text: str) -> SimpleSayingEditorData:
         """
         Edit a saying at a given index. Raises IndexError if index is out of range.
         :param index: Index of editing saying.
         :param text: PISS-compatible replacement text
+        :returns: The old saying data before editing.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_saying(self, index: int):
+    def delete_saying(self, index: int) -> SayingEditorData:
         """
         Delete a saying at the given index. Raises IndexError if index is out of range.
         :param index: Index of saying to delete.
+        :returns: The old saying data before removal.
         """
         raise NotImplementedError()
 

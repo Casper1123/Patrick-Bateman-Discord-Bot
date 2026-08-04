@@ -20,7 +20,7 @@ if __name__ == '__main__':
         print('Config built, please edit accordingly.')
         sys.exit()
 
-    global_logger_config: GlobalLoggerConfig # TODO: CIRCULAR IMPORT FIX (SOME PARTS REQUIRE CLIENT)
+    global_logger_config: GlobalLoggerConfig
     local_logger_config: LocalLoggerConfig
     global_logger_config, local_logger_config = from_json(config_fp)
 

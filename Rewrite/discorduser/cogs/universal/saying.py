@@ -1,10 +1,12 @@
 import discord
 from discord import app_commands, Interaction, Embed, Guild, Colour
+from discord.app_commands import Choice
 from discord.ext import commands
 
-from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
-from Rewrite.discorduser.logger import GlobalLogger
+from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
+from Rewrite.discorduser.logger import GlobalLogger, loggable
 from Rewrite.discorduser.user.abstract import BotClient
+from Rewrite.piss.testing import test_raw_input as input_test
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
@@ -17,7 +19,48 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
         self.saying = saying
         self.logger = logger
 
-    # todo: create
-    # create
-    # edit
-    # delete
+    @app_commands.command(name='create', description='Create a new saying')
+    @app_commands.describe(saying='PISS-compatible saying.', ephemeral='Hide this command for other users.')
+    async def saying_create(self, interaction: Interaction, saying: str, ephemeral: bool = False) -> None:
+        if not input_test(self.client, interaction, saying, ephemeral):
+            return
+
+        self.saying.create_saying(saying)
+        await self.logger.create_saying(interaction, saying)
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc='Saying created successfully')
+
+    @app_commands.command(name='edit', description='Edit an existing saying.')
+    @app_commands.describe(index='The index of the saying you\'re editing.',
+                           saying='The replacement saying.',
+                           ephemeral='Hide this command for other users.')
+    async def saying_edit(self, interaction: Interaction, index: int, saying: str, ephemeral: bool = False) -> None:
+        if not input_test(self.client, interaction, saying, ephemeral):
+            return
+
+        try:
+            old: SimpleSayingEditorData = self.saying.edit_saying(index, saying)
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
+            return
+
+        await self.logger.edit_saying(interaction, old, saying)
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
+                                        desc=f'Fact edited successfully.')
+
+    @app_commands.command(name='delete', description='Delete an existing saying.')
+    @app_commands.describe(index='The index of the saying you\'re deleting.',
+                           ephemeral='Hide this command for other users.')
+    async def saying_delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
+        try:
+            old: SimpleSayingEditorData = self.saying.delete_saying(index)
+        except IndexError:
+            await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
+            return
+
+        await self.logger.delete_saying(interaction, old)
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Saying deleted successfully.')
+
+    @saying_edit.autocomplete('index')
+    @saying_delete.autocomplete('index')
+    async def _index_autocomplete_callback(self, interaction: Interaction, current: str) -> list[Choice[str]]:
+        return [] # todo: implement
