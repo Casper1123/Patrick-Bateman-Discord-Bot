@@ -113,7 +113,7 @@ class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):
             SimpleAliasData(name='number_wildcard_test', rate=256)
         ]
 
-    def exists_alias(self, name: str) -> bool:
+    def exists_alias(self, name: str) -> bool: # noqa
         return name in ['reaction', 'text', 'number_wildcard_test']
 
     def get_trigger_by_index(self, alias: str, index: int) -> SimpleTriggerData:

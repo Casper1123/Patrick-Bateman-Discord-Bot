@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
-from Rewrite.data.interfaces.other import GlobalAdminDataInterface
+from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.discorduser.logger import GlobalLogger, loggable
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
@@ -170,9 +170,9 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='No local facts found.'))
             return
         if json:
-            out: dict[int, list[dict[str, str | int]]] = {}
-            for guild_id, v in local_facts.items():
-                out[guild_id] = [{'text': f.text, 'author_id': f.author_id} for f in v]
+            out: dict[int, list[dict[str, str | int]]] = {
+                guild_id: [{'text': f.text, 'author_id': f.author_id} for f in local_facts]}
+
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")
         else:
@@ -203,7 +203,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminCog(commands.Cog, name='global'):
-    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, logger: GlobalLogger) -> None:
+    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.fact = fact
         self.mod = mod
@@ -256,14 +256,10 @@ class GlobalAdminCog(commands.Cog, name='global'):
         await interaction.response.defer(ephemeral=ephemeral, thinking=False)
         await interaction.edit_original_response(content=f'Synchronizing Command Tree ...')
         await self.client.tree.sync()
-        # todo: this is not required is it.
-        await interaction.edit_original_response(content=f'Starting Super Guild overwrites ...')
-        for i, guild_id in enumerate(self.db.get_super_server_ids()):
-            try:
-                await self.client.tree.sync(guild=discord.Object(id=guild_id))
-            except discord.HTTPException:
-                pass
         await interaction.edit_original_response(content=f'Command Tree synchronization complete.')
+        return
+        # todo: this is not required is it.
+
 
     @app_commands.command(name='DB_KILLSWITCH',
                           description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')

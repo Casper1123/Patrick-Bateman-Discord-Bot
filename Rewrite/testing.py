@@ -5,7 +5,7 @@ from Rewrite.configuration.token import TokenConfig
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
-from Rewrite.data.interfaces.other import GlobalAdminDataInterface
+from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
 from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     autoreplies: GlobalTextAutorepliesInterface = TestAutoreplyDatabase()
     fact: GlobalAdminFactInterface = TestFactDatabase()
     mod: GlobalAdminModerationInterface = TestModerationDatabase(user_banned=False, banned_guild=False, super_guild=False)
-    db: GlobalAdminDataInterface = TestGeneralDatabase(test_output_channel_id=None, super_guilds=[]) # Put ids in here!
+    db: LocalAdminDataInterface = TestGeneralDatabase(test_output_channel_id=None, super_guilds=[]) # Put ids in here!
     pref: PreferencesInterface = TestPreferencesDatabase(text=True, number=True, letter=True)
     saying: GlobalAdminSayingInterface = TestSayingDatabase()
 

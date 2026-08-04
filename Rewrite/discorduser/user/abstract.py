@@ -9,7 +9,7 @@ from discord.ext import commands
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
-from Rewrite.data.interfaces.other import GlobalAdminDataInterface
+from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
 from Rewrite.discorduser.logger import LocalLoggerConfig
@@ -26,13 +26,13 @@ class BotClient(commands.Bot):
     Bot-inherited class with toolkit installed.
     WARNING: DOES NOT CONTAIN COGS.
     """
-    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: GlobalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
         self.logger: GlobalLogger = GlobalLogger(self, global_logger_config)
         self.local_logger: LocalLogger = LocalLogger(local_logger_config, db)
         self.autoreplies: GlobalTextAutorepliesInterface = autoreplies
         self.fact: GlobalAdminFactInterface = fact
         self.mod: GlobalAdminModerationInterface = mod
-        self.db: GlobalAdminDataInterface = db
+        self.db: LocalAdminDataInterface = db
         self.pref: PreferencesInterface = pref
         self.saying: GlobalAdminSayingInterface = saying
 
@@ -74,7 +74,7 @@ class BotClient(commands.Bot):
 
         self.tree.on_error = on_tree_error
 
-    async def user_feedback(self, interaction: discord.Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None:
+    async def user_feedback(self, interaction: discord.Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None: # noqa
         """
         Sends the following title and (optional) description in a standardized embed to the user.
         :param interaction: Interaction or Message to reply to.

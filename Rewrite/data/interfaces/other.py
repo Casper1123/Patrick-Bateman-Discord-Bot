@@ -21,12 +21,3 @@ class LocalAdminDataInterface(DataInterface):
         :param channel_id: Channel ID to log to. If none, remove entry.
         """
         raise NotImplementedError()
-
-class GlobalAdminDataInterface(LocalAdminDataInterface):
-    @abstractmethod
-    def get_super_server_ids(self) -> list[int]:
-        """
-        Gets the list of super server IDs.
-        Primarily used for tree synchronization.
-        """
-        raise NotImplementedError()

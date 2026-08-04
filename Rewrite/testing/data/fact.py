@@ -1,7 +1,3 @@
-import random as _r
-from datetime import datetime
-
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 
 

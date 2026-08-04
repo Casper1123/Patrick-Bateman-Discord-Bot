@@ -19,7 +19,7 @@ class TestGlobalLoggerConfig(GlobalLoggerConfig):
             output_to_console=otc,
             actively_logging=al,
             target_channels=tc,
-            update_filepath=None # Never used as long as we override all its use cases. Which there is only one.
+            update_filepath=None # noqa Never used as long as we override all its use cases. Which there is only one.
         )
 
     def update_config_json(self):
@@ -33,7 +33,7 @@ class TestLocalLoggerConfig(LocalLoggerConfig):
 
         super().__init__(
             actively_logging=al,
-            update_filepath=None
+            update_filepath=None # noqa
         )
 
     def update_config_json(self):

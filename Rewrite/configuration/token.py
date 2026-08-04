@@ -30,5 +30,4 @@ class TokenConfig(AbstractJSONConfig):
     @staticmethod
     def from_json(filepath: str) -> TokenConfig:
         cfg = load_json(filepath)
-
-        return TokenConfig(cfg['main'], cfg['test'])
+        return TokenConfig(filepath, cfg['main'], cfg['test'])
