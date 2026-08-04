@@ -1,18 +1,51 @@
-import asyncio
+import os
+import sys
 
-from Rewrite.piss import parse_variables
-from Rewrite.piss.instructionexecutor import *
+from Rewrite.configuration.token import TokenConfig
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface
+from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
+from Rewrite.data.interfaces.other import GlobalAdminDataInterface
+from Rewrite.data.interfaces.pref import PreferencesInterface
+from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
+from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
+from Rewrite.discorduser.user import BotClient
+from Rewrite.testing.config import TestGlobalLoggerConfig, TestLocalLoggerConfig
+from Rewrite.testing.data.autoreplies import TestAutoreplyDatabase
+from Rewrite.testing.data.fact import TestFactDatabase
+from Rewrite.testing.data.moderation import TestModerationDatabase
+from Rewrite.testing.data.other import TestGeneralDatabase
+from Rewrite.testing.data.pref import TestPreferencesDatabase
+from Rewrite.testing.data.saying import TestSayingDatabase
 
-fact1: str = 'This is a fact with {guild.id} in it as well as a writing block.{writing(sleep(); push(1))}Isn\'t it awesome?!'
-fact2: str = 'opt {choice(\'First Option\', \'Second Option\', \'Third option: {sleep(); self}\')}'
-fact3: str = 'This fact has a random user in it: {tru(0)}'
-fact4: str = '{choice(\'C1\', \'C2{choice("subopt1", "subopt2{choice(\'Opt1\', \'{sleep(); writing(push(1); self)}subopt2\')}")}\')}'
-output: list[Instruction] = parse_variables(fact4)
-for i in output:
-    print(i)
+if __name__ == '__main__':
+    token_fp = 'config/tokens.json'
 
-executor: DebugInstructionExecutor = DebugInstructionExecutor(BotClient(None, None), pure_output=False)
-asyncio.run(
-    executor.run(output, interaction=None)
-)
-print(executor.output)
+    logger_created: bool = False
+
+    if not os.path.exists(token_fp):
+        TokenConfig.build_config(token_fp)
+        print('Token config built, please edit accordingly.')
+        logger_created = True
+
+    if logger_created:
+        sys.exit(0)
+
+    # Logger config
+    global_logger_config: GlobalLoggerConfig = TestGlobalLoggerConfig()
+    local_logger_config: LocalLoggerConfig = TestLocalLoggerConfig()
+
+    # Token config
+    token_config: TokenConfig = TokenConfig.from_json(token_fp)
+
+    # DB
+    autoreplies: GlobalTextAutorepliesInterface = TestAutoreplyDatabase()
+    fact: GlobalAdminFactInterface = TestFactDatabase()
+    mod: GlobalAdminModerationInterface = TestModerationDatabase(user_banned=False, banned_guild=False, super_guild=False)
+    db: GlobalAdminDataInterface = TestGeneralDatabase(test_output_channel_id=None, super_guilds=[]) # Put ids in here!
+    pref: PreferencesInterface = TestPreferencesDatabase(text=True, number=True, letter=True)
+    saying: GlobalAdminSayingInterface = TestSayingDatabase()
+
+    client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
+
+    client.run(token=token_config.test)

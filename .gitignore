@@ -1,8 +1,10 @@
 # Custom gitignore
 /hidden_secret_dev_files
 /Rewrite/data/data/*.sql
+/Rewrite/config/*.json
 # Just in case it's moved around.
 /data/data/*.sql
+/config/*.json
 
 
 # Byte-compiled / optimized / DLL files
