@@ -160,6 +160,13 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def alias_exists(self, alias: str) -> bool:
+        """
+        Does the given Alias exist?
+        """
+        raise NotImplementedError()
+
     # endregion
 
     # region trigger
