@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 
 
 class SimpleSayingEditorData:

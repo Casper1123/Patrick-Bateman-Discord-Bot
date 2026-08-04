@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import heapq
 from time import monotonic
 from typing import TypeVar
-import heapq
-
 
 _T = TypeVar('_T')
 # Tree-structure, nodes are RecursiveCacheHandlers, leaves are values.

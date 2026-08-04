@@ -1,6 +1,7 @@
 from typing import get_args
 
-from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, _reply_types, _trigger_types, SimpleReplyData, SimpleTriggerData, SimpleAliasData
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, _reply_types, _trigger_types, \
+    SimpleReplyData, SimpleTriggerData, SimpleAliasData
 
 
 class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):

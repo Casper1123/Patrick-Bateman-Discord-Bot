@@ -1,10 +1,10 @@
 import discord
-from discord import app_commands, Interaction, Embed, Guild, Colour
+from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
-from Rewrite.discorduser.logger import GlobalLogger, loggable
+from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
 
