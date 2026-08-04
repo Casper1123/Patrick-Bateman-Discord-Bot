@@ -1,5 +1,5 @@
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
-from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SayingEditorData
+from Rewrite.data.implementation.utilities.abstract import AbstractSQLDatabase
+from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
 
 """
 Table(s) and design:

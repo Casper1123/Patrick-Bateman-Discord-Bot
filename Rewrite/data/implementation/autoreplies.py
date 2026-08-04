@@ -1,7 +1,5 @@
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
-from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, AliasData, TriggerData, ReplyData, \
-    _reply_types, _trigger_types
-
+from Rewrite.data.implementation.utilities.abstract import AbstractSQLDatabase
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface
 
 """
 Table(s) and design:

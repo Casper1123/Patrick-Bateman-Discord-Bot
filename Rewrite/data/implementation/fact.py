@@ -1,7 +1,7 @@
 import random as _r
 
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
-from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
+from Rewrite.data.implementation.utilities.abstract import AbstractSQLDatabase
+from Rewrite.data.interfaces.fact import GlobalAdminFactInterface
 
 """
 Table(s) and design:

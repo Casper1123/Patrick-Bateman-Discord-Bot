@@ -1,4 +1,4 @@
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
+from Rewrite.data.implementation.utilities.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 
 

@@ -1,4 +1,3 @@
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.pref import PreferencesInterface, UserPreferenceData, _supp_autr_features, \
     GuildChannelPreferenceData
 

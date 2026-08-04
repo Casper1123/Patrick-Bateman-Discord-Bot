@@ -6,6 +6,8 @@ import sqlite3 as _sql
 from abc import ABC
 import os
 from typing import TypeVar
+import heapq
+
 
 _T = TypeVar('_T')
 # Tree-structure, nodes are RecursiveCacheHandlers, leaves are values.
@@ -56,7 +58,9 @@ class RecursiveCacheHandler:
             self.children[curr].register(rest, val, timeout)
         else:
             assert curr not in self.children.keys(), f'{self.path_as_string}/{curr} is already registered, use Refresh instead.'
-            self.children[curr] = RecursiveCacheEntry(val, monotonic() + timeout)
+            timeout = monotonic() + timeout
+            self.children[curr] = RecursiveCacheEntry(val, timeout)
+            heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
     def refresh(self, keys: tuple[str], timeout: float) -> None:
         """
@@ -72,7 +76,10 @@ class RecursiveCacheHandler:
             self.children[curr].refresh(rest, timeout)
         else:
             assert isinstance(self.children[curr], RecursiveCacheEntry), f'Walk down path into cache of {self.path_as_string}/{curr} cannot be completed as {self.path_as_string}/{curr} does not yield a tree leaf.'
-            self.children[curr].timeout = monotonic() + timeout
+
+            timeout = monotonic() + timeout
+            self.children[curr].timeout = timeout
+            heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
     def unregister(self, keys: tuple[str]) -> None:
         """
@@ -81,6 +88,14 @@ class RecursiveCacheHandler:
 
         Raises an AssertionError if the path somehow collides with a Leaf early.
         Silently quits if any node along the way was not registered.
+        """
+        self._prune_entry(keys, clean_empty_nodes=True)
+
+    def _prune_entry(self, keys: tuple[str, ...], clean_empty_nodes: bool) -> None:
+        """
+        Removes entry at path (or removes entire subtree at path)
+        :param keys: Path to entry / subtree root node.
+        :param clean_empty_nodes: Delete any remaining empty internal nodes?
         """
         if not keys:
             return
@@ -91,10 +106,12 @@ class RecursiveCacheHandler:
                 return
             assert isinstance(self.children[curr], RecursiveCacheHandler), f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.'
             self.children[curr].unregister(rest)
+            if clean_empty_nodes and len(self.children[curr].children.keys()):
+                del self.children[curr]
         else:
             del self.children[curr]
 
-    def is_cached(self, keys: tuple[str]) -> bool:
+    def is_cached(self, keys: tuple[str, ...]) -> bool:
         if not keys:
             return False
         curr, *rest = keys
@@ -105,26 +122,51 @@ class RecursiveCacheHandler:
         else:
             return True
 
-    def get_cached(self, keys: tuple[str], out_type: type[_T]) -> _T:
+    def get_cached(self, keys: tuple[str, ...], out_type: type[_T]) -> _T | None:
+        """
+        Get cached value, if it exists.
+        :param keys: Target path to cached value.
+        :param out_type: Expected type of output.
+        :return: Target object or None if not found.
+        """
+        val: RecursiveCacheEntry | None = self._find(keys)
+        if val is None:
+            return None
+        if not isinstance(val.val, out_type):
+            raise TypeError(
+                f'Return value at path {self.path_as_string}/{'/'.join(keys)} is of type {type(val.val)} (wanted {out_type})')
+        return val.val
+
+    def _find(self, keys: tuple[str, ...]) -> RecursiveCacheEntry | None:
+        """
+        Find Entry in data tree, if it exists.
+        :param keys: Target path to cached value.
+        :return: Direct `RecursiveCacheEntry`
+        """
         if not keys:
             raise AttributeError(f'Received empty keys at path {self.path_as_string}')
         curr, *rest = keys
-        assert curr in self.children.keys(), f'{self.path_as_string}/{curr}{'/' + '/'.join(rest) if rest else ''} cannot be obtained as {self.path_as_string}/{curr} does not exist.'
-        if rest:
-            assert isinstance(self.children[curr], RecursiveCacheHandler), f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.'
-            return self.children[curr].get_cached(rest, out_type)
-        else:
-            assert isinstance(self.children[curr], RecursiveCacheEntry), f'Walk down path into cache of {self.path_as_string}/{curr} cannot be completed as {self.path_as_string}/{curr} does not yield a tree leaf.'
-            val: RecursiveCacheEntry = self.children[curr]
-            if not isinstance(val.val, out_type):
-                raise TypeError(f'Return value at path {self.path_as_string}/{curr} is of type {type(val.val)} (wanted {out_type})')
-            return val.val
+        if not curr in self.children.keys():
+            return None
 
-    async def maintenance_loop(self, timeout: float, clean_empty_nodes: bool = False) -> None:
+        if rest:
+            if not isinstance(self.children[curr], RecursiveCacheHandler):
+                raise Exception(f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
+            return self.children[curr]._find(rest)
+        else:
+            if not isinstance(self.children[curr], RecursiveCacheEntry):
+                raise Exception(f'Walk down path into cache of {self.path_as_string}/{curr} cannot be completed as {self.path_as_string}/{curr} does not yield a tree leaf.')
+            return self.children[curr]
+
+
+    async def maintenance_loop(self, timeout: float, clean_empty_nodes: bool = True) -> None:
         """
-        Timeout in seconds. Automatically and periodically cleans out tree nodes.
+        Automatically and periodically remove expired entries.
+        :param timeout: timeout to check again if the cache is empty
+        :param clean_empty_nodes: whether to clean empty nodes.
+
         Can only be used on tree roots (self.root == self) and might raise an Exception if the starting fails.
-        """
+        """ # todo: clean empty nodes by walking back up the tree.
         if not self.root == self:
             raise Exception('This node is not the root of its own tree.')
         if self._maintenance_loop:
@@ -134,20 +176,29 @@ class RecursiveCacheHandler:
 
         self._maintenance_loop = True
         while self._maintenance_loop:
-            self._check_now(monotonic(), clean_empty_nodes)
-            await asyncio.sleep(timeout)
+            while not self._timeouts:
+                await asyncio.sleep(timeout)
 
-            # todo: for the heap version, see below.
-            # min heap
-            # now = monotonic()
-            # while heap is not empty
-            #   if earliest timeout is after this, break that shii and set the sleeper to then.
-            #   If it's not, pop it out and
-                # find its entry
-                # Do it still exist? If not, just skip
-                # If it does, check if it's current value is still timeout.
-                # If it is (as it was not updated) remove it.
-            # When refreshing, add new copy to the heap, as the older ones will fizzle automatically anyways.
+            now = monotonic()
+
+            while self._timeouts:
+                # check first entry (min-heap moment)
+                timeout, path = self._timeouts[0]
+                if timeout > now:
+                    await asyncio.sleep(max(timeout - now + 1, timeout)) # wait 1 more second
+                    break # Try again after countdown
+
+                heapq.heappop(self._timeouts) # pops it out, we have data in (timeout, path) anyways
+
+                entry: RecursiveCacheEntry = self._find(path)
+
+                if entry is None:
+                    continue
+
+                if entry.timeout > timeout: # current entry timeout is invalid
+                    continue
+
+                self._prune_entry(path, clean_empty_nodes=clean_empty_nodes)
 
         self._maintenance_loop = False
 
@@ -161,35 +212,22 @@ class RecursiveCacheHandler:
             return True
         return False
 
-    def _check_now(self, time: float, clean_empty_child_nodes: bool):
+    def _check_complete(self, clean_empty_child_nodes: bool, time: float = None, ):
         """
         Checks children for timeout removal using tree walk at the given time.
-        """ # fixme: optimization possible with heapq
+        """ # fixme: optimization possible with heapq implemented in maintenance_loop
+        if time is None:
+            time = monotonic()
+
         marked: list[str] = []
         for k, v in self.children.items():
             if isinstance(v, RecursiveCacheEntry):
                 if v.timeout < time:
                     marked.append(k)
             else:
-                v._check_now(time, clean_empty_child_nodes)
+                v._check_complete(clean_empty_child_nodes, time)
                 if len(v.children.keys()) == 0 and clean_empty_child_nodes:
                     marked.append(k)
 
         for k in marked:
             del self.children[k]
-
-class AbstractSQLDatabase(ABC):
-    def __init__(self, db_path: str, schema_path: str) -> None:
-        self.path = db_path
-
-        if not os.path.isfile(schema_path):
-            raise FileNotFoundError(f"Schema at {schema_path} does not exist")
-
-        with _sql.connect(db_path) as conn:
-            with open(schema_path, "r") as f:
-                conn.executescript(f.read())
-
-    def _connection(self) -> _sql.Connection:
-        conn = _sql.connect(self.path)
-        conn.row_factory = _sql.Row
-        return conn

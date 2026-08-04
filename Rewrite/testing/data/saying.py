@@ -1,5 +1,4 @@
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
-from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SayingEditorData, SimpleSayingEditorData
+from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
 
 
 class TestSayingDatabase(GlobalAdminSayingInterface):

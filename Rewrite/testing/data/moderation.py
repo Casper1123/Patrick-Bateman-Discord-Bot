@@ -1,4 +1,3 @@
-from Rewrite.data.implementation.abstract import AbstractSQLDatabase
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 
 
