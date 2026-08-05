@@ -270,7 +270,7 @@ class LocalAdminCog(commands.GroupCog, group_name='admin'):
 
     # region preferences
     @app_commands.command(name="autoreply_preferences",
-                          description="Toggle automatic features for this, or all, channels. Set to True to toggle. Leave empty to see current settings.")
+                          description="Leave empty to see current settings.")
     @app_commands.describe(here="If false, edits general server-wide override instead.",
                            numbers="Incremental number replies.", letters='Letter-only replies.',
                            text='Text content replies.')
