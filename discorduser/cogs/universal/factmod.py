@@ -285,16 +285,6 @@ class GlobalAdminCog(commands.GroupCog, group_name='global'):
         await interaction.response.send_message(ephemeral=ephemeral, embed=embed) # noqa
 
     # region other
-    @app_commands.command(name='refresh',
-                          description='Refresh command tree. ONLY USE IF YOU KNOW WHAT YOU ARE DOING.')
-    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def refresh(self, interaction: Interaction, ephemeral: bool = False):
-        await interaction.response.defer(ephemeral=ephemeral, thinking=False) # noqa
-        await self.client.user_feedback(interaction, title=f'Synchronizing Command Tree ...')
-        await self.client.tree.sync()
-        await self.client.user_feedback(interaction, title=f'Command Tree synchronization complete.')
-
-
     @app_commands.command(name='db_killswitch',
                           description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)

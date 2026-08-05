@@ -52,3 +52,5 @@ class BotClient(_AbstractClient):
 
         # Finalize
         await super().setup_hook() # call to toolkit version.
+
+        await self.tree.sync() # Attach created and added hooks to discord.
