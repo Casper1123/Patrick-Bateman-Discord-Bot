@@ -33,8 +33,6 @@ class FactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
         # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
         # Mostly intended for Moderation purposes.
 
-        # todo: caching
-
     def toggle_local_fact_killswitch(self) -> bool:
         self.local_fact_kill_switch = not self.local_fact_kill_switch
         return self.local_fact_kill_switch

@@ -69,3 +69,5 @@ class GlobalAdminSayingInterface(SayingInterface):
         Get a saying at a given index. Raises IndexError if index is out of range.
         """
         raise NotImplementedError()
+
+    # todo: create command to dump complete data into file
