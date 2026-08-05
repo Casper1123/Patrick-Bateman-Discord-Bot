@@ -16,7 +16,7 @@ At least two rounds of configuration loading are performed (global configuration
 This is the main bot cycle which will use proper database implementations and the token from `config/tokens.json`.
 
 ### Testing
-> `python testing.py`
+> `python test.py`
 
 This is the testing bot cycle which injects testing database and configurations into the bot, using the login token found in `config/test_token.json`.
 Do note however, that it uses the same value for `GLOBAL_ADMIN_SERVER_ID` as found in `config/global.json` as `main.py`.
