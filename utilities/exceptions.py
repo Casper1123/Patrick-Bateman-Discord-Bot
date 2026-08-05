@@ -1,4 +1,5 @@
 from enum import Enum
+import traceback
 
 from discord import Embed, Colour
 
@@ -35,19 +36,10 @@ class CustomDiscordException(Exception):
         if self.cause:
             cause = (f'\n\n**Caused by:** {type(self.cause).__name__}\n'
                      f'{self.cause}')
-            # Traceback walkdown
-            assert isinstance(self.cause, Exception), f'cause of type {type(self.cause)}, not exception.'
-            tb = self.cause.__traceback__
 
-            while tb.tb_next:
-                tb = tb.tb_next
-
-            frame = tb.tb_frame
-            filename = frame.f_code.co_filename
-            function = frame.f_code.co_name
-            line = tb.tb_lineno
-
-            cause += f"\nRaised in {filename}:{line} ({function})"
+            if isinstance(self.cause, Exception) and self.cause.__traceback__:
+                origin = traceback.extract_tb(self.cause.__traceback__)[-1]
+                cause += f"\nRaised in {origin.filename}:{origin.lineno} ({origin.name})"
 
         embed = Embed(
             title=self.error_type,
