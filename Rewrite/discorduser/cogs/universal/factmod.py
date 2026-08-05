@@ -135,7 +135,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         facts: list[FactEditorData] = self.fact.get_global_facts()
         lower, upper = cram_options(len(facts), current, 4, favour='higher')
         return [
-            Choice(name=f'{offset}: {fact}', value=offset)
+            Choice(name=f'{offset}: {fact[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
         ]
     # endregion
@@ -212,6 +212,26 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             title=f'Local fact data',
             description='JSON data attached.' if json else f'See attached file for fact data.'
         ))
+
+    # region autocomplete
+    @modify.autocomplete('index')
+    @index_local.autocomplete('index')
+    async def _gfactmod_index_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        guild_id: int = interaction.namespace.guild_id
+        if not guild_id:
+            return [ Choice(name='Bad guild ID', value=-1) ]
+        facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
+        if not facts:
+            return [Choice(name='Bad guild ID', value=-1)]
+
+        if not current:
+            current = 0
+        lower, upper = cram_options(len(facts), current, 4, favour='higher')
+        return [
+            Choice(name=f'{offset}: {fact[:80]}', value=offset)
+            for offset, fact in enumerate(facts[lower:upper])
+        ]
+    # endregion
     # endregion
 
 # todo: move to seperate file?
@@ -270,11 +290,9 @@ class GlobalAdminCog(commands.Cog, name='global'):
     @app_commands.describe(ephemeral='Hide this command for other users.')
     async def refresh(self, interaction: Interaction, ephemeral: bool = False):
         await interaction.response.defer(ephemeral=ephemeral, thinking=False)
-        await interaction.edit_original_response(content=f'Synchronizing Command Tree ...')
+        await self.client.user_feedback(interaction, title=f'Synchronizing Command Tree ...')
         await self.client.tree.sync()
-        await interaction.edit_original_response(content=f'Command Tree synchronization complete.')
-        return
-        # todo: this is not required is it.
+        await self.client.user_feedback(interaction, title=f'Command Tree synchronization complete.')
 
 
     @app_commands.command(name='DB_KILLSWITCH',
@@ -292,8 +310,10 @@ class GlobalAdminCog(commands.Cog, name='global'):
             ).set_author(name=interaction.user.name, icon_url=interaction.user.avatar.url)
         )
 
-    async def set_log_channel(self, interaction: Interaction, action: loggable, channel: int, ephemeral: bool = False): # todo: <#> parsing
-        channel = self.client.get_channel(channel)
+    @app_commands.command(name='set_log',
+                          description='Sets a log channel in global config.')
+    async def set_log_channel(self, interaction: Interaction, action: loggable, channel: int, ephemeral: bool = False):
+        channel = interaction.guild.get_channel(channel)
         if channel:
             await self.logger.set_log_channel(interaction, action, channel) # doing this first so it at least lands this type of information in the final channel :p
             self.logger.update_output_channel(action, channel)
@@ -302,4 +322,21 @@ class GlobalAdminCog(commands.Cog, name='global'):
             await self.client.user_feedback(interaction, title='Log output update failed', desc='Channel not found', ephemeral=ephemeral)
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
+
+    # region autoreply
+    @set_log_channel.autocomplete('channel')
+    async def _autocomplete_channel_id(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]
+        if not current:
+            return [
+                Choice(name=i[1], value=i[2]) for i in pairs[:4]
+            ]
+        # Obtain stuff based on the typed in number
+        current: str = str(current)
+        filtered: list[tuple[str, str, int]] = [i for i in pairs if i[0].startswith(current)]
+        filtered.sort(key=lambda x: x[0])
+        return [
+            Choice(name=f'[{i[0]}] {i[1]}', value=int(i[2])) for i in filtered[:4]
+        ]
+    # endregion
     # endregion

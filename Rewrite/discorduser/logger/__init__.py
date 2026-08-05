@@ -278,7 +278,7 @@ class GlobalLogger:
 
         embed: Embed = Embed(
             title='[SET_LOG_CHANNEL]',
-            description=f'Moving of {action} logging to {target.name} ({target.id})\n'
+            description=f'Moving of {action} logging to <#{target.id}> ({target.name}; {target.id})\n'
                         f'\n'
                         f'Moved by: {interaction.user.name} ({interaction.user.id})',
             colour=Colour.blue()
