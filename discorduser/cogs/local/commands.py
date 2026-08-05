@@ -19,7 +19,7 @@ from piss.instructionexecutor import DebugInstructionExecutor
 from piss.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
 from utilities.exceptions import CustomDiscordException, ErrorTooltip
-from config.global_config import CFG
+from configuration.global_config import CFG
 
 class UseRestriction(Enum):
     NONE = 0,

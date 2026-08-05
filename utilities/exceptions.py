@@ -2,7 +2,7 @@ from enum import Enum
 
 from discord import Embed, Colour
 
-from config.global_config import CFG
+from configuration.global_config import CFG
 
 
 class ErrorTooltip(Enum):

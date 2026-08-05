@@ -5,7 +5,7 @@ from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from config.global_config import CFG
+from configuration.global_config import CFG
 from data.interfaces.autoreplies import GlobalTextAutorepliesInterface, reply_types, \
     SimpleAliasData, SimpleTriggerData, SimpleReplyData
 from discorduser.logger import GlobalLogger

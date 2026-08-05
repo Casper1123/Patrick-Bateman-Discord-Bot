@@ -3,7 +3,7 @@ from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from config.global_config import CFG
+from configuration.global_config import CFG
 from data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
 from discorduser.logger import GlobalLogger
 from discorduser.user.abstract import BotClient

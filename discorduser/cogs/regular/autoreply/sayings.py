@@ -3,7 +3,7 @@ import random as _r
 import discord
 from discord.ext import commands
 
-from config.global_config import CFG
+from configuration.global_config import CFG
 from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import SayingInterface
 from discorduser.user.abstract import BotClient

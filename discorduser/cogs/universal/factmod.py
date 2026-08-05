@@ -7,7 +7,7 @@ from discord import app_commands, Interaction, Embed, Guild, Colour
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from config.global_config import CFG
+from configuration.global_config import CFG
 from data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface

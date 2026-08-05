@@ -1,7 +1,7 @@
 from discord import app_commands, Interaction
 from discord.ext import commands
 
-from config.global_config import CFG
+from configuration.global_config import CFG
 from data.interfaces.fact import FactInterface
 from discorduser.user.abstract import BotClient
 from piss import parse_variables, Instruction
