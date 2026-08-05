@@ -259,6 +259,14 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         Raises IndexError if given index is out of range.
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_replies_by_alias(self, alias: str) -> list[SimpleReplyData]:
+        """
+        Gets all Replies with the given Alias.
+        Raises ValueError if the Alias does not exist.
+        """
+        raise NotImplementedError()
     # endregion
 
     # todo: create indexing command options to dump complete data into file.

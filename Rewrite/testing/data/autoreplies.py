@@ -5,6 +5,9 @@ from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, 
 
 
 class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):
+    def get_replies_by_alias(self, alias: str) -> list[SimpleReplyData]:
+        return [self.get_reply(alias)] # only works because there's one singular reply in there.
+
     def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
         # Small enough custom sample to do it this shoddy way.
         dat = self.get_triggers_by_alias()

@@ -188,8 +188,8 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
         # Time to compress this stuff.
         lower, upper = cram_options(len(triggers), current, 4, favour='higher')
         return [
-            # fixme: does not support other types of triggers.
-            Choice(name=trigger.data, value=offset)
+            # Offset like this because indexing is by 1 for users.
+            Choice(name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
             for offset, trigger in enumerate(triggers[lower:upper])
         ]
     # endregion
@@ -299,6 +299,24 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+
+    @edit_reply.autocomplete('index')
+    @delete_reply.autocomplete('index')
+    async def _index_options_autocomplete(self, interaction: discord.Interaction, current: int) -> list[Choice[int]]:
+        alias = interaction.namespace.alias
+        if not alias:
+            return []
+        # Try and find the current alias.
+        if not self.repl.alias_exists(alias):
+            return [Choice(name='Bad alias.', value=-1)]
+        replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
+        # Time to compress this stuff.
+        lower, upper = cram_options(len(replies), current, 4, favour='higher')
+        return [
+            # Offset like this because indexing is by 1 for users.
+            Choice(name=f'{offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)
+            for offset, reply in enumerate(replies[lower:upper])
+        ]
     # endregion
 
 async def attach_cogs(client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger):
