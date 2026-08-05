@@ -13,7 +13,7 @@ class UserPreferenceCog(commands.Cog):
 
     # User preference toggle.
     # Note: autocomplete not supported for Boolean types.
-    @app_commands.command(name="preferences", description="Toggle automatic features for yourself. Set to True to toggle.")
+    @app_commands.command(name="preferences", description="Toggle automatic features for yourself. Set to True to toggle. Leave empty to see current settings.")
     @app_commands.describe(numbers="Incremental number replies.", letters='Letter-only replies.', text='Text content replies.')
     async def user_toggle_preference(self, interaction: Interaction, numbers: bool = False, letters: bool = False, text: bool = False):
         # Not allowing to disable sayings is on purpose.
