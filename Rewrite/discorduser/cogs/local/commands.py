@@ -261,7 +261,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=discord.Embed(title='Local fact data', description='See attached file for fact data.'))
 
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
-    @app_commands.describe(ephemeral='Hide this command for other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to disable.')
+    @app_commands.describe(ephemeral='Hide this command for other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
     async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
