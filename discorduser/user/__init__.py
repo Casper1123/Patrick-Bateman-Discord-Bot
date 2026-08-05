@@ -57,7 +57,4 @@ class BotClient(_AbstractClient):
         await super().setup_hook() # call to toolkit version.
 
         await self.tree.sync() # Attach created and added hooks to discord.
-        try:
-            await self.tree.sync(guild=discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-        except discord.HTTPException:
-            pass
+        await self.tree.sync(guild=discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
