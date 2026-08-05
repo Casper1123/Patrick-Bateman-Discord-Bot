@@ -222,7 +222,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             return [ Choice(name='Bad guild ID', value=-1) ]
         facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
         if not facts:
-            return [Choice(name='Bad guild ID', value=-1)]
+            return [Choice(name='No local facts', value=-1)]
 
         if not current:
             current = 0

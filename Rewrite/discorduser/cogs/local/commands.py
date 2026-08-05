@@ -4,6 +4,7 @@ from enum import Enum
 
 import discord
 from discord import app_commands, Interaction
+from discord.app_commands import Choice
 from discord.ext import commands
 
 from Rewrite.data.interfaces.fact import LocalAdminFactInterface, FactEditorData
@@ -16,6 +17,7 @@ from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
 from Rewrite.piss.testing import test_raw_input as input_test
+from Rewrite.utilities.autocomplete_cramming import cram_options
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
@@ -261,8 +263,6 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
     @app_commands.describe(ephemeral='Hide this command for other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to disable.')
     async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
-        # todo: autocomplete with current channel, having the text display which channel it is set to ('click to set to this channel')
-        # todo: parse <#id> input, so change input to string.
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
             await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
@@ -276,7 +276,6 @@ class LocalAdminCog(commands.Cog, name='admin'):
         await self.logger.local_set_log_channel(interaction.guild, interaction, logchannel)
         await self.local_logger.set_log_channel(interaction, logchannel)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Log output channel set to <#{logchannel.id}>')
-        # todo: Choice to display current value.
     # endregion
 
     # region preferences
@@ -322,4 +321,36 @@ class LocalAdminCog(commands.Cog, name='admin'):
             title='Guild autoreply preferences updated',
             desc=desc,
         )
+    # endregion
+
+    # region autocomplete
+    @edit.autocomplete('index')
+    @delete.autocomplete('index')
+    async def _local_fact_index_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        facts: list[FactEditorData] = self.fact.get_local_facts(interaction.guild_id)
+        if not facts:
+            return [Choice(name='No local facts', value=-1)]
+
+        if not current:
+            current = 0
+        lower, upper = cram_options(len(facts), current, 4, favour='higher')
+        return [
+            Choice(name=f'{offset}: {fact[:80]}', value=offset)
+            for offset, fact in enumerate(facts[lower:upper])
+        ]
+
+    @log.autocomplete('channel')
+    async def _autocomplete_channel_id(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]
+        if not current:
+            return [
+                Choice(name=i[1], value=i[2]) for i in pairs[:4]
+            ]
+        # Obtain stuff based on the typed in number
+        current: str = str(current)
+        filtered: list[tuple[str, str, int]] = [i for i in pairs if i[0].startswith(current)]
+        filtered.sort(key=lambda x: x[0])
+        return [
+            Choice(name=f'[{i[0]}] {i[1]}', value=int(i[2])) for i in filtered[:4]
+        ]
     # endregion
