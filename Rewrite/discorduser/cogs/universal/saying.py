@@ -7,6 +7,7 @@ from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SimpleSay
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
+from Rewrite.utilities.autocomplete_cramming import cram_options
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
@@ -62,5 +63,12 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
 
     @saying_edit.autocomplete('index')
     @saying_delete.autocomplete('index')
-    async def _index_autocomplete_callback(self, interaction: Interaction, current: str) -> list[Choice[str]]:
-        return [] # todo: implement
+    async def _index_autocomplete_callback(self, _: Interaction, current: str) -> list[Choice[str]]:
+        if not current:
+            current = 0
+        sayings: list[SimpleSayingEditorData] = self.saying.get_sayings()
+        lower, upper = cram_options(len(sayings), current, 4, favour='higher')
+        return [
+            Choice(name=f'{offset}: {saying[:80]}', value=offset)
+            for offset, saying in enumerate(sayings[lower:upper])
+        ]
