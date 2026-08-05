@@ -217,7 +217,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.command(name='help', description='A small introduction on how to use PISS to construct facts.')
     @app_commands.describe(ephemeral='Hide this command for other users.')
     async def help(self, interaction: Interaction, ephemeral: bool = True) -> None:
-        with open("data/admin_help.md", "r", encoding="utf-8") as f:
+        with open("data/data/admin_help.md", "r", encoding="utf-8") as f:
             markdown_content = f.read()
         nli: int = markdown_content.index('\n') # find first newline to separate first line as embed title.
         title, other = markdown_content[:nli], markdown_content[nli:]
