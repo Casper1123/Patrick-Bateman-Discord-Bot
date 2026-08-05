@@ -42,6 +42,8 @@ class BotClient(commands.Bot):
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
 
     async def setup_hook(self) -> None:
+        # fixme: only takes tree errors.
+        # Autocomplete errors and listener errors are not included in this.
         async def on_tree_error(interaction: Interaction, error: app_commands.AppCommandError):
             try:
                 if (True):  # todo: config to make uncaught public errors hidden or not
