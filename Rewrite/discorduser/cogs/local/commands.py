@@ -285,7 +285,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.describe(here="If false, edits general server-wide override instead.",
                            numbers="Incremental number replies.", letters='Letter-only replies.',
                            text='Text content replies.')
-    async def guild_toggle_preference(self, interaction: discord.Interaction, here: bool, numbers: bool = False,
+    async def guild_toggle_preference(self, interaction: Interaction, here: bool, numbers: bool = False,
                                       letters: bool = False, text: bool = False, saying: bool = False, ephemeral: bool = True) -> None:
         await interaction.response.defer(ephemeral=ephemeral, thinking=True)
         guild_id: int = interaction.guild_id

@@ -1,5 +1,4 @@
-import discord
-from discord import app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from Rewrite.data.interfaces.pref import PreferencesInterface, _supp_autr_features, UserPreferenceData
@@ -16,7 +15,7 @@ class UserPreferenceCog(commands.Cog):
     # Note: autocomplete not supported for Boolean types.
     @app_commands.command(name="preferences", description="Toggle automatic features for yourself. Set to True to toggle.")
     @app_commands.describe(numbers="Incremental number replies.", letters='Letter-only replies.', text='Text content replies.')
-    async def user_toggle_preference(self, interaction: discord.Interaction, numbers: bool = False, letters: bool = False, text: bool = False):
+    async def user_toggle_preference(self, interaction: Interaction, numbers: bool = False, letters: bool = False, text: bool = False):
         # Not allowing to disable sayings is on purpose.
         await interaction.response.defer(ephemeral=True, thinking=True)
         pref: UserPreferenceData = self.pref.user_autoreplies_enabled(interaction.user.id)

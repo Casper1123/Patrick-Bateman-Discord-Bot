@@ -1,7 +1,7 @@
 # NOTE: COMMANDS ARE NOT GLOBALLY USABLE, THEY ARE GLOBAL ADMIN
 
 import discord
-from discord import app_commands
+from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
@@ -28,7 +28,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
     @app_commands.describe(name='The name of the new alias. Cannot be duplicate.',
                            rate='The standard activation rate of this alias, ranging in between 1-256. Default: 256 (100%)',
                            ephemeral='Hide this command for other users.')
-    async def create_alias(self, interaction: discord.Interaction, name: str, rate: int = None, ephemeral: bool = False) -> None:
+    async def create_alias(self, interaction: Interaction, name: str, rate: int = None, ephemeral: bool = False) -> None:
         try:
             self.repl.create_alias(name, rate if rate is not None else 256)
         except ValueError:
@@ -44,7 +44,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
                           rate='The standard activation rate of this alias, ranging in between 1-256. Leave empty for 256',
                            ephemeral='Hide this command for other users.')
     @app_commands.rename(new_name='name')
-    async def edit_alias(self, interaction: discord.Interaction, alias: str, new_name: str | None = None, rate: int | None = None, ephemeral: bool = False):
+    async def edit_alias(self, interaction: Interaction, alias: str, new_name: str | None = None, rate: int | None = None, ephemeral: bool = False):
         if rate is None and new_name is None:
             await self.client.user_feedback(interaction, title='Alias edit failed',
                             desc='Please select an option. If you intend to delete this alias, select the pre-given option to do so.', ephemeral=ephemeral)
@@ -64,7 +64,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
 
     @app_commands.command(name='delete', description='Delete an existing Alias, as well as all of its contents.')
     @app_commands.describe(alias='The Alias you wish to delete.', confirm='YOU REMOVE ALL TRIGGERS AND REPLIES TOO.', ephemeral='Hide this command for other users.')
-    async def delete_alias(self, interaction: discord.Interaction, alias: str, confirm: bool = None, ephemeral: bool = False) -> None:
+    async def delete_alias(self, interaction: Interaction, alias: str, confirm: bool = None, ephemeral: bool = False) -> None:
         if not confirm:
             await self.client.user_feedback(interaction, title='Alias removal failed', desc='Confirm your decision.\n'
                                                                                             'This is done so you have to think twice about removing the Alias.\n'
@@ -82,7 +82,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
     # region autocomplete
     @edit_alias.autocomplete('alias')
     @delete_alias.autocomplete('alias')
-    async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
+    async def _alias_options_autocomplete(self, _: Interaction, current: str):
         target = current.lower() # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
@@ -102,7 +102,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     @app_commands.describe(alias='The Alias this Trigger belongs to.', text='Trigger RegEx to match to.',
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
                            ephemeral='Hide this command for other users.')
-    async def create_trigger(self, interaction: discord.Interaction, alias: str, text: str, rate: int = None, ephemeral: bool = False):
+    async def create_trigger(self, interaction: Interaction, alias: str, text: str, rate: int = None, ephemeral: bool = False):
         if rate is not None and not (1 <= rate <= 256):
             await self.client.user_feedback(interaction, title='Trigger creation failed',
                       desc='The given rate is not in range **[1..256]**.', ephemeral=ephemeral)
@@ -122,7 +122,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
                            ephemeral='Hide this command for other users.')
     # todo: index autocomplete based on passed-in alias.
-    async def edit_trigger(self, interaction: discord.Interaction, alias: str, index: int, text: str = None, rate : int = None, ephemeral: bool = False):
+    async def edit_trigger(self, interaction: Interaction, alias: str, index: int, text: str = None, rate : int = None, ephemeral: bool = False):
         if text is None and rate is None:
             await self.client.user_feedback(interaction, title='Trigger edit failed',
                                             desc='You need to update at least one of text and rate.', ephemeral=ephemeral)
@@ -150,7 +150,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                            index='The index of this Trigger.',
                            ephemeral='Hide this command for other users.')
     # todo: index autocomplete based on passed-in alias.
-    async def delete_trigger(self, interaction: discord.Interaction, alias: str, index: int, ephemeral: bool = False):
+    async def delete_trigger(self, interaction: Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
             old: SimpleTriggerData = self.repl.remove_trigger(alias, index)
         except ValueError:
@@ -169,7 +169,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     @create_trigger.autocomplete('alias')
     @edit_trigger.autocomplete('alias')
     @delete_trigger.autocomplete('alias')
-    async def _alias_options_autocomplete(self, _: discord.Interaction, current: str) -> list[Choice[str]]:
+    async def _alias_options_autocomplete(self, _: Interaction, current: str) -> list[Choice[str]]:
         target = current.lower()  # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
@@ -177,7 +177,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
 
     @edit_trigger.autocomplete('index')
     @delete_trigger.autocomplete('index')
-    async def _index_options_autocomplete(self, interaction: discord.Interaction, current: int) -> list[Choice[int]]:
+    async def _index_options_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         alias = interaction.namespace.alias
         if not alias:
             return [Choice(name='Bad alias.', value=-1)]
@@ -210,7 +210,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
                            weight='The relative weight this Reply will proc to. Defaults to 1.',
                            ephemeral='Hide this command for other users.')
     @app_commands.rename(reply_type='type')
-    async def create_reply(self, interaction: discord.Interaction, alias: str, reply_type: _reply_types, text: str, weight: int = 1, ephemeral: bool = False):
+    async def create_reply(self, interaction: Interaction, alias: str, reply_type: _reply_types, text: str, weight: int = 1, ephemeral: bool = False):
         if weight is not None and not 1 <= weight <= WEIGHT_UPPER_BOUND:
             await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Weight not in range [1..{WEIGHT_UPPER_BOUND}].', ephemeral=ephemeral)
         if reply_type == 'text':
@@ -237,7 +237,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     @app_commands.describe(alias='The alias the reply belongs to.', index='The index of the Reply (autocomplete requires the Alias first!)',
                            ephemeral='Hide this command for other users.')
     # todo: index autocomplete based on passed-in alias.
-    async def edit_reply(self, interaction: discord.Interaction, alias: str, index: int, text: str = None, weight: int = None, ephemeral: bool = False):
+    async def edit_reply(self, interaction: Interaction, alias: str, index: int, text: str = None, weight: int = None, ephemeral: bool = False):
         if text is None and weight is None:
             await self.client.user_feedback(interaction, title='Reply edit failed', desc='You need to update at least one of text and weight.')
             return
@@ -275,7 +275,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     @app_commands.describe(alias='The alias the reply belongs to.', index='The index of the Reply (autocomplete requires the Alias first!)',
                            ephemeral='Hide this command for other users.')
     # todo: index autocomplete based on passed-in alias.
-    async def delete_reply(self, interaction: discord.Interaction, alias: str, index: int, ephemeral: bool = False):
+    async def delete_reply(self, interaction: Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
             old: SimpleReplyData = self.repl.remove_reply(alias, index)
         except ValueError:
@@ -294,7 +294,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     @create_reply.autocomplete('alias')
     @edit_reply.autocomplete('alias')
     @delete_reply.autocomplete('alias')
-    async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
+    async def _alias_options_autocomplete(self, _: Interaction, current: str):
         target = current.lower()  # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
@@ -302,7 +302,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
 
     @edit_reply.autocomplete('index')
     @delete_reply.autocomplete('index')
-    async def _index_options_autocomplete(self, interaction: discord.Interaction, current: int) -> list[Choice[int]]:
+    async def _index_options_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         alias = interaction.namespace.alias
         if not alias:
             return [Choice(name='Bad alias.', value=-1)]

@@ -2,7 +2,7 @@ import socket
 
 import aiohttp
 import discord
-from discord import app_commands, Colour
+from discord import app_commands, Colour, Interaction
 from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
@@ -42,7 +42,7 @@ class BotClient(commands.Bot):
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
 
     async def setup_hook(self) -> None:
-        async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+        async def on_tree_error(interaction: Interaction, error: app_commands.AppCommandError):
             try:
                 if (True):  # todo: config to make uncaught public errors hidden or not
                     await interaction.response.defer(ephemeral=True, thinking=False)
@@ -74,7 +74,7 @@ class BotClient(commands.Bot):
 
         self.tree.on_error = on_tree_error
 
-    async def user_feedback(self, interaction: discord.Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None: # noqa
+    async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None: # noqa
         """
         Sends the following title and (optional) description in a standardized embed to the user.
         :param interaction: Interaction or Message to reply to.
@@ -83,7 +83,7 @@ class BotClient(commands.Bot):
         :param ephemeral: If Interaction, ephemeral?
         """
         e = discord.Embed(title=title, description=desc, colour=Colour.blue())
-        if isinstance(interaction, discord.Interaction):
+        if isinstance(interaction, Interaction):
             try:
                 await interaction.response.send_message(embed=e, ephemeral=ephemeral)
             except discord.InteractionResponded:

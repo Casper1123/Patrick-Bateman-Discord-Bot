@@ -1,5 +1,4 @@
-import discord
-from discord import app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from Rewrite.data.interfaces.fact import FactInterface
@@ -18,7 +17,7 @@ class FactsCog(commands.Cog):
     @app_commands.command(name="fact", description="Gives a fact.")
     @app_commands.describe(index="The index of the fact you would like to request.")
     @app_commands.checks.cooldown(1, FACT_COOLDOWN, key=lambda i: (i.guild_id, i.user.id))
-    async def fact_give(self, interaction: discord.Interaction, index: int = None):
+    async def fact_give(self, interaction: Interaction, index: int = None):
         try:
             fact_raw: str = self.fact.get_fact(interaction.guild_id if not self.fact.is_killswitch() else None, index)
         except IndexError:
@@ -34,7 +33,7 @@ class FactsCog(commands.Cog):
     @app_commands.checks.cooldown(1, 10, key=lambda i: (i.guild_id, i.user.id))
                 # hardcoded 10s because this command is not as useful
                 # and I'd like to save on DB calls
-    async def fact_index(self, interaction: discord.Interaction):
+    async def fact_index(self, interaction: Interaction):
         global_fact_count: int = self.fact.get_fact_count(None)
         local_fact_count: int = self.fact.get_fact_count(interaction.guild_id) if not self.fact.is_killswitch() else 0
         total_fact_count: int = global_fact_count + local_fact_count

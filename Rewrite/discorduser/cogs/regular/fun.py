@@ -2,7 +2,7 @@ import datetime
 import random as _r
 
 import discord
-from discord import app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from Rewrite.discorduser.user.abstract import BotClient
@@ -16,7 +16,7 @@ class MainCommandsCog(commands.Cog):
 
     @app_commands.command(name="chinesenukelaunchcodes",
                           description="速度与激情早上好中国现在我有冰激淋 我很喜欢冰激淋但是《速度与激情9》比冰激淋……🍦")
-    async def chinese_nuke_launch_codes(self, interaction: discord.Interaction):
+    async def chinese_nuke_launch_codes(self, interaction: Interaction):
         numlist = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "零"] # todo: update the text
         numbers = "".join([_r.choice(numlist) for _ in range(_r.randint(8, 12))])
         await interaction.response.send_message(
@@ -24,17 +24,17 @@ class MainCommandsCog(commands.Cog):
             ephemeral=False)
 
     @app_commands.command(name="throwitback", description="...")
-    async def throw_it_back(self, interaction: discord.Interaction):
+    async def throw_it_back(self, interaction: Interaction):
         await interaction.response.send_message(content="https://tenor.com/view/throw-it-back-gif-25029115")
 
     @app_commands.command(name="sex", description="sex")
-    async def _sex(self, interaction: discord.Interaction):
+    async def _sex(self, interaction: Interaction):
         await interaction.response.send_message("Yeah, no.")
         # todo: update
 
     @app_commands.command(name="throwback", description="Replies to a random message in this channel's history.")
     @app_commands.describe(ephemeral="Hide the response; sneaky private throwback")
-    async def throwback_command(self, interaction: discord.Interaction, ephemeral: bool = False):
+    async def throwback_command(self, interaction: Interaction, ephemeral: bool = False):
         await interaction.response.send_message("Finding random message in channel history. This might take some time.",
                                                 ephemeral=ephemeral)
         # Get current last message date

@@ -1,5 +1,5 @@
 import discord
-from discord import app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from Rewrite.discorduser.user.abstract import BotClient
@@ -23,17 +23,17 @@ class AskPatrick(commands.Cog):
 
     @app_commands.command(name="ask", description="A command-type shortcut to 'ask @botname <question>'.")
     @app_commands.describe(question="The question to ask.")
-    async def ask_patrick_command(self, interaction: discord.Interaction, question: str):
+    async def ask_patrick_command(self, interaction: Interaction, question: str):
         await self.ask_patrick(interaction, question)
 
-    async def ask_patrick(self, message: discord.Message | discord.Interaction, question: str):
-        async def ask_reply(replyable: discord.Message | discord.Interaction, content: str,
+    async def ask_patrick(self, message: discord.Message | Interaction, question: str):
+        async def ask_reply(replyable: discord.Message | Interaction, content: str,
                             send_in_channel: bool = False) -> None:
             if send_in_channel:
                 await replyable.channel.send(content=content)
                 return
 
-            if isinstance(replyable, discord.Interaction):
+            if isinstance(replyable, Interaction):
                 await replyable.response.send_message(content=content)
             else:
                 await replyable.reply(mention_author=False, content=content)
