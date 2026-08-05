@@ -180,7 +180,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     async def _index_options_autocomplete(self, interaction: discord.Interaction, current: int) -> list[Choice[int]]:
         alias = interaction.namespace.alias
         if not alias:
-            return []
+            return [Choice(name='Bad alias.', value=-1)]
         # Try and find the current alias.
         if not self.repl.alias_exists(alias):
             return [Choice(name='Bad alias.', value=-1)]
@@ -305,7 +305,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
     async def _index_options_autocomplete(self, interaction: discord.Interaction, current: int) -> list[Choice[int]]:
         alias = interaction.namespace.alias
         if not alias:
-            return []
+            return [Choice(name='Bad alias.', value=-1)]
         # Try and find the current alias.
         if not self.repl.alias_exists(alias):
             return [Choice(name='Bad alias.', value=-1)]
