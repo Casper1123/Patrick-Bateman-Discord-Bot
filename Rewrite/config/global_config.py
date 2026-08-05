@@ -24,3 +24,10 @@ SAYING_PROBABILIY: int = 300 # 1 / probability listed here, per message.
 
 # Other
 EPHEMERAL_DESCRIPTION: str = 'Hide this command from other users.'
+
+
+SUPPORT_SERVER_INVITE: str = 'XNQwUHAbDh'  # storing invite suffix here. If anyone ever forks this, feel free to alter this.
+# Explicitly not leaving url in here, for one for scrapers and for two for my mental wellbeing
+#   (I'd rather make sure that the return is a Discord URL in case SOMEHOW memory gets fiddled with)
+GITHUB_ISSUES_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/issues'
+GITHUB_WIKI_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'

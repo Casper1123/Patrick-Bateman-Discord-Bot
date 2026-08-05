@@ -2,12 +2,7 @@ from enum import Enum
 
 from discord import Embed, Colour
 
-SUPPORT_SERVER_INVITE: str = 'XNQwUHAbDh'  # storing invite suffix here. If anyone ever forks this, feel free to alter this.
-# Explicitly not leaving url in here, for one for scrapers and for two for my mental wellbeing
-#   (I'd rather make sure that the return is a Discord URL in case SOMEHOW memory gets fiddled with)
-    # todo: config of this invite string.
-GITHUB_ISSUES_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/issues'
-GITHUB_WIKI_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
+from Rewrite.config.global_config import GITHUB_ISSUES_URL, SUPPORT_SERVER_INVITE, GITHUB_WIKI_URL
 
 
 class ErrorTooltip(Enum):
