@@ -216,7 +216,6 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 
     # region autocomplete
     @modify.autocomplete('index')
-    @index_local.autocomplete('index')
     async def _gfactmod_index_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         guild_id: int = interaction.namespace.guild_id
         if not guild_id:
