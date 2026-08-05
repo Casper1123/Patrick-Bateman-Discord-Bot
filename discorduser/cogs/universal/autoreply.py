@@ -321,8 +321,5 @@ class _ReplyGlobalAdminCog(commands.GroupCog, group_name='reply'):
 
 async def attach_cogs(client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger):
     await client.add_cog(_AliasGlobalAdminCog(client, repl, logger))
-    print('Alias')
     await client.add_cog(_TriggerGlobalAdminCog(client, repl, logger))
-    print('Trigger')
     await client.add_cog(_ReplyGlobalAdminCog(client, repl, logger))
-    print('Reply')
