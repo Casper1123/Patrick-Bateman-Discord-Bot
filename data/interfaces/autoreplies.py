@@ -19,7 +19,14 @@ class SimpleAliasData:
         self.rate: int = rate
 
     def __hash__(self):
-        return self.name
+        return hash(self.name)
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, str):
+            return other == self.name
+        if not isinstance(other, SimpleAliasData):
+            return False
+        return self.name == other.name
 
 class AliasData(SimpleAliasData):
     """
