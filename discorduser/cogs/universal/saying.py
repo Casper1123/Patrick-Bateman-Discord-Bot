@@ -13,7 +13,7 @@ from utilities.selection_window import selection_window
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class GlobalAdminSayingCog(commands.Cog, name='saying'):
+class GlobalAdminSayingCog(commands.GroupCog, group_name='saying'):
     def __init__(self, client: BotClient, saying: GlobalAdminSayingInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.saying = saying

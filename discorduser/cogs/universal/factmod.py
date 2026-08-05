@@ -21,7 +21,7 @@ from utilities.selection_window import selection_window
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class GlobalFactAdminCog(commands.Cog, name='gfact'):
+class GlobalFactAdminCog(commands.GroupCog, group_name='gfact'):
     def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.fact = fact
@@ -238,7 +238,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class GlobalAdminCog(commands.Cog, name='global'):
+class GlobalAdminCog(commands.GroupCog, group_name='global'):
     def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.fact = fact

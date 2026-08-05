@@ -16,7 +16,7 @@ from utilities.selection_window import selection_window
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class _AliasGlobalAdminCog(commands.Cog, name='alias'):
+class _AliasGlobalAdminCog(commands.GroupCog, group_name='alias'):
     def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.repl = repl
@@ -96,7 +96,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
+class _TriggerGlobalAdminCog(commands.GroupCog, group_name='trigger'):
     def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.repl = repl
@@ -199,7 +199,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
+class _ReplyGlobalAdminCog(commands.GroupCog, group_name='reply'):
     def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
         self.client = client
         self.repl = repl
@@ -321,5 +321,8 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
 
 async def attach_cogs(client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger):
     await client.add_cog(_AliasGlobalAdminCog(client, repl, logger))
+    print('Alias')
     await client.add_cog(_TriggerGlobalAdminCog(client, repl, logger))
+    print('Trigger')
     await client.add_cog(_ReplyGlobalAdminCog(client, repl, logger))
+    print('Reply')
