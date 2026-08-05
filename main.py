@@ -1,18 +1,8 @@
-import os
-import sys
-
-from configuration.token import TokenConfig
-from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
-from data.interfaces.fact import GlobalAdminFactInterface
-from data.interfaces.moderation import GlobalAdminModerationInterface
-from data.interfaces.other import LocalAdminDataInterface
-from data.interfaces.pref import PreferencesInterface
-from data.interfaces.saying import GlobalAdminSayingInterface
-from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
-from configuration.logger import from_json, build_config as build_logger_config
-from discorduser.user import BotClient
-
 if __name__ == '__main__':
+    import os
+    from configuration.logger import from_json, build_config as build_logger_config
+    from configuration.token import TokenConfig
+
     # Config build
     logger_cfg_fp = 'config/logger.json'
     token_cfg_fp = 'config/tokens.json'
@@ -28,7 +18,19 @@ if __name__ == '__main__':
         print(f'Token config built at {token_cfg_fp}, please edit accordingly.')
         logger_created = True
 
+    # This may create a global_config and close the application
+    from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+    from data.interfaces.fact import GlobalAdminFactInterface
+    from data.interfaces.moderation import GlobalAdminModerationInterface
+    from data.interfaces.other import LocalAdminDataInterface
+    from data.interfaces.pref import PreferencesInterface
+    from data.interfaces.saying import GlobalAdminSayingInterface
+    from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
+
+    from discorduser.user import BotClient
+
     if logger_created:
+        import sys
         sys.exit(0)
 
     # Logger config

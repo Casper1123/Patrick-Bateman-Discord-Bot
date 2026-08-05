@@ -1,24 +1,7 @@
-import os
-import sys
-
-from configuration.token import TokenConfig
-from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
-from data.interfaces.fact import GlobalAdminFactInterface
-from data.interfaces.moderation import GlobalAdminModerationInterface
-from data.interfaces.other import LocalAdminDataInterface
-from data.interfaces.pref import PreferencesInterface
-from data.interfaces.saying import GlobalAdminSayingInterface
-from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
-from discorduser.user import BotClient
-from testing.config import TestGlobalLoggerConfig, TestLocalLoggerConfig
-from testing.data.autoreplies import TestAutoreplyDatabase
-from testing.data.fact import TestFactDatabase
-from testing.data.moderation import TestModerationDatabase
-from testing.data.other import TestGeneralDatabase
-from testing.data.pref import TestPreferencesDatabase
-from testing.data.saying import TestSayingDatabase
-
 if __name__ == '__main__':
+    import os
+    from configuration.token import TokenConfig
+
     token_cfg_fp = 'config/test_token.json'
 
     logger_created: bool = False
@@ -28,7 +11,25 @@ if __name__ == '__main__':
         print(f'Token config built at {token_cfg_fp}, please edit accordingly.')
         logger_created = True
 
+    # This may create a global_config and close the application
+    from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+    from data.interfaces.fact import GlobalAdminFactInterface
+    from data.interfaces.moderation import GlobalAdminModerationInterface
+    from data.interfaces.other import LocalAdminDataInterface
+    from data.interfaces.pref import PreferencesInterface
+    from data.interfaces.saying import GlobalAdminSayingInterface
+    from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
+    from discorduser.user import BotClient
+    from testing.config import TestGlobalLoggerConfig, TestLocalLoggerConfig
+    from testing.data.autoreplies import TestAutoreplyDatabase
+    from testing.data.fact import TestFactDatabase
+    from testing.data.moderation import TestModerationDatabase
+    from testing.data.other import TestGeneralDatabase
+    from testing.data.pref import TestPreferencesDatabase
+    from testing.data.saying import TestSayingDatabase
+
     if logger_created:
+        import sys
         sys.exit(0)
 
     # Logger config
