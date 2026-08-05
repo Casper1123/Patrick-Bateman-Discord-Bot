@@ -42,8 +42,6 @@ class BotClient(commands.Bot):
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
 
     async def setup_hook(self) -> None:
-        # fixme: only takes tree errors.
-        # Autocomplete errors and listener errors are not included in this.
         async def on_tree_error(interaction: Interaction, error: app_commands.AppCommandError):
             try:
                 if (True):  # todo: config to make uncaught public errors hidden or not
@@ -72,7 +70,15 @@ class BotClient(commands.Bot):
                     await self.logger.error(interaction, error)
                     raise error
 
-
+        # fixme: only takes tree errors. Autocomplete errors and listener errors are not included in this.
+        # fixme: solution: decorate autocompletes
+        """
+        How to solve, maybe, I guess?
+        turn on_tree_error into a general function available on the class, maybe handle_exception or smt
+        async def handle_exception(exception: Exception, ...) some context values.
+        
+        How to inform user, if anything?
+        """
         self.tree.on_error = on_tree_error
 
     async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None: # noqa
