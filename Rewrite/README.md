@@ -3,6 +3,24 @@ This folder (not branche, because I forgot to make a branche) is used for the re
 In this particular case, even though it is not entirely visible in the git history, this is the third rewrite since starting.
 This rewrite uses actual education knowledge as opposed to still learning how to program. The application of these ideas might not be perfect.
 
+## Usage
+When first setting up either the main or testing setup, config files will be generated.
+Whenever a config file is generated, the application closes to let you alter some of the default values.
+Any values indicated with `null` in the files inside the `config/` folder are to be configured.
+Others are default values and may be left alone. Without configuring these values, the application will not start.
+At least two rounds of configuration loading are performed (global configuration, and then other configuration like tokens and logger).
+
+### Main
+> `python main.py`
+
+This is the main bot cycle which will use proper database implementations and the token from `config/tokens.json`.
+
+### Testing
+> `python testing.py`
+
+This is the testing bot cycle which injects testing database and configurations into the bot, using the login token found in `config/test_token.json`.
+Do note however, that it uses the same value for `GLOBAL_ADMIN_SERVER_ID` as found in `config/global.json` as `main.py`.
+
 ## Folder structure
 
 ### configuration

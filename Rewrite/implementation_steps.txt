@@ -16,3 +16,4 @@ Simple:
 - Local moderation
 - Global moderation
 TODO: check autocomplete options for indices, esp for global
+TODO: remove usage of Assert and go for regular errors, ESPECIALLY in configs.

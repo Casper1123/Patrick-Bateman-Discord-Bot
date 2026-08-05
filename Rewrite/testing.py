@@ -19,7 +19,7 @@ from Rewrite.testing.data.pref import TestPreferencesDatabase
 from Rewrite.testing.data.saying import TestSayingDatabase
 
 if __name__ == '__main__':
-    token_cfg_fp = 'config/tokens.json'
+    token_cfg_fp = 'config/test_token.json'
 
     logger_created: bool = False
 
