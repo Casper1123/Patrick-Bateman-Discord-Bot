@@ -10,7 +10,7 @@ from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, 
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
-from Rewrite.utilities.autocomplete_cramming import cram_options
+from Rewrite.utilities.selection_window import selection_window
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 WEIGHT_UPPER_BOUND: int = 1024
@@ -186,7 +186,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
             return [Choice(name='Bad alias.', value=-1)]
         triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
         # Time to compress this stuff.
-        lower, upper = cram_options(len(triggers), current, 4, favour='higher')
+        lower, upper = selection_window(len(triggers), current, 4, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
             Choice(name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
@@ -311,7 +311,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
             return [Choice(name='Bad alias.', value=-1)]
         replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
         # Time to compress this stuff.
-        lower, upper = cram_options(len(replies), current, 4, favour='higher')
+        lower, upper = selection_window(len(replies), current, 4, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
             Choice(name=f'{offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)

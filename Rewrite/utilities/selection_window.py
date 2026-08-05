@@ -3,7 +3,7 @@ from typing import Literal
 _favour = Literal['lower', 'higher']
 
 
-def cram_options(n: int, i: int, k: int, favour: _favour = 'higher') -> tuple[int, int]:
+def selection_window(n: int, i: int, k: int, favour: _favour = 'higher') -> tuple[int, int]:
     """
     :param n: n item options to select from.
     :param i: Central index of item. Indexing starting at 0.

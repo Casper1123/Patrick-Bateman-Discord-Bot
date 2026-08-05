@@ -17,7 +17,7 @@ from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
 from Rewrite.piss.testing import test_raw_input as input_test
-from Rewrite.utilities.autocomplete_cramming import cram_options
+from Rewrite.utilities.selection_window import selection_window
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
@@ -333,7 +333,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
         if not current:
             current = 0
-        lower, upper = cram_options(len(facts), current, 4, favour='higher')
+        lower, upper = selection_window(len(facts), current, 4, favour='higher')
         return [
             Choice(name=f'{offset}: {fact[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])

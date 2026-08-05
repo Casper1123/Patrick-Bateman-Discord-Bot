@@ -13,7 +13,7 @@ from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.discorduser.logger import GlobalLogger, loggable
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
-from Rewrite.utilities.autocomplete_cramming import cram_options
+from Rewrite.utilities.selection_window import selection_window
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
@@ -133,7 +133,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
         if not current:
             current = 0
         facts: list[FactEditorData] = self.fact.get_global_facts()
-        lower, upper = cram_options(len(facts), current, 4, favour='higher')
+        lower, upper = selection_window(len(facts), current, 4, favour='higher')
         return [
             Choice(name=f'{offset}: {fact[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
@@ -226,7 +226,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 
         if not current:
             current = 0
-        lower, upper = cram_options(len(facts), current, 4, favour='higher')
+        lower, upper = selection_window(len(facts), current, 4, favour='higher')
         return [
             Choice(name=f'{offset}: {fact[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
