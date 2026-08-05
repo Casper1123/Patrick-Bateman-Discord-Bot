@@ -69,7 +69,7 @@ class GlobalFactAdminCog(commands.GroupCog, group_name='gfact'):
                                         desc=f'Fact deleted successfully.')
 
     @app_commands.command(name='index',
-                          description='Exports an overview of Global (and, optionally, Local) facts. Can be exported to JSON for easier automated use.')
+                          description='Exports an overview of Global (and Local) facts. Can be exported to JSON for easier automated use.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export the facts to an attached JSON file instead.', local='Also export local facts, indexed by guild ID')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False, local: bool = False) -> None:
@@ -286,7 +286,7 @@ class GlobalAdminCog(commands.GroupCog, group_name='global'):
 
     # region other
     @app_commands.command(name='db_killswitch',
-                          description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
+                          description='Disables any interaction with, or addition to, the Local Fact database.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
         state: bool = self.fact.toggle_local_fact_killswitch()
