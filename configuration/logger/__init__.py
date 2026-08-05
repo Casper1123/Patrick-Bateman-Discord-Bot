@@ -1,8 +1,8 @@
 from typing import get_args
 
 from utilities import write_json, load_json
-from local import LocalLoggerConfig, loggable as local_loggable
-from universal import GlobalLoggerConfig, loggable
+from .local import LocalLoggerConfig, loggable as local_loggable
+from .universal import GlobalLoggerConfig, loggable
 
 
 def build_config(filepath: str):
