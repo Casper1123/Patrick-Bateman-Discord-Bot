@@ -119,6 +119,14 @@ class TextAutorepliesInterface(ABC):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
+        """
+        Gets all triggers for the given Alias only.
+        :param alias: Alias to filter for, raises IndexError if not found.
+        """
+        raise NotImplementedError()
+
 class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
     """
     Extension of the standard authorization interface, which includes methods to modify the autoreply pool.

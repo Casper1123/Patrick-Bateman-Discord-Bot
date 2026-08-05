@@ -5,6 +5,14 @@ from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, 
 
 
 class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):
+    def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
+        # Small enough custom sample to do it this shoddy way.
+        dat = self.get_triggers_by_alias()
+        for k, v in dat.items():
+            if k.name == alias:
+                return v
+        raise ValueError('bad alias name')
+
     def alias_exists(self, alias: str) -> bool:
         return alias in ['reaction', 'text', 'number_wildcard_test']
 
