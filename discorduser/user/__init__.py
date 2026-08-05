@@ -1,3 +1,5 @@
+import discord
+
 from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
 from data.interfaces.fact import GlobalAdminFactInterface
 from data.interfaces.moderation import GlobalAdminModerationInterface
@@ -19,6 +21,7 @@ from discorduser.cogs.universal.saying import GlobalAdminSayingCog
 from discorduser.cogs.utilities import ListenerCog
 from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
 from .abstract import BotClient as _AbstractClient
+from configuration.global_config import CFG
 
 
 class BotClient(_AbstractClient):
@@ -54,3 +57,7 @@ class BotClient(_AbstractClient):
         await super().setup_hook() # call to toolkit version.
 
         await self.tree.sync() # Attach created and added hooks to discord.
+        try:
+            await self.tree.sync(guild=discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
+        except discord.HTTPException:
+            pass
