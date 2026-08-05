@@ -315,6 +315,7 @@ class GlobalAdminCog(commands.GroupCog, group_name='global'):
 
     # region autoreply
     @set_log_channel.autocomplete('channel')
+    # fixme: channel id too long, need to convert input into int using Transformer
     async def _autocomplete_channel_id(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]
         if not current:
