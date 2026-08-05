@@ -5,7 +5,6 @@
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: make this a json config thing
 REPLY_WEIGHT_UPPER_BOUND: int = 1024
 
-
 # Local
     # Url to where information on debugger output can be found.
 DEBUGGER_OUTPUT_WIKI_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
