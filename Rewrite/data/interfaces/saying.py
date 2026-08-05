@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
-
+# todo: add Saying types just like Reply types? Maybe automatically react to things?
 class SimpleSayingEditorData:
     """
     Simplified record class for Saying Editor data.

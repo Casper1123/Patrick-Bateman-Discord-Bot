@@ -3,13 +3,12 @@ from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
+from Rewrite.config.global_config import EPHEMERAL_DESCRIPTION, GLOBAL_ADMIN_SERVER_ID
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
 from Rewrite.utilities.selection_window import selection_window
-
-GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
@@ -21,7 +20,7 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
         self.logger = logger
 
     @app_commands.command(name='create', description='Create a new saying')
-    @app_commands.describe(saying='PISS-compatible saying.', ephemeral='Hide this command for other users.')
+    @app_commands.describe(saying='PISS-compatible saying.', ephemeral=EPHEMERAL_DESCRIPTION)
     async def saying_create(self, interaction: Interaction, saying: str, ephemeral: bool = False) -> None:
         if not input_test(self.client, interaction, saying, ephemeral):
             return
@@ -33,7 +32,7 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
     @app_commands.command(name='edit', description='Edit an existing saying.')
     @app_commands.describe(index='The index of the saying you\'re editing.',
                            saying='The replacement saying.',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def saying_edit(self, interaction: Interaction, index: int, saying: str, ephemeral: bool = False) -> None:
         if not input_test(self.client, interaction, saying, ephemeral):
             return
@@ -50,7 +49,7 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
 
     @app_commands.command(name='delete', description='Delete an existing saying.')
     @app_commands.describe(index='The index of the saying you\'re deleting.',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def saying_delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
         try:
             old: SimpleSayingEditorData = self.saying.delete_saying(index)

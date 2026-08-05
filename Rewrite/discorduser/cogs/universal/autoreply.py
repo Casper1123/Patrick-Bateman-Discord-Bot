@@ -5,15 +5,13 @@ from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
+from Rewrite.config.global_config import GLOBAL_ADMIN_SERVER_ID, EPHEMERAL_DESCRIPTION, REPLY_WEIGHT_UPPER_BOUND
 from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, _reply_types, \
     SimpleAliasData, SimpleTriggerData, SimpleReplyData
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
 from Rewrite.utilities.selection_window import selection_window
-
-GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
-WEIGHT_UPPER_BOUND: int = 1024
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
@@ -27,22 +25,28 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
     @app_commands.command(name='create', description='Create a new Alias')
     @app_commands.describe(name='The name of the new alias. Cannot be duplicate.',
                            rate='The standard activation rate of this alias, ranging in between 1-256. Default: 256 (100%)',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def create_alias(self, interaction: Interaction, name: str, rate: int = None, ephemeral: bool = False) -> None:
+        if rate is not None and not (1 <= rate <= 256):
+            # Rate not in domain and passed in.
+            await self.client.user_feedback(interaction, title='Alias edit failed',
+                desc=f'The given rate **{rate}** is not within the domain **[1..256]**.', ephemeral=ephemeral)
+            return
+
         try:
             self.repl.create_alias(name, rate if rate is not None else 256)
         except ValueError:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias creation failed',
                                                                         desc='This alias already exists.')
             return
-        await self.logger.create_alias(interaction, name, rate)
+        await self.logger.create_alias(interaction, name, rate if rate is not None else 256)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias created successfully')
 
     @app_commands.command(name='edit', description='Edit an existing Alias')
     @app_commands.describe(alias='The Alias you wish to edit.',
                           new_name='The new name of the Alias.',
                           rate='The standard activation rate of this alias, ranging in between 1-256. Leave empty for 256',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     @app_commands.rename(new_name='name')
     async def edit_alias(self, interaction: Interaction, alias: str, new_name: str | None = None, rate: int | None = None, ephemeral: bool = False):
         if rate is None and new_name is None:
@@ -63,7 +67,7 @@ class _AliasGlobalAdminCog(commands.Cog, name='alias'):
         await self.client.user_feedback(interaction, title='Alias edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete an existing Alias, as well as all of its contents.')
-    @app_commands.describe(alias='The Alias you wish to delete.', confirm='YOU REMOVE ALL TRIGGERS AND REPLIES TOO.', ephemeral='Hide this command for other users.')
+    @app_commands.describe(alias='The Alias you wish to delete.', confirm='YOU REMOVE ALL TRIGGERS AND REPLIES TOO.', ephemeral=EPHEMERAL_DESCRIPTION)
     async def delete_alias(self, interaction: Interaction, alias: str, confirm: bool = None, ephemeral: bool = False) -> None:
         if not confirm:
             await self.client.user_feedback(interaction, title='Alias removal failed', desc='Confirm your decision.\n'
@@ -101,7 +105,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     @app_commands.command(name='create', description='Create a new Trigger')
     @app_commands.describe(alias='The Alias this Trigger belongs to.', text='Trigger RegEx to match to.',
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def create_trigger(self, interaction: Interaction, alias: str, text: str, rate: int = None, ephemeral: bool = False):
         if rate is not None and not (1 <= rate <= 256):
             await self.client.user_feedback(interaction, title='Trigger creation failed',
@@ -120,8 +124,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
                            index='The index of this trigger.',
                            text='Trigger RegEx to match to.',
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
-                           ephemeral='Hide this command for other users.')
-    # todo: index autocomplete based on passed-in alias.
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def edit_trigger(self, interaction: Interaction, alias: str, index: int, text: str = None, rate : int = None, ephemeral: bool = False):
         if text is None and rate is None:
             await self.client.user_feedback(interaction, title='Trigger edit failed',
@@ -148,8 +151,7 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     @app_commands.command(name='delete', description='Delete a Trigger')
     @app_commands.describe(alias='The Alias this Trigger belongs to.',
                            index='The index of this Trigger.',
-                           ephemeral='Hide this command for other users.')
-    # todo: index autocomplete based on passed-in alias.
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def delete_trigger(self, interaction: Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
             old: SimpleTriggerData = self.repl.remove_trigger(alias, index)
@@ -208,11 +210,11 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
                             reply_type='The type of Reply this has to be.',
                            text='Raw text data for the reply. For text replies, PISS-compatible. For reaction replies, unicode emojis only.',
                            weight='The relative weight this Reply will proc to. Defaults to 1.',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     @app_commands.rename(reply_type='type')
     async def create_reply(self, interaction: Interaction, alias: str, reply_type: _reply_types, text: str, weight: int = 1, ephemeral: bool = False):
-        if weight is not None and not 1 <= weight <= WEIGHT_UPPER_BOUND:
-            await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Weight not in range [1..{WEIGHT_UPPER_BOUND}].', ephemeral=ephemeral)
+        if weight is not None and not 1 <= weight <= REPLY_WEIGHT_UPPER_BOUND:
+            await self.client.user_feedback(interaction, title='Reply creation failed', desc=f'Weight not in range [1..{REPLY_WEIGHT_UPPER_BOUND}].', ephemeral=ephemeral)
         if reply_type == 'text':
             # test the reply before adding.
             if not await input_test(self.client, interaction, text, ephemeral=ephemeral):
@@ -235,16 +237,15 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
 
     @app_commands.command(name='edit', description='Edit a Reply; text and weight only!')
     @app_commands.describe(alias='The alias the reply belongs to.', index='The index of the Reply (autocomplete requires the Alias first!)',
-                           ephemeral='Hide this command for other users.')
-    # todo: index autocomplete based on passed-in alias.
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def edit_reply(self, interaction: Interaction, alias: str, index: int, text: str = None, weight: int = None, ephemeral: bool = False):
         if text is None and weight is None:
             await self.client.user_feedback(interaction, title='Reply edit failed', desc='You need to update at least one of text and weight.')
             return
 
-        if weight is not None and not 1 <= weight <= WEIGHT_UPPER_BOUND:
+        if weight is not None and not 1 <= weight <= REPLY_WEIGHT_UPPER_BOUND:
             await self.client.user_feedback(interaction, title='Reply creation failed',
-                                            desc=f'Weight not in range [1..{WEIGHT_UPPER_BOUND}].', ephemeral=ephemeral)
+                                            desc=f'Weight not in range [1..{REPLY_WEIGHT_UPPER_BOUND}].', ephemeral=ephemeral)
 
 
         try:
@@ -273,8 +274,7 @@ class _ReplyGlobalAdminCog(commands.Cog, name='reply'):
 
     @app_commands.command(name='delete', description='Delete a Reply.')
     @app_commands.describe(alias='The alias the reply belongs to.', index='The index of the Reply (autocomplete requires the Alias first!)',
-                           ephemeral='Hide this command for other users.')
-    # todo: index autocomplete based on passed-in alias.
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     async def delete_reply(self, interaction: Interaction, alias: str, index: int, ephemeral: bool = False):
         try:
             old: SimpleReplyData = self.repl.remove_reply(alias, index)

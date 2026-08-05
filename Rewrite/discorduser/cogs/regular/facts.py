@@ -1,12 +1,13 @@
 from discord import app_commands, Interaction
 from discord.ext import commands
 
+from Rewrite.config.global_config import FACT_COOLDOWN
 from Rewrite.data.interfaces.fact import FactInterface
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss import parse_variables, Instruction
 from Rewrite.piss.instructionexecutor import InstructionExecutor
 
-FACT_COOLDOWN: float = 1.0 # Seconds
+
 
 @app_commands.guild_only()
 class FactsCog(commands.Cog):

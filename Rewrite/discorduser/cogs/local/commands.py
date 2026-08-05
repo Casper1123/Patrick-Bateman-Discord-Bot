@@ -19,15 +19,7 @@ from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
 from Rewrite.piss.testing import test_raw_input as input_test
 from Rewrite.utilities.selection_window import selection_window
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
-
-DEBUGGER_OUTPUT_WIKI_URL = 'https://github.com/Casper1123/Patrick-Bateman-Discord-Bot/wiki'
-FACT_COUNT_MAXIMUM: int = 50
-FACT_CHAR_LIMIT: int = 256
-
-PREVIEW_COOLDOWN_SECONDS: float = 5.0
-DELETE_COOLDOWN_SECONDS: float = 5.0
-EDIT_COOLDOWN_SECONDS: float = 5.0
-ADD_COOLDOWN_SECONDS: float = 5.0
+from Rewrite.config.global_config import *
 
 class UseRestriction(Enum):
     NONE = 0,
@@ -51,8 +43,6 @@ class RestrictedUseException(CustomDiscordException):
         super().__init__(f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
 
 
-# Unfortunately has to be 1 Cog class
-# todo: move functions and import those
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(commands.Cog, name='admin'):
@@ -115,7 +105,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
     # region facts
     @app_commands.command(name='add', description='Add a new local fact. Will be test-compiled, but not in detail.')
     @app_commands.describe(text='The fact to add. Will be tested',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, ADD_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
@@ -134,7 +124,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.command(name='edit', description='Edit or Remove a local fact.')
     @app_commands.describe(index='The index of the fact you\'re editing.',
                            text='The replacement fact.',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, EDIT_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
@@ -161,7 +151,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
     @app_commands.command(name='delete', description='Delete a local fact.')
     @app_commands.describe(index='The index of the fact you\'re deleting.',
-                           ephemeral='Hide this command for other users.')
+                           ephemeral=EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, DELETE_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def delete(self, interaction: Interaction, index: int, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
@@ -179,8 +169,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
                                                                                                 f'# Old:\n{old.text}')
 
 
-    @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on PISS!)')
-    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral='Hide this command for other users.')
+    @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on P.I.S.S.!)')
+    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
@@ -215,7 +205,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         await interaction.edit_original_response(embeds=embeds)
 
     @app_commands.command(name='help', description='A small introduction on how to use PISS to construct facts.')
-    @app_commands.describe(ephemeral='Hide this command for other users.')
+    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION)
     async def help(self, interaction: Interaction, ephemeral: bool = True) -> None:
         with open("data/data/admin_help.md", "r", encoding="utf-8") as f:
             markdown_content = f.read()
@@ -230,7 +220,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
         await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title=title, description=other))
 
     @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
-    @app_commands.describe(ephemeral='Hide this command for other users.', json='Export the facts to an attached JSON file instead.')
+    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION, json='Export the facts to an attached JSON file instead.')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
@@ -261,7 +251,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=discord.Embed(title='Local fact data', description='See attached file for fact data.'))
 
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
-    @app_commands.describe(ephemeral='Hide this command for other users.', channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
+    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION, channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
     async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
