@@ -4,6 +4,7 @@ import json as _json
 
 import discord
 from discord import app_commands, Interaction, Embed, Guild, Colour
+from discord.app_commands import Choice
 from discord.ext import commands
 
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
@@ -12,6 +13,7 @@ from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.discorduser.logger import GlobalLogger, loggable
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
+from Rewrite.utilities.autocomplete_cramming import cram_options
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 
@@ -123,6 +125,20 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             title=f'{'Global' if not local else 'Total'} fact data',
             description='JSON data attached' if json else f'See attached file{'s' if len(files) > 0 else ''} for fact data.'
         ))
+
+    # region autocomplete
+    @edit.autocomplete('index')
+    @delete.autocomplete('index')
+    async def _gfact_index_autocomplete(self, _: Interaction, current: int) -> list[Choice[int]]:
+        if not current:
+            current = 0
+        facts: list[FactEditorData] = self.fact.get_global_facts()
+        lower, upper = cram_options(len(facts), current, 4, favour='higher')
+        return [
+            Choice(name=f'{offset}: {fact}', value=offset)
+            for offset, fact in enumerate(facts[lower:upper])
+        ]
+    # endregion
     # endregion
 
     # region factmod
