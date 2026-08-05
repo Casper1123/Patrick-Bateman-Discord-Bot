@@ -9,7 +9,7 @@ from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
 from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
-from Rewrite.discorduser.logger.config import from_json, build_config as build_logger_config
+from Rewrite.configuration.logger import from_json, build_config as build_logger_config
 from Rewrite.discorduser.user import BotClient
 
 if __name__ == '__main__':

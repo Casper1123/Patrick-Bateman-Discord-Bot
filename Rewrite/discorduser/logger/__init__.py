@@ -8,10 +8,8 @@ from discord.ext import commands
 from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, SimpleReplyData, SimpleTriggerData
 from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.data.interfaces.saying import SimpleSayingEditorData
-from Rewrite.discorduser.logger.config.local import LocalLoggerConfig
 from Rewrite.utilities.exceptions import CustomDiscordException
-from config.local import loggable as local_loggable
-from config.universal import loggable, GlobalLoggerConfig
+from Rewrite.configuration.logger import loggable, GlobalLoggerConfig
 
 
 class GlobalLogger:

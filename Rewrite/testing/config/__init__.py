@@ -1,8 +1,8 @@
 from typing import get_args
 
 from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
-from Rewrite.discorduser.logger.config.local import loggable as local_loggable
-from Rewrite.discorduser.logger.config.universal import loggable
+from Rewrite.configuration.logger.local import loggable as local_loggable
+from Rewrite.configuration.logger import loggable
 
 
 class TestGlobalLoggerConfig(GlobalLoggerConfig):

@@ -23,7 +23,7 @@ class GlobalLoggerConfig(AbstractJSONConfig):
         :param output_to_console: Should this loggable be printed to console?
         :param actively_logging: Should this loggable be sent into its respective channel?
         :param target_channels: Channel ids for actively logged actions. **WARNING:** If this channel is not found at runtime, the program will terminate with error code `1`.
-        :param update_filepath: Target filepath of config file; used for updating values to storage.
+        :param update_filepath: Target filepath of logger file; used for updating values to storage.
         """
         super().__init__(update_filepath)
 
