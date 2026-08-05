@@ -50,4 +50,4 @@ if __name__ == '__main__':
 
     client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
-    client.run(token=token_config.main)
+    # client.run(token=token_config.token)
