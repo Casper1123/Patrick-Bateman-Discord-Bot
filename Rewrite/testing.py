@@ -19,13 +19,13 @@ from Rewrite.testing.data.pref import TestPreferencesDatabase
 from Rewrite.testing.data.saying import TestSayingDatabase
 
 if __name__ == '__main__':
-    token_fp = 'config/tokens.json'
+    token_cfg_fp = 'config/tokens.json'
 
     logger_created: bool = False
 
-    if not os.path.exists(token_fp):
-        TokenConfig.build_config(token_fp)
-        print('Token config built, please edit accordingly.')
+    if not os.path.exists(token_cfg_fp):
+        TokenConfig.build_config(token_cfg_fp)
+        print(f'Token config built at {token_cfg_fp}, please edit accordingly.')
         logger_created = True
 
     if logger_created:
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     local_logger_config: LocalLoggerConfig = TestLocalLoggerConfig()
 
     # Token config
-    token_config: TokenConfig = TokenConfig.from_json(token_fp)
+    token_config: TokenConfig = TokenConfig.from_json(token_cfg_fp)
 
     # DB
     autoreplies: GlobalTextAutorepliesInterface = TestAutoreplyDatabase()

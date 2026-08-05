@@ -14,18 +14,18 @@ from Rewrite.discorduser.user import BotClient
 
 if __name__ == '__main__':
     # Config build
-    logger_config_fp = 'config/logger.json'
-    token_fp = 'config/tokens.json'
+    logger_cfg_fp = 'config/logger.json'
+    token_cfg_fp = 'config/tokens.json'
 
     logger_created: bool = False
-    if not os.path.exists(logger_config_fp):
-        build_logger_config(logger_config_fp)
-        print('Logger config built, please edit accordingly.')
+    if not os.path.exists(logger_cfg_fp):
+        build_logger_config(logger_cfg_fp)
+        print(f'Logger config built at {logger_cfg_fp}, please edit accordingly.')
         logger_created = True
 
-    if not os.path.exists(token_fp):
-        TokenConfig.build_config(token_fp)
-        print('Token config built, please edit accordingly.')
+    if not os.path.exists(token_cfg_fp):
+        TokenConfig.build_config(token_cfg_fp)
+        print(f'Token config built at {token_cfg_fp}, please edit accordingly.')
         logger_created = True
 
     if logger_created:
@@ -34,10 +34,10 @@ if __name__ == '__main__':
     # Logger config
     global_logger_config: GlobalLoggerConfig
     local_logger_config: LocalLoggerConfig
-    global_logger_config, local_logger_config = from_json(logger_config_fp)
+    global_logger_config, local_logger_config = from_json(logger_cfg_fp)
 
     # Token config
-    token_config: TokenConfig = TokenConfig.from_json(token_fp)
+    token_config: TokenConfig = TokenConfig.from_json(token_cfg_fp)
 
     # DB
     autoreplies: GlobalTextAutorepliesInterface = ...
