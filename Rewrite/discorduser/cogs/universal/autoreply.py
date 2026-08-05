@@ -10,6 +10,7 @@ from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, 
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
+from Rewrite.utilities.autocomplete_cramming import cram_options
 
 GLOBAL_ADMIN_SERVER_ID: int = 0 # todo: config input
 WEIGHT_UPPER_BOUND: int = 1024
@@ -168,11 +169,29 @@ class _TriggerGlobalAdminCog(commands.Cog, name='trigger'):
     @create_trigger.autocomplete('alias')
     @edit_trigger.autocomplete('alias')
     @delete_trigger.autocomplete('alias')
-    async def _alias_options_autocomplete(self, _: discord.Interaction, current: str):
+    async def _alias_options_autocomplete(self, _: discord.Interaction, current: str) -> list[Choice[str]]:
         target = current.lower()  # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+
+    @edit_trigger.autocomplete('index')
+    @delete_trigger.autocomplete('index')
+    async def _index_options_autocomplete(self, interaction: discord.Interaction, current: int) -> list[Choice[int]]:
+        alias = interaction.namespace.alias
+        if not alias:
+            return []
+        # Try and find the current alias.
+        if not self.repl.alias_exists(alias):
+            return [Choice(name='Bad alias.', value=-1)]
+        triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
+        # Time to compress this stuff.
+        lower, upper = cram_options(len(triggers), current, 4, favour='higher')
+        return [
+            # fixme: does not support other types of triggers.
+            Choice(name=trigger.data, value=offset)
+            for offset, trigger in enumerate(triggers[lower:upper])
+        ]
     # endregion
 
 @app_commands.guild_only()
