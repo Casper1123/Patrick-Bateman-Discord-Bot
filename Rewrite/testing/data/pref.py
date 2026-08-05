@@ -1,4 +1,4 @@
-from Rewrite.data.interfaces.pref import PreferencesInterface, UserPreferenceData, _supp_autr_features, \
+from Rewrite.data.interfaces.pref import PreferencesInterface, UserPreferenceData, supported_autoreply_features, \
     GuildChannelPreferenceData
 
 
@@ -11,10 +11,10 @@ class TestPreferencesDatabase(PreferencesInterface):
         return False
 
     def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None,
-                                 features: set[_supp_autr_features]) -> None:
+                                 features: set[supported_autoreply_features]) -> None:
         pass
 
-    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None, feature: _supp_autr_features) -> bool:
+    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None, feature: supported_autoreply_features) -> bool:
         if feature == 'text':
             return self.text
         elif feature == 'letter':
@@ -29,10 +29,10 @@ class TestPreferencesDatabase(PreferencesInterface):
             text=self.text, letter=self.letter, number=self.number, saying=True # saying configurable but leaving True to make testing easier.
         )
 
-    def toggle_user_autoreply_feature(self, user_id: int, features: set[_supp_autr_features]) -> None:
+    def toggle_user_autoreply_feature(self, user_id: int, features: set[supported_autoreply_features]) -> None:
         pass
 
-    def is_user_autoreply_enabled(self, user_id: int, feature: _supp_autr_features) -> bool:
+    def is_user_autoreply_enabled(self, user_id: int, feature: supported_autoreply_features) -> bool:
         if feature == 'text':
             return self.text
         elif feature == 'letter':

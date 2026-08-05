@@ -17,7 +17,7 @@ from Rewrite.discorduser.cogs.universal.autoreply import attach_cogs as attach_a
 from Rewrite.discorduser.cogs.universal.factmod import GlobalFactAdminCog, GlobalAdminCog
 from Rewrite.discorduser.cogs.universal.saying import GlobalAdminSayingCog
 from Rewrite.discorduser.cogs.utilities import ListenerCog
-from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
+from Rewrite.configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
 from abstract import BotClient as _AbstractClient
 
 

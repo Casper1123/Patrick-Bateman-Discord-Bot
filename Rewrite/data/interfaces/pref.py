@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Literal
 
-_supp_autr_features = Literal['saying', 'text', 'letter', 'number']
+supported_autoreply_features = Literal['saying', 'text', 'letter', 'number']
 
 # Only reason these are separate are just in case extra data needs to be supplied (like uid, gid, cid)
 # But yeah, copy pasted.
@@ -56,7 +56,7 @@ class PreferencesInterface(ABC):
 
     # region Server - Autoreply Features
     @abstractmethod
-    def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None, features: set[_supp_autr_features]) -> None:
+    def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None, features: set[supported_autoreply_features]) -> None:
         """
         Flips the activity state on each of the passed features.
         :param guild_id:
@@ -66,7 +66,7 @@ class PreferencesInterface(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None, feature: _supp_autr_features) -> bool:
+    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None, feature: supported_autoreply_features) -> bool:
         """
         Gets enabled state for guild channel's autoreply feature.
         :param guild_id:
@@ -90,7 +90,7 @@ class PreferencesInterface(ABC):
 
     # region User - Autoreply Features
     @abstractmethod
-    def toggle_user_autoreply_feature(self, user_id: int, features: set[_supp_autr_features]) -> None:
+    def toggle_user_autoreply_feature(self, user_id: int, features: set[supported_autoreply_features]) -> None:
         """
         Flips the activity state on each of the passed features.
         :param user_id:
@@ -99,7 +99,7 @@ class PreferencesInterface(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def is_user_autoreply_enabled(self, user_id: int, feature: _supp_autr_features) -> bool:
+    def is_user_autoreply_enabled(self, user_id: int, feature: supported_autoreply_features) -> bool:
         """
         Gets enabled state for user's autoreply feature.
         :param user_id

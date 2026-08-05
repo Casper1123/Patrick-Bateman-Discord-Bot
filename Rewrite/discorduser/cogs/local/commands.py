@@ -19,7 +19,7 @@ from Rewrite.piss.instructionexecutor import DebugInstructionExecutor
 from Rewrite.piss.testing import test_raw_input as input_test
 from Rewrite.utilities.selection_window import selection_window
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
-from Rewrite.config.global_config import *
+from Rewrite.config.global_config import CFG
 
 class UseRestriction(Enum):
     NONE = 0,
@@ -89,11 +89,11 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if self.mod.is_super_server(guild_id):
             return
 
-        if len(text) > FACT_CHAR_LIMIT:
+        if len(text) > CFG.FACT_CHAR_LIMIT:
             raise RestrictedUseException(UseRestriction.CHAR_LIMIT)
 
         if not edit:
-            if self.fact.get_fact_count(guild_id) >= FACT_COUNT_MAXIMUM:
+            if self.fact.get_fact_count(guild_id) >= CFG.FACT_COUNT_MAXIMUM:
                 raise RestrictedUseException(UseRestriction.FACT_LIMIT)
 
     async def kill_switch_check(self, interaction: Interaction) -> bool:
@@ -105,8 +105,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
     # region facts
     @app_commands.command(name='add', description='Add a new local fact. Will be test-compiled, but not in detail.')
     @app_commands.describe(text='The fact to add. Will be tested',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
-    @app_commands.checks.cooldown(1, ADD_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    @app_commands.checks.cooldown(1, CFG.ADD_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
@@ -124,8 +124,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
     @app_commands.command(name='edit', description='Edit or Remove a local fact.')
     @app_commands.describe(index='The index of the fact you\'re editing.',
                            text='The replacement fact.',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
-    @app_commands.checks.cooldown(1, EDIT_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    @app_commands.checks.cooldown(1, CFG.EDIT_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
@@ -151,8 +151,8 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
     @app_commands.command(name='delete', description='Delete a local fact.')
     @app_commands.describe(index='The index of the fact you\'re deleting.',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
-    @app_commands.checks.cooldown(1, DELETE_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    @app_commands.checks.cooldown(1, CFG.DELETE_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def delete(self, interaction: Interaction, index: int, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
@@ -170,11 +170,11 @@ class LocalAdminCog(commands.Cog, name='admin'):
 
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on P.I.S.S.!)')
-    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=EPHEMERAL_DESCRIPTION)
-    @app_commands.checks.cooldown(1, PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
+    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    @app_commands.checks.cooldown(1, CFG.PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(description='Performing PISS test.'))
+            await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(description='Performing PISS test.')) # noqa
         exception: CustomDiscordException | None = None
         description: str = 'If you see this, something went so wrong it executed neither the test nor the exception handler.'
         try:
@@ -199,13 +199,13 @@ class LocalAdminCog(commands.Cog, name='admin'):
         # Create output embed
         embed: discord.Embed = discord.Embed(
             title=f'PISS input {'compiled successfully' if exception is None else 'failed to compile'}',
-            description=description + f'\n\nMore information on Debugger output and functionality can be found [here]({DEBUGGER_OUTPUT_WIKI_URL})'
+            description=description + f'\n\nMore information on Debugger output and functionality can be found [here]({CFG.DEBUGGER_OUTPUT_WIKI_URL})'
         )
         embeds = [embed] + ([exception.as_embed()] if exception else [])
         await interaction.edit_original_response(embeds=embeds)
 
     @app_commands.command(name='help', description='A small introduction on how to use PISS to construct facts.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION)
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def help(self, interaction: Interaction, ephemeral: bool = True) -> None:
         with open("data/data/admin_help.md", "r", encoding="utf-8") as f:
             markdown_content = f.read()
@@ -217,10 +217,10 @@ class LocalAdminCog(commands.Cog, name='admin'):
         if not other:
             other = 'no body content'
 
-        await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title=title, description=other))
+        await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title=title, description=other)) # noqa
 
     @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION, json='Export the facts to an attached JSON file instead.')
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, json='Export the facts to an attached JSON file instead.')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
@@ -234,7 +234,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.json")
 
-                await interaction.response.send_message(embed=discord.Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True, file=file)
+                await interaction.response.send_message(embed=discord.Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True, file=file) # noqa
                 return
 
         out: list[str] = []
@@ -248,10 +248,10 @@ class LocalAdminCog(commands.Cog, name='admin'):
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
             file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.txt")
-            await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=discord.Embed(title='Local fact data', description='See attached file for fact data.'))
+            await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=discord.Embed(title='Local fact data', description='See attached file for fact data.')) # noqa
 
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION, channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
     async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
@@ -276,7 +276,7 @@ class LocalAdminCog(commands.Cog, name='admin'):
                            text='Text content replies.')
     async def guild_toggle_preference(self, interaction: Interaction, here: bool, numbers: bool = False,
                                       letters: bool = False, text: bool = False, saying: bool = False, ephemeral: bool = True) -> None:
-        await interaction.response.defer(ephemeral=ephemeral, thinking=True)
+        await interaction.response.defer(ephemeral=ephemeral, thinking=True) # noqa
         guild_id: int = interaction.guild_id
         channel_id: int | None = interaction.channel_id if here else None
         pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)

@@ -34,7 +34,7 @@ class AskPatrick(commands.Cog):
                 return
 
             if isinstance(replyable, Interaction):
-                await replyable.response.send_message(content=content)
+                await replyable.response.send_message(content=content) # noqa
             else:
                 await replyable.reply(mention_author=False, content=content)
         # todo: system with weighted replies. Replies are defined as instructions.

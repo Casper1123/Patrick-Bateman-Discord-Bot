@@ -5,7 +5,7 @@ from typing import get_args
 from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colour
 from discord.ext import commands
 
-from Rewrite.data.interfaces.autoreplies import _reply_types, _trigger_types, SimpleReplyData, SimpleTriggerData
+from Rewrite.data.interfaces.autoreplies import reply_types, trigger_types, SimpleReplyData, SimpleTriggerData
 from Rewrite.data.interfaces.fact import FactEditorData
 from Rewrite.data.interfaces.saying import SimpleSayingEditorData
 from Rewrite.utilities.exceptions import CustomDiscordException
@@ -334,7 +334,7 @@ class GlobalLogger:
         await self._channel_log(embed=embed, act='delete_alias')
     # endregion
     # region trigger
-    async def create_trigger(self, interaction: Interaction, alias: str, trigger_type: _trigger_types, data: str, rate: int | None):
+    async def create_trigger(self, interaction: Interaction, alias: str, trigger_type: trigger_types, data: str, rate: int | None):
         self._console_log(
             f'[TRIGGER_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
             'edit_trigger')
@@ -393,7 +393,7 @@ class GlobalLogger:
         await self._channel_log(embed=embed, act='delete_trigger')
     # endregion
     # region reply
-    async def create_reply(self, interaction: Interaction, alias: str, reply_type: _reply_types, data: str, weight: int | None):
+    async def create_reply(self, interaction: Interaction, alias: str, reply_type: reply_types, data: str, weight: int | None):
         self._console_log(
             f'[REPLY_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
             'edit_reply')

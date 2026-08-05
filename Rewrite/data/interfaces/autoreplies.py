@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import Literal
 
-_trigger_types = Literal['regex']
-_reply_types = Literal['text', 'reaction']
+trigger_types = Literal['regex']
+reply_types = Literal['text', 'reaction']
 
 class SimpleAliasData:
     """
@@ -40,14 +40,14 @@ class AliasData(SimpleAliasData):
         self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
 
 class SimpleTriggerData:
-    def __init__(self, trigger_type: _trigger_types, data: str, rate: int | None):
+    def __init__(self, trigger_type: trigger_types, data: str, rate: int | None):
         """
         Represents Data Transfer Object for Trigger data.
         :param trigger_type: Type of trigger. Needs to be supported.
         :param data: Unprocess PISS-compatible string.
         :param rate: If present, overrides rate of alias in [1..256].
         """
-        self.type: _trigger_types = trigger_type
+        self.type: trigger_types = trigger_type
         self.data: str = data
         self.rate: int | None = rate
 
@@ -55,7 +55,7 @@ class TriggerData(SimpleTriggerData):
     """
     Record class for trigger data.
     """
-    def __init__(self, trigger_type: _trigger_types, data: str, rate: int | None, alias: AliasData, editor_id: int, modified_at: int):
+    def __init__(self, trigger_type: trigger_types, data: str, rate: int | None, alias: AliasData, editor_id: int, modified_at: int):
         """
         Represents Data Transfer Object for Trigger data.
         :param trigger_type: Type of trigger. Needs to be supported.
@@ -76,7 +76,7 @@ class SimpleReplyData:
     """
     Simple record for reply data. Really only used for direct usage of data.
     """
-    def __init__(self, reply_type: _reply_types, data: str, weight: int):
+    def __init__(self, reply_type: reply_types, data: str, weight: int):
         self.type = reply_type
         self.data: str = data
         self.weight: int = weight
@@ -85,7 +85,7 @@ class ReplyData(SimpleReplyData):
     """
     Record for reply data.
     """
-    def __init__(self, reply_type: _reply_types, data: str, weight: int, uid: str, alias: AliasData, editor_id: int, modified_at: int):
+    def __init__(self, reply_type: reply_types, data: str, weight: int, uid: str, alias: AliasData, editor_id: int, modified_at: int):
         """
         :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
         """
@@ -179,7 +179,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
 
     # region trigger
     @abstractmethod
-    def add_trigger(self, alias: str, trigger_type: _trigger_types, data: str, rate: int | None) -> None:
+    def add_trigger(self, alias: str, trigger_type: trigger_types, data: str, rate: int | None) -> None:
         """
         Creates a new Trigger for the given Alias.
         :param alias: Name of the Alias. Raises ValueError if given Alias does not exist.
@@ -199,7 +199,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_trigger(self, alias: str, index: int, trigger_type: _trigger_types, data: str | None, rate: int | None) -> None:
+    def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None, rate: int | None) -> None:
         """
         Edits the Trigger at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
@@ -221,7 +221,7 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
 
     # region reply
     @abstractmethod
-    def add_reply(self, alias: str, reply_type: _reply_types, data, weight) -> None:
+    def add_reply(self, alias: str, reply_type: reply_types, data, weight) -> None:
         """
         Creates a new Reply of the given type, with the given weight, for the given Alias.
         :param alias: Name of the Alias. Raises ValueError if given Alias does not exist.

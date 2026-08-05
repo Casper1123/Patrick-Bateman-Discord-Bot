@@ -1,6 +1,6 @@
 from typing import get_args
 
-from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, _reply_types, _trigger_types, \
+from Rewrite.data.interfaces.autoreplies import GlobalTextAutorepliesInterface, reply_types, trigger_types, \
     SimpleReplyData, SimpleTriggerData, SimpleAliasData
 
 
@@ -39,21 +39,21 @@ class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):
 
         return SimpleAliasData(name=name, rate=256)
 
-    def add_trigger(self, alias: str, trigger_type: _trigger_types, data: str, rate: int | None) -> None:
+    def add_trigger(self, alias: str, trigger_type: trigger_types, data: str, rate: int | None) -> None:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
-        if not trigger_type in get_args(_trigger_types):
+        if not trigger_type in get_args(trigger_types):
             raise Exception('invalid trigger type')
         if rate is not None and not (1 <= rate <= 256):
             raise Exception('rate out of bounds')
 
-    def edit_trigger(self, alias: str, index: int, trigger_type: _trigger_types, data: str | None,
+    def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None,
                      rate: int | None) -> None:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
         if not index == 1:
             raise IndexError('index out of bounds')
-        if not trigger_type in get_args(_trigger_types):
+        if not trigger_type in get_args(trigger_types):
             raise Exception('invalid trigger type')
         if rate is not None and not (1 <= rate <= 256):
             raise Exception('rate out of bounds')
@@ -68,10 +68,10 @@ class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):
 
         return SimpleTriggerData(trigger_type='regex', data=f'Trigger from alias {alias} at index {index}', rate=None)
 
-    def add_reply(self, alias: str, reply_type: _reply_types, data, weight) -> None:
+    def add_reply(self, alias: str, reply_type: reply_types, data, weight) -> None:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
-        if not reply_type in get_args(_reply_types):
+        if not reply_type in get_args(reply_types):
             raise Exception('invalid trigger type')
         if not (weight >= 1):
             raise Exception('weight out of bounds')

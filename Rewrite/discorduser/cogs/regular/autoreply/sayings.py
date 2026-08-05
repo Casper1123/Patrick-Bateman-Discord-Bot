@@ -3,7 +3,7 @@ import random as _r
 import discord
 from discord.ext import commands
 
-from Rewrite.config.global_config import SAYING_PROBABILIY
+from Rewrite.config.global_config import CFG
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import SayingInterface
 from Rewrite.discorduser.user.abstract import BotClient
@@ -22,7 +22,7 @@ class RandomAutoreplyCog(commands.Cog):
         if message.author.bot:
             return
 
-        if _r.randint(1, SAYING_PROBABILIY) != 1:
+        if _r.randint(1, CFG.SAYING_PROBABILIY) != 1:
             return
 
         if self.pref.is_paused_channel(message.guild.id, message.channel.id):

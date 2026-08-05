@@ -99,8 +99,8 @@ class InstructionExecutor:
         channel: discord.TextChannel = interaction.channel
         owner: discord.Member = guild.owner  # guild owner
 
-        local_facts: int = self.client.db.get_fact_count(guild.id)
-        global_facts: int = self.client.db.get_fact_count(None)
+        local_facts: int = self.client.fact.get_fact_count(guild.id)
+        global_facts: int = self.client.fact.get_fact_count(None)
         total_facts: int = local_facts + global_facts
 
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
@@ -250,7 +250,7 @@ class InstructionExecutor:
                 await interaction.reply(content=out, allowed_mentions=allowed_mentions)
         elif isinstance(interaction, Interaction):
             if self.fresh:
-                await interaction.response.send_message(content=out, allowed_mentions=allowed_mentions)
+                await interaction.response.send_message(content=out, allowed_mentions=allowed_mentions) # noqa
             else:
                 await interaction.followup.send(content=out, allowed_mentions=allowed_mentions)
         else:

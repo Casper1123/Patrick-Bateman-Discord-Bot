@@ -7,18 +7,20 @@ from discord import app_commands, Interaction, Embed, Guild, Colour
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from Rewrite.config.global_config import GLOBAL_ADMIN_SERVER_ID, EPHEMERAL_DESCRIPTION
+from Rewrite.config.global_config import CFG
 from Rewrite.data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
 from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
-from Rewrite.discorduser.logger import GlobalLogger, loggable
+from Rewrite.discorduser.logger import GlobalLogger
+from Rewrite.configuration.logger import loggable
+
 from Rewrite.discorduser.user.abstract import BotClient
 from Rewrite.piss.testing import test_raw_input as input_test
 from Rewrite.utilities.selection_window import selection_window
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
-@app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
+@app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class GlobalFactAdminCog(commands.Cog, name='gfact'):
     def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger: GlobalLogger) -> None:
         self.client = client
@@ -28,7 +30,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     # region facts
     @app_commands.command(name='add', description='Add a new global fact. Will be test-compiled, but not in detail.')
     @app_commands.describe(text='The fact to add. Will be tested',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = False) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
@@ -39,7 +41,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
     @app_commands.command(name='edit', description='Edit or Remove a global fact.')
     @app_commands.describe(index='The index of the fact you\'re editing.',
                            text='The replacement fact.',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = False) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
@@ -54,7 +56,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                                             desc=f'Fact edited successfully.')
 
     @app_commands.command(name='delete', description='Delete a global fact.')
-    @app_commands.describe(index='The index of the fact to delete', ephemeral=EPHEMERAL_DESCRIPTION)
+    @app_commands.describe(index='The index of the fact to delete', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
         try:
             old: FactEditorData = self.fact.delete_global_fact(index)
@@ -68,7 +70,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 
     @app_commands.command(name='index',
                           description='Exports an overview of Global (and, optionally, Local) facts. Can be exported to JSON for easier automated use.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION,
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export the facts to an attached JSON file instead.', local='Also export local facts, indexed by guild ID')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False, local: bool = False) -> None:
         global_facts: list[FactEditorData] = self.fact.get_global_facts()
@@ -120,7 +122,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             with _io.StringIO(out) as text_stream:
                 files.append(discord.File(fp=text_stream, filename='local_fact_data.txt'))
 
-        await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed(
+        await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed( # noqa
             title=f'{'Global' if not local else 'Total'} fact data',
             description='JSON data attached' if json else f'See attached file{'s' if len(files) > 0 else ''} for fact data.'
         ))
@@ -146,7 +148,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                            index='Local fact index.',
                            text='Replacement text. Leave empty to remove entirely.',
                            local_log='Log to the given server\'s local log channel. Author will be denoted as the bot.',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str = None, local_log: bool = True, ephemeral: bool = False) -> None:
         delete: bool = text is None
         if not delete:
@@ -166,7 +168,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
             # todo: log to server locally
             pass
 
-        await interaction.response.send_message(ephemeral=ephemeral, # todo: update to also display guild information
+        await interaction.response.send_message(ephemeral=ephemeral, # todo: update to also display guild information # noqa
                                                 embed=Embed(title='Success',
                                                             description=f'Fact {'deleted' if delete else 'edited'} {'successfully.'}'
                                                                                     f'\n# Old:\n'
@@ -176,13 +178,13 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                                                                                        f'`{text}`'))
 
     @app_commands.command(name='list', description='List the local facts of the given guild.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION,
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export the facts to an attached JSON file instead.',
                            guild_id='The ID of the guild you wish to index from.',)
     async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False, json: bool = False) -> None:
         local_facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='No local facts found.'))
+            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='No local facts found.')) # noqa
             return
         if json:
             out: dict[int, list[dict[str, str | int]]] = {
@@ -207,7 +209,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
                 guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
             with _io.StringIO(guild_facts) as text_stream:
                 file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt')
-        await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(
+        await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed( # noqa
             title=f'Local fact data',
             description='JSON data attached.' if json else f'See attached file for fact data.'
         ))
@@ -236,7 +238,7 @@ class GlobalFactAdminCog(commands.Cog, name='gfact'):
 # todo: move to seperate file?
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
-@app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
+@app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminCog(commands.Cog, name='global'):
     def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
         self.client = client
@@ -246,7 +248,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
         self.logger = logger
 
     @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION, user_id='The ID of the user you aim to (un)ban.',
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, user_id='The ID of the user you aim to (un)ban.',
                            reason='A reason, for logging purposes.')
     async def ban_user(self, interaction: Interaction, user_id: int, reason: str = None, ephemeral: bool = False) -> None:
         state: bool = self.mod.is_banned_user(user_id)
@@ -261,11 +263,11 @@ class GlobalAdminCog(commands.Cog, name='global'):
             embed.set_author(name=user.name, icon_url=user.avatar.url)
         else:
             embed.set_author(name=f'{user_id}')
-        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed) # noqa
 
     @app_commands.command(name='guildban',
                           description='Ban a guild from using Local Fact administrative features. If already banned, unbans it.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION,
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            guild_id='The ID of the guild you aim to (un)ban.',
                            reason='A reason, for logging purposes.')
     async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str = None, ephemeral: bool = False) -> None:
@@ -281,14 +283,14 @@ class GlobalAdminCog(commands.Cog, name='global'):
             embed.set_author(name=guild.name, icon_url=guild.icon.url)
         else:
             embed.set_author(name=f'{guild}')
-        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed) # noqa
 
     # region other
     @app_commands.command(name='refresh',
                           description='Refresh command tree. ONLY USE IF YOU KNOW WHAT YOU ARE DOING.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION)
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def refresh(self, interaction: Interaction, ephemeral: bool = False):
-        await interaction.response.defer(ephemeral=ephemeral, thinking=False)
+        await interaction.response.defer(ephemeral=ephemeral, thinking=False) # noqa
         await self.client.user_feedback(interaction, title=f'Synchronizing Command Tree ...')
         await self.client.tree.sync()
         await self.client.user_feedback(interaction, title=f'Command Tree synchronization complete.')
@@ -296,7 +298,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
 
     @app_commands.command(name='DB_KILLSWITCH',
                           description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
-    @app_commands.describe(ephemeral=EPHEMERAL_DESCRIPTION)
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
         state: bool = self.fact.toggle_local_fact_killswitch()
         await self.client.user_feedback(interaction, desc=f'Killswitch state set to {state}', ephemeral=ephemeral)

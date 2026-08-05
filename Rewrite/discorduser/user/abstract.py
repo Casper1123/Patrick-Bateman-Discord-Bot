@@ -12,8 +12,8 @@ from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
-from Rewrite.discorduser.logger import LocalLoggerConfig
-from Rewrite.discorduser.logger.__init__ import GlobalLogger, GlobalLoggerConfig
+from Rewrite.configuration.logger import LocalLoggerConfig, GlobalLoggerConfig
+from Rewrite.discorduser.logger.__init__ import GlobalLogger
 from Rewrite.discorduser.logger.local import LocalLogger
 from Rewrite.piss import InstructionParseError
 from Rewrite.utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -45,7 +45,7 @@ class BotClient(commands.Bot):
         async def on_tree_error(interaction: Interaction, error: app_commands.AppCommandError):
             try:
                 if (True):  # todo: config to make uncaught public errors hidden or not
-                    await interaction.response.defer(ephemeral=True, thinking=False)
+                    await interaction.response.defer(ephemeral=True, thinking=False) # noqa
             except Exception: # noqa Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
             # handle exceptions
@@ -85,7 +85,7 @@ class BotClient(commands.Bot):
         e = discord.Embed(title=title, description=desc, colour=Colour.blue())
         if isinstance(interaction, Interaction):
             try:
-                await interaction.response.send_message(embed=e, ephemeral=ephemeral)
+                await interaction.response.send_message(embed=e, ephemeral=ephemeral) # noqa
             except discord.InteractionResponded:
                 await interaction.edit_original_response(embed=e) # ephemeral not supported.
         else:

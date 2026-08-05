@@ -3,7 +3,7 @@ from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from Rewrite.config.global_config import EPHEMERAL_DESCRIPTION, GLOBAL_ADMIN_SERVER_ID
+from Rewrite.config.global_config import CFG
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
 from Rewrite.discorduser.logger import GlobalLogger
 from Rewrite.discorduser.user.abstract import BotClient
@@ -12,7 +12,7 @@ from Rewrite.utilities.selection_window import selection_window
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
-@app_commands.guilds(discord.Object(id=GLOBAL_ADMIN_SERVER_ID))
+@app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminSayingCog(commands.Cog, name='saying'):
     def __init__(self, client: BotClient, saying: GlobalAdminSayingInterface, logger: GlobalLogger) -> None:
         self.client = client
@@ -20,7 +20,7 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
         self.logger = logger
 
     @app_commands.command(name='create', description='Create a new saying')
-    @app_commands.describe(saying='PISS-compatible saying.', ephemeral=EPHEMERAL_DESCRIPTION)
+    @app_commands.describe(saying='PISS-compatible saying.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def saying_create(self, interaction: Interaction, saying: str, ephemeral: bool = False) -> None:
         if not input_test(self.client, interaction, saying, ephemeral):
             return
@@ -32,7 +32,7 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
     @app_commands.command(name='edit', description='Edit an existing saying.')
     @app_commands.describe(index='The index of the saying you\'re editing.',
                            saying='The replacement saying.',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def saying_edit(self, interaction: Interaction, index: int, saying: str, ephemeral: bool = False) -> None:
         if not input_test(self.client, interaction, saying, ephemeral):
             return
@@ -49,7 +49,7 @@ class GlobalAdminSayingCog(commands.Cog, name='saying'):
 
     @app_commands.command(name='delete', description='Delete an existing saying.')
     @app_commands.describe(index='The index of the saying you\'re deleting.',
-                           ephemeral=EPHEMERAL_DESCRIPTION)
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def saying_delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
         try:
             old: SimpleSayingEditorData = self.saying.delete_saying(index)

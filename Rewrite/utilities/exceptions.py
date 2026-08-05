@@ -2,7 +2,7 @@ from enum import Enum
 
 from discord import Embed, Colour
 
-from Rewrite.config.global_config import GITHUB_ISSUES_URL, SUPPORT_SERVER_INVITE, GITHUB_WIKI_URL
+from Rewrite.config.global_config import CFG
 
 
 class ErrorTooltip(Enum):
@@ -14,8 +14,8 @@ class ErrorTooltip(Enum):
 _tooltips: dict[ErrorTooltip, str] = {
             ErrorTooltip.NONE: '',
             ErrorTooltip.ISSUE: 'If this issue persists, feel free to report it on '
-                f'[the development\'s issues page](<{GITHUB_ISSUES_URL}>).',
-            ErrorTooltip.WIKI: f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{SUPPORT_SERVER_INVITE}>) or check out the [wiki](<{GITHUB_WIKI_URL}>).',
+                f'[the development\'s issues page](<{CFG.GITHUB_ISSUES_URL}>).',
+            ErrorTooltip.WIKI: f'To find out more about this topic, either join [the support Discord](<https://discord.gg/{CFG.SUPPORT_SERVER_INVITE}>) or check out the [wiki](<{CFG.GITHUB_WIKI_URL}>).',
         }
 
 class CustomDiscordException(Exception):

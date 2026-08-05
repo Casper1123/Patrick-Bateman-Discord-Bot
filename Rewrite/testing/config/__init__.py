@@ -1,6 +1,6 @@
 from typing import get_args
 
-from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
+from Rewrite.configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
 from Rewrite.configuration.logger.local import loggable as local_loggable
 from Rewrite.configuration.logger import loggable
 

@@ -1,7 +1,7 @@
 from discord import app_commands, Interaction
 from discord.ext import commands
 
-from Rewrite.data.interfaces.pref import PreferencesInterface, _supp_autr_features, UserPreferenceData
+from Rewrite.data.interfaces.pref import PreferencesInterface, supported_autoreply_features, UserPreferenceData
 from Rewrite.discorduser.user.abstract import BotClient
 
 
@@ -17,7 +17,7 @@ class UserPreferenceCog(commands.Cog):
     @app_commands.describe(numbers="Incremental number replies.", letters='Letter-only replies.', text='Text content replies.')
     async def user_toggle_preference(self, interaction: Interaction, numbers: bool = False, letters: bool = False, text: bool = False):
         # Not allowing to disable sayings is on purpose.
-        await interaction.response.defer(ephemeral=True, thinking=True)
+        await interaction.response.defer(ephemeral=True, thinking=True) # noqa
         pref: UserPreferenceData = self.pref.user_autoreplies_enabled(interaction.user.id)
         if not (numbers or letters or text):
             await self.client.user_feedback(interaction,
@@ -27,7 +27,7 @@ class UserPreferenceCog(commands.Cog):
                                                  f'**Text:** {'Off' if not pref.text else 'On'}\n')
             return
         desc: str = ''
-        feat: set[_supp_autr_features] = set() # noqa because empty set
+        feat: set[supported_autoreply_features] = set() # noqa because empty set
         if numbers:
             feat.add('number')
             desc += f'**Number:** {'Off' if pref.number else 'On'}\n'

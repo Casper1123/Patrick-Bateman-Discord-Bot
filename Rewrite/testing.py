@@ -8,7 +8,7 @@ from Rewrite.data.interfaces.moderation import GlobalAdminModerationInterface
 from Rewrite.data.interfaces.other import LocalAdminDataInterface
 from Rewrite.data.interfaces.pref import PreferencesInterface
 from Rewrite.data.interfaces.saying import GlobalAdminSayingInterface
-from Rewrite.discorduser.logger import GlobalLoggerConfig, LocalLoggerConfig
+from Rewrite.configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
 from Rewrite.discorduser.user import BotClient
 from Rewrite.testing.config import TestGlobalLoggerConfig, TestLocalLoggerConfig
 from Rewrite.testing.data.autoreplies import TestAutoreplyDatabase
