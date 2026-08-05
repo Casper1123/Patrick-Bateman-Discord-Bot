@@ -295,7 +295,7 @@ class GlobalAdminCog(commands.Cog, name='global'):
         await self.client.user_feedback(interaction, title=f'Command Tree synchronization complete.')
 
 
-    @app_commands.command(name='DB_KILLSWITCH',
+    @app_commands.command(name='db_killswitch',
                           description='Disables any interaction with, or addition to, the Local Fact database. Use only if the bot is being griefed.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
