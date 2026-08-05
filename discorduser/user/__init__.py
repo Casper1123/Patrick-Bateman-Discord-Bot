@@ -18,7 +18,7 @@ from discorduser.cogs.universal.factmod import GlobalFactAdminCog, GlobalAdminCo
 from discorduser.cogs.universal.saying import GlobalAdminSayingCog
 from discorduser.cogs.utilities import ListenerCog
 from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
-from abstract import BotClient as _AbstractClient
+from .abstract import BotClient as _AbstractClient
 
 
 class BotClient(_AbstractClient):

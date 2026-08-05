@@ -5,7 +5,7 @@ if __name__ == '__main__':
 
     # Config build
     logger_cfg_fp = 'config/logger.json'
-    token_cfg_fp = 'config/tokens.json'
+    token_cfg_fp = 'config/token.json'
 
     logger_created: bool = False
     if not os.path.exists(logger_cfg_fp):
