@@ -60,11 +60,10 @@ class BotClient(commands.Bot):
                     error = CustomDiscordException(message=f'Command on cooldown ({error.cooldown}s), try again in **{error.retry_after}s**.', error_type='Command on cooldown.', tooltip=ErrorTooltip.NONE)
                 elif not isinstance(error, CustomDiscordException):
                     log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES
-                    error_old = error
-                    error: CustomDiscordException = CustomDiscordException(cause=error_old, error_type=type(error).__name__)
+                    error: CustomDiscordException = CustomDiscordException(cause=error, error_type=type(error).__name__)
                 else:
                     assert isinstance(error, CustomDiscordException)
-                    log = type(error.cause).__name__ not in UNLOGGED_EXCEPTION_TYPES
+                    log = error.cause is None or type(error.cause).__name__ not in UNLOGGED_EXCEPTION_TYPES
 
                 await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
                 if log:

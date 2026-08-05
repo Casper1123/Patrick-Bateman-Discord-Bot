@@ -161,7 +161,7 @@ class InstructionExecutor:
         except CustomDiscordException as e:
             raise e # Pass pre-constructed Exceptions up to user layer.
         except Exception as e:
-            raise CustomDiscordException('Initial Instruction Memory failed to build.', e, 'InstructionMemoryError')
+            raise CustomDiscordException(message='Initial Instruction Memory failed to build.', cause=e, error_type='InstructionMemoryError')
 
     def check_init_memory(self, mem: dict[str, ...]) -> None:
         """

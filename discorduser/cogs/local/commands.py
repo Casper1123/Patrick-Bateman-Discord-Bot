@@ -40,7 +40,7 @@ reasons: dict[UseRestriction, str] = {
 
 class RestrictedUseException(CustomDiscordException):
     def __init__(self, restriction: UseRestriction):
-        super().__init__(f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
+        super().__init__(message=f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
 
 
 @app_commands.guild_only()

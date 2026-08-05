@@ -27,16 +27,34 @@ class CustomDiscordException(Exception):
         self.message: str | None = message
         self.cause: Exception | None = cause
         self.tooltip: ErrorTooltip = tooltip
+
         super().__init__(self.message)
-    # todo note: Exception.__traceback__ exists, go look it up it's kinda silli :)
 
     def as_embed(self) -> Embed:
+        cause = ''
+        if self.cause:
+            cause = (f'\n\n**Caused by:** {type(self.cause).__name__}\n'
+                     f'{self.cause}')
+            # Traceback walkdown
+            assert isinstance(self.cause, Exception), f'cause of type {type(self.cause)}, not exception.'
+            tb = self.cause.__traceback__
+
+            while tb.tb_next:
+                tb = tb.tb_next
+
+            frame = tb.tb_frame
+            filename = frame.f_code.co_filename
+            function = frame.f_code.co_name
+            line = tb.tb_lineno
+
+            cause += f"\nRaised in {filename}:{line} ({function})"
+
         embed = Embed(
             title=self.error_type,
             description=f"**An error has occurred.**\n"
                         f"{_tooltips[self.tooltip]}"
                         f"{f'\n**Error:**\n{self.message}' if self.message else ''}"
-                        f"{'\n\n**Caused by:**' + type(self.cause).__name__ + '\n' + str(self.cause) if self.cause else ''}",
+                        f"{cause}",
             colour=Colour.red()
         )
         return embed
