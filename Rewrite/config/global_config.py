@@ -25,6 +25,21 @@ class _GlobalConfig(AbstractJSONConfig):
                  fact_cd: float,
                  saying_probability: int):
         super().__init__(path)
+
+        assert isinstance(global_admin_serverid, int)
+        assert isinstance(reply_weight_upper_bound, int)
+
+        assert isinstance(local_fact_max, int)
+        assert isinstance(local_fact_charlimit, int)
+
+        assert isinstance(preview_cd, float) or isinstance(preview_cd, int)
+        assert isinstance(delete_cd, float) or isinstance(delete_cd, int)
+        assert isinstance(edit_cd, float) or isinstance(edit_cd, int)
+        assert isinstance(add_cd, float) or isinstance(add_cd, int)
+
+        assert isinstance(fact_cd, float) or isinstance(fact_cd, int)
+        assert isinstance(saying_probability, int)
+
         self.GLOBAL_ADMIN_SERVER_ID: int = global_admin_serverid
         self.REPLY_WEIGHT_UPPER_BOUND: int = reply_weight_upper_bound
 
@@ -99,18 +114,6 @@ class _GlobalConfig(AbstractJSONConfig):
         ADD_CD = cfg['ADD_COOLDOWN_SECONDS']
         FACT_COOLDOWN = cfg['FACT_COOLDOWN']
         SAYING_PROBABILIY = cfg['SAYING_PROBABILIY']
-
-        # Integrity
-        assert isinstance(GAD_SID, int)
-        assert isinstance(REPL_W_UP, int)
-        assert isinstance(FACT_COUNT_MAX, int)
-        assert isinstance(FACT_CHAR_LIMIT, int)
-        assert isinstance(PREVIEW_CD, float) or isinstance(PREVIEW_CD, int)
-        assert isinstance(DELETE_CD, float) or isinstance(DELETE_CD, int)
-        assert isinstance(EDIT_CD, float) or isinstance(EDIT_CD, int)
-        assert isinstance(ADD_CD, float) or isinstance(ADD_CD, int)
-        assert isinstance(FACT_COOLDOWN, float) or isinstance(FACT_COOLDOWN, int)
-        assert isinstance(SAYING_PROBABILIY, int)
 
         return _GlobalConfig(path, GAD_SID, REPL_W_UP, FACT_COUNT_MAX, FACT_CHAR_LIMIT, PREVIEW_CD, DELETE_CD, EDIT_CD, ADD_CD, FACT_COOLDOWN, SAYING_PROBABILIY)
 
