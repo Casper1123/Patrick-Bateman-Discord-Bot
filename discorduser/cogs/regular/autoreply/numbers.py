@@ -1,9 +1,10 @@
+import re as _re
+
 import discord
 from discord.ext import commands
 
 from data.interfaces.pref import PreferencesInterface
 from discorduser.user.abstract import BotClient
-
 
 class NumberAutoreplyCog(commands.Cog):
     def __init__(self, client: BotClient, pref: PreferencesInterface) -> None:
@@ -21,8 +22,19 @@ class NumberAutoreplyCog(commands.Cog):
             return
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'number'):
             return
+        txt: str = message.content
+        try:
+            num: float = float(txt)
+        except ValueError:
+            txt = txt.replace(',', '.')
+            try:
+                num: float = float(txt)
+            except ValueError:
+                return # More expressive matching
+        if num == int(num) and not '.' in txt:
+            num = int(num)
 
-        # todo: pattern matching and conversion.
-        # Notes for later:
-        # numbers [,] numbers [.]  [numbers [,] numbers] and mirrored
-        # ?
+        num += 1
+
+        txt = str(num)
+        await message.reply(txt, mention_author=False)
