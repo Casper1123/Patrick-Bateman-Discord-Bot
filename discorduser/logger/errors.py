@@ -98,7 +98,10 @@ class AppCommandErrorContext(LoggableErrorContext):
     def __init__(self, error: Exception, interaction: Interaction, ):
         super().__init__('app_command', error)
         self.interaction = interaction
-        self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter())}]' if self.interaction.namespace else '[]'
+        try:
+            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter() if v != target)}]'
+        except TypeError:
+            self.params = f'[]'
 
 class ListenerErrorContext(LoggableErrorContext):
     def __init__(self, error: Exception, event: str, params: str):
@@ -156,7 +159,9 @@ class AutocompleteErrorContext(LoggableErrorContext):
         except: # noqa it's simple enough as is who gives a damn.
             self.current = '[PARSE ERROR]'
         self.interaction = interaction
-        self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter() if v != target)}]' if self.interaction.namespace else '[]'
+        try:
+            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter() if v != target)}]'
+        except TypeError: self.params = f'[]'
 
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
