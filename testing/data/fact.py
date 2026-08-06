@@ -44,6 +44,8 @@ class TestFactDatabase(GlobalAdminFactInterface):
         ]
 
     def get_fact(self, guild_id: int | None, index: int | None) -> str:
+        if index < 1:
+            raise IndexError('index out of range, obviously')
         return 'PISS-test fact: {guild}, {user} at index ' + str(index)
 
     def get_fact_count(self, guild_id: int | None) -> int:
