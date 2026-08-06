@@ -6,11 +6,13 @@ from discord import Embed, Interaction, Colour
 from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
 
 from piss import InstructionParseError
-from utilities.exceptions import CustomDiscordException, ErrorTooltip
+from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException
 
 UNLOGGED_EXCEPTION_TYPES = [
     InstructionParseError.__name__,
-    CommandOnCooldown.__name__
+    CommandOnCooldown.__name__,
+    RestrictedUseException.__name__,
+
 ] # using __name__ to ensure that when I change the class names this updates.
 # todo: undetailed exception types --> not sending exception warning to user, or just something generic
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer'] # just putting
@@ -94,7 +96,7 @@ class AppCommandErrorContext(LoggableErrorContext):
                                   f'Caused by: {type(self.error.cause).__name__}\n'
                                   f'{self.error.cause}')
         embed.description += (f'\n\n'
-                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id}')
+                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
         embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
         return embed
 
@@ -180,7 +182,7 @@ class AutocompleteErrorContext(LoggableErrorContext):
                                   f'Caused by: {type(self.error.cause).__name__}\n'
                                   f'{self.error.cause}')
         embed.description += (f'\n\n'
-                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id}')
+                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
         embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
         return embed
 
