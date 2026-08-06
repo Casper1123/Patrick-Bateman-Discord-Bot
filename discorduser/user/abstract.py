@@ -48,7 +48,7 @@ class BotClient(commands.Bot):
                 return
             if not isinstance(error, Exception):
                 raise error
-            
+
             # todo: parse params based on given event.
             await self.handle_exception(error_context=ListenerErrorContext(
                 error=error, event=event, params='[]'
