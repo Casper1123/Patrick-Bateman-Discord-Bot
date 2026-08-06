@@ -15,15 +15,16 @@ from discorduser.logger import GlobalLogger
 from configuration.logger import loggable
 
 from discorduser.user.abstract import BotClient
+from discorduser.user.custom_cog import CustomGroupCog
 from piss.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class GlobalFactAdminCog(commands.GroupCog, group_name='gfact'):
+class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger: GlobalLogger) -> None:
-        self.client = client
+        super().__init__(client)
         self.fact = fact
         self.logger = logger
 
@@ -128,9 +129,7 @@ class GlobalFactAdminCog(commands.GroupCog, group_name='gfact'):
         ))
 
     # region autocomplete
-    @edit.autocomplete('index')
-    @delete.autocomplete('index')
-    async def _gfact_index_autocomplete(self, _: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfact_index_autocomplete_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
         if not current:
             current = 0
         facts: list[FactEditorData] = self.fact.get_global_facts()
@@ -139,6 +138,11 @@ class GlobalFactAdminCog(commands.GroupCog, group_name='gfact'):
             Choice(name=f'{offset}: {fact[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
         ]
+
+    @edit.autocomplete('index')
+    @delete.autocomplete('index')
+    async def _gfact_index_autocomplete_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
+        return await self.autocomplete_guard(_, current, self._gfact_index_autocomplete_impl, 'index')
     # endregion
     # endregion
 
@@ -215,8 +219,7 @@ class GlobalFactAdminCog(commands.GroupCog, group_name='gfact'):
         ))
 
     # region autocomplete
-    @modify.autocomplete('index')
-    async def _gfactmod_index_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         guild_id: int = interaction.namespace.guild_id
         if not guild_id:
             return [ Choice(name='Bad guild ID', value=-1) ]
@@ -231,16 +234,19 @@ class GlobalFactAdminCog(commands.GroupCog, group_name='gfact'):
             Choice(name=f'{offset}: {fact[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
         ]
+
+    @modify.autocomplete('index')
+    async def _gfactmod_index_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        return await self.autocomplete_guard(interaction, current, self._gfactmod_index_autocomplete_impl, 'index')
     # endregion
     # endregion
 
-# todo: move to seperate file?
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class GlobalAdminCog(commands.GroupCog, group_name='global'):
+class GlobalAdminCog(CustomGroupCog, group_name='global'):
     def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
-        self.client = client
+        super().__init__(client)
         self.fact = fact
         self.mod = mod
         self.db = db
@@ -314,10 +320,9 @@ class GlobalAdminCog(commands.GroupCog, group_name='global'):
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
 
     # region autoreply
-    @set_log_channel.autocomplete('channel')
     # fixme: channel id too long, need to convert input into int using Transformer
-    async def _autocomplete_channel_id(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]
+    async def _autocomplete_channel_id_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]: # noqa
+        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels] # noqa
         if not current:
             return [
                 Choice(name=i[1], value=i[2]) for i in pairs[:4]
@@ -329,5 +334,9 @@ class GlobalAdminCog(commands.GroupCog, group_name='global'):
         return [
             Choice(name=f'[{i[0]}] {i[1]}', value=int(i[2])) for i in filtered[:4]
         ]
+
+    @set_log_channel.autocomplete('channel')
+    async def _autocomplete_channel_id_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        return await self.autocomplete_guard(interaction, current, self._autocomplete_channel_id_impl, 'channel')
     # endregion
     # endregion

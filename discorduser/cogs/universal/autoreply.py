@@ -10,18 +10,20 @@ from data.interfaces.autoreplies import GlobalTextAutorepliesInterface, reply_ty
     SimpleAliasData, SimpleTriggerData, SimpleReplyData
 from discorduser.logger import GlobalLogger
 from discorduser.user.abstract import BotClient
+from discorduser.user.custom_cog import CustomGroupCog
 from piss.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class _AliasGlobalAdminCog(commands.GroupCog, group_name='alias'):
+class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
     def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
-        self.client = client
+        super().__init__(client)
         self.repl = repl
         self.logger = logger
 
+    # region commands
     @app_commands.command(name='create', description='Create a new Alias')
     @app_commands.describe(name='The name of the new alias. Cannot be duplicate.',
                            rate='The standard activation rate of this alias, ranging in between 1-256. Default: 256 (100%)',
@@ -82,26 +84,31 @@ class _AliasGlobalAdminCog(commands.GroupCog, group_name='alias'):
             return
         await self.logger.delete_alias(interaction, alias)
         await self.client.user_feedback(interaction, title='Alias deleted successfully', ephemeral=ephemeral)
+    # endregion
 
     # region autocomplete
-    @edit_alias.autocomplete('alias')
-    @delete_alias.autocomplete('alias')
-    async def _alias_options_autocomplete(self, _: Interaction, current: str):
-        target = current.lower() # Prevent repeat transformation
+    async def _alias_options_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
+        target = current.lower()  # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+
+    @edit_alias.autocomplete('alias')
+    @delete_alias.autocomplete('alias')
+    async def _alias_options_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
+        return await self.autocomplete_guard(_, current, self._alias_options_autocomplete_impl, 'alias')
     # endregion
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class _TriggerGlobalAdminCog(commands.GroupCog, group_name='trigger'):
+class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
     def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
-        self.client = client
+        super().__init__(client)
         self.repl = repl
         self.logger = logger
 
+    # region commands
     @app_commands.command(name='create', description='Create a new Trigger')
     @app_commands.describe(alias='The Alias this Trigger belongs to.', text='Trigger RegEx to match to.',
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
@@ -166,20 +173,23 @@ class _TriggerGlobalAdminCog(commands.GroupCog, group_name='trigger'):
             return
         await self.logger.delete_trigger(interaction, alias, old)
         await self.client.user_feedback(interaction, title='Trigger deleted successfully', ephemeral=ephemeral)
+    # endregion
 
     # region autocomplete
-    @create_trigger.autocomplete('alias')
-    @edit_trigger.autocomplete('alias')
-    @delete_trigger.autocomplete('alias')
-    async def _alias_options_autocomplete(self, _: Interaction, current: str) -> list[Choice[str]]:
+    async def _alias_options_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
         target = current.lower()  # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
         return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
 
-    @edit_trigger.autocomplete('index')
-    @delete_trigger.autocomplete('index')
-    async def _index_options_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    @create_trigger.autocomplete('alias')
+    @edit_trigger.autocomplete('alias')
+    @delete_trigger.autocomplete('alias')
+    async def _alias_options_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
+        return await self.autocomplete_guard(_, current, self._alias_options_autocomplete_impl, 'alias')
+
+
+    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         alias = interaction.namespace.alias
         if not alias:
             return [Choice(name='Bad alias.', value=-1)]
@@ -194,17 +204,23 @@ class _TriggerGlobalAdminCog(commands.GroupCog, group_name='trigger'):
             Choice(name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
             for offset, trigger in enumerate(triggers[lower:upper])
         ]
+
+    @edit_trigger.autocomplete('index')
+    @delete_trigger.autocomplete('index')
+    async def _index_options_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        return await self.autocomplete_guard(interaction, current, self._index_options_autocomplete_impl, 'index')
     # endregion
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class _ReplyGlobalAdminCog(commands.GroupCog, group_name='reply'):
+class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
     def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
-        self.client = client
+        super().__init__(client)
         self.repl = repl
         self.logger = logger
 
+    # region commands
     @app_commands.command(name='create', description='Create a new Reply')
     @app_commands.describe(alias='The Alias this reply will belong to.',
                             reply_type='The type of Reply this has to be.',
@@ -289,6 +305,7 @@ class _ReplyGlobalAdminCog(commands.GroupCog, group_name='reply'):
 
         await self.logger.delete_reply(interaction, alias, old) # FIXME: not passing data!
         await self.client.user_feedback(interaction, title='Reply deleted successfully', ephemeral=ephemeral)
+    # endregion
 
     # region autocomplete
     @create_reply.autocomplete('alias')

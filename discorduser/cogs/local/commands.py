@@ -14,6 +14,7 @@ from data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterfac
 from discorduser.logger import GlobalLogger
 from discorduser.logger.local import LocalLogger
 from discorduser.user.abstract import BotClient
+from discorduser.user.custom_cog import CustomGroupCog
 from piss import parse_variables, Instruction
 from piss.instructionexecutor import DebugInstructionExecutor
 from piss.testing import test_raw_input as input_test
@@ -45,9 +46,9 @@ class RestrictedUseException(CustomDiscordException):
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
-class LocalAdminCog(commands.GroupCog, group_name='admin'):
+class LocalAdminCog(CustomGroupCog, group_name='admin'):
     def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface, pref: PreferencesInterface, db: LocalAdminDataInterface, logger: GlobalLogger, local_logger: LocalLogger) -> None:
-        self.client = client
+        super().__init__(client)
         self.fact = fact
         self.mod = mod
         self.pref = pref

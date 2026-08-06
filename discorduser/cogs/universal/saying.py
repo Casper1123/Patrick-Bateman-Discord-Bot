@@ -7,15 +7,16 @@ from configuration.global_config import CFG
 from data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
 from discorduser.logger import GlobalLogger
 from discorduser.user.abstract import BotClient
+from discorduser.user.custom_cog import CustomGroupCog
 from piss.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
-class GlobalAdminSayingCog(commands.GroupCog, group_name='saying'):
+class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
     def __init__(self, client: BotClient, saying: GlobalAdminSayingInterface, logger: GlobalLogger) -> None:
-        self.client = client
+        super().__init__(client)
         self.saying = saying
         self.logger = logger
 
@@ -60,9 +61,7 @@ class GlobalAdminSayingCog(commands.GroupCog, group_name='saying'):
         await self.logger.delete_saying(interaction, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Saying deleted successfully.')
 
-    @saying_edit.autocomplete('index')
-    @saying_delete.autocomplete('index')
-    async def _index_autocomplete_callback(self, _: Interaction, current: str) -> list[Choice[str]]:
+    async def _index_autocomplete_callback_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
         if not current:
             current = 0
         sayings: list[SimpleSayingEditorData] = self.saying.get_sayings()
@@ -71,3 +70,8 @@ class GlobalAdminSayingCog(commands.GroupCog, group_name='saying'):
             Choice(name=f'{offset}: {saying[:80]}', value=offset)
             for offset, saying in enumerate(sayings[lower:upper])
         ]
+
+    @saying_edit.autocomplete('index')
+    @saying_delete.autocomplete('index')
+    async def _index_autocomplete_callback_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
+        return await self.autocomplete_guard(_, current, self._index_autocomplete_callback_impl, 'index')
