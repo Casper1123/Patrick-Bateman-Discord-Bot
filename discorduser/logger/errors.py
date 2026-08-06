@@ -124,7 +124,7 @@ class AppCommandErrorContext(LoggableErrorContext):
         super().__init__('app_command', error)
         self.interaction = interaction
         try:
-            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace)}]'
+            self.params = f'[{'; '.join(f'{n} = {v}' for n, v in vars(self.interaction.namespace).items())}]'
         except TypeError:
             self.params = f'[]'
 
@@ -132,7 +132,7 @@ class ListenerErrorContext(LoggableErrorContext):
     def __init__(self, error: Exception, event: str, params: str):
         """
         :param event: Event name
-        :param params: String of parameter data to be logged, passed in with the format [PARAM=VALUE;PARAM=VALUE]
+        :param params: String of parameter data to be logged, passed in with the format [PARAM = VALUE; PARAM = VALUE]
         """
         super().__init__('listener', error)
         self.event = event
@@ -187,7 +187,7 @@ class AutocompleteErrorContext(LoggableErrorContext):
             self.current = '[PARSE ERROR]'
         self.interaction = interaction
         try:
-            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace if v != target)}]'
+            self.params = f'[{'; '.join(f'{n} = {v}' for n, v in vars(self.interaction.namespace).items() if v != target)}]'
         except TypeError: self.params = f'[]'
 
     def as_embed(self) -> Embed:
