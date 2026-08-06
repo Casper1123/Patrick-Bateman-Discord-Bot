@@ -48,4 +48,4 @@ class CustomDiscordException(Exception):
         return embed
 
     def __str__(self) -> str:
-        return f'{self.error_type}: {self.message}{f"\nCaused by {self.cause}" if self.cause else ''}'.replace('*', '')
+        return f'{self.error_type}: {self.message}{f"\n**Caused by:**\n{self.cause}" if self.cause else ''}'.replace('*', '')
