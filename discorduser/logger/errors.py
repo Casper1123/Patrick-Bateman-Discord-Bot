@@ -3,7 +3,7 @@ from typing import Literal, TypeAlias
 from abc import ABC, abstractmethod
 
 from discord import Embed, Interaction, Colour
-from discord.app_commands import CommandOnCooldown
+from discord.app_commands import CommandOnCooldown, CommandInvokeError
 
 from piss import InstructionParseError
 from utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -20,11 +20,15 @@ def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool
     Normalize given Exception into a CustomDiscordException and tells if should be logged or not.
     :return: tuple[normalized exception, should log]
     """
-    # just to take this out of the damn constructor
+    # Peel of its skin, if it has some on there.
+    # Peel off it's skin.
+    if isinstance(error, CommandInvokeError):
+        error: Exception = error.original
+
     # Todo: Go through and figure out which exceptions to the CDE-conversion are to be put here, just like CommandOnCooldown
     if isinstance(error, CommandOnCooldown):
         log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES  # Leave logging to the above or not.
-        error = CustomDiscordException(
+        error: CustomDiscordException = CustomDiscordException(
             message=f'Command on cooldown ({error.cooldown}s), try again in **{error.retry_after}s**.',
             error_type='Command on cooldown.', tooltip=ErrorTooltip.NONE)
     elif not isinstance(error, CustomDiscordException):
@@ -99,7 +103,7 @@ class AppCommandErrorContext(LoggableErrorContext):
         super().__init__('app_command', error)
         self.interaction = interaction
         try:
-            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter() if v != target)}]'
+            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter())}]'
         except TypeError:
             self.params = f'[]'
 
