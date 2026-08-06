@@ -45,9 +45,11 @@ def from_json(filepath: str)-> tuple[GlobalLoggerConfig, LocalLoggerConfig]:
                 print(f'Found duplicate key {k} in {name} config')
             else:
                 # not none to force some setting value. Might need to change in the future
-                assert isinstance(v, target_type) and v is not None, f'Key {k} of {name} has value of type {type(v)}, expected {target_type}'
+                if not (isinstance(v, target_type) and v is not None):
+                    raise TypeError(f'Key {k} of {name} has value of type {type(v)}, expected {target_type}')
                 temp.remove(k)
-        assert temp.__len__() == 0, f'{name} config missing keys {temp}'
+        if not temp.__len__() == 0:
+            raise KeyError(f'{name} config missing keys {temp}')
 
     validation_global = set(get_args(loggable))
     integ('output_to_console', bool, otc, validation_global)

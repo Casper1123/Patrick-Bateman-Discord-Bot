@@ -282,7 +282,8 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             feat.add('saying')
             desc += f'**Saying:** {not pref.saying}\n'
 
-        assert feat.__sizeof__() > 0, 'Set of selected features is 0 even though some feature was selected.'
+        if not feat.__sizeof__() > 0:
+            raise RuntimeError('Set of selected features is 0 even though some feature was selected.')
 
         self.pref.toggle_autoreply_feature(guild_id, channel_id, feat)
 

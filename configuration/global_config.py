@@ -26,19 +26,29 @@ class _GlobalConfig(AbstractJSONConfig):
                  saying_probability: int):
         super().__init__(path)
 
-        assert isinstance(global_admin_serverid, int)
-        assert isinstance(reply_weight_upper_bound, int)
+        if not isinstance(global_admin_serverid, int):
+            raise TypeError('global_admin_serverid must be an int')
+        if not isinstance(reply_weight_upper_bound, int):
+            raise TypeError('reply_weight_upper_bound must be an int')
 
-        assert isinstance(local_fact_max, int)
-        assert isinstance(local_fact_charlimit, int)
+        if not isinstance(local_fact_max, int):
+            raise TypeError('local_fact_max must be an int')
+        if not isinstance(local_fact_charlimit, int):
+            raise TypeError('local_fact_charlimit must be an int')
 
-        assert isinstance(preview_cd, float) or isinstance(preview_cd, int)
-        assert isinstance(delete_cd, float) or isinstance(delete_cd, int)
-        assert isinstance(edit_cd, float) or isinstance(edit_cd, int)
-        assert isinstance(add_cd, float) or isinstance(add_cd, int)
+        if not (isinstance(preview_cd, float) or isinstance(preview_cd, int)):
+            raise TypeError('preview_cd must be a float or int')
+        if not (isinstance(delete_cd, float) or isinstance(delete_cd, int)):
+            raise TypeError('delete_cd must be a float or int')
+        if not (isinstance(edit_cd, float) or isinstance(edit_cd, int)):
+            raise TypeError('edit_cd must be a float or int')
+        if not (isinstance(add_cd, float) or isinstance(add_cd, int)):
+            raise TypeError('add_cd must be a float or int')
 
-        assert isinstance(fact_cd, float) or isinstance(fact_cd, int)
-        assert isinstance(saying_probability, int)
+        if not (isinstance(fact_cd, float) or isinstance(fact_cd, int)):
+            raise TypeError('fact_cd must be a float or int')
+        if not isinstance(saying_probability, int):
+            raise TypeError('saying_probability must be an int')
 
         self.GLOBAL_ADMIN_SERVER_ID: int = global_admin_serverid
         self.REPLY_WEIGHT_UPPER_BOUND: int = reply_weight_upper_bound

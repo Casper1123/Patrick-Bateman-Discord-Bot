@@ -38,7 +38,8 @@ class UserPreferenceCog(commands.Cog):
             feat.add('text')
             desc += f'**Text:** {'Off' if pref.text else 'On'}\n'
 
-        assert feat.__sizeof__() > 0, 'Set of selected features is 0 even though some feature was selected.'
+        if not feat.__sizeof__() > 0:
+            raise RuntimeError('Set of selected features is 0 even though some feature was selected.')
 
         self.pref.toggle_user_autoreply_feature(interaction.user.id, feat)
 

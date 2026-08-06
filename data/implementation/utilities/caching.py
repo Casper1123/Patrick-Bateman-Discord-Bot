@@ -90,7 +90,7 @@ class RecursiveCacheHandler:
         Early-unregisters cached entry leaves AND NODES (if path ends early) for given path.
         Higher up the tree is first in the list.
 
-        Raises an AssertionError if the path somehow collides with a Leaf early.
+        Raises an Exception if the path somehow collides with a Leaf early.
         Silently quits if any node along the way was not registered.
         """
         self._prune_entry(keys, clean_empty_nodes=True)

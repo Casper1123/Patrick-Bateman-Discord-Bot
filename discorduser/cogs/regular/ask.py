@@ -45,7 +45,7 @@ class AskPatrick(commands.Cog):
                 await replyable.reply(mention_author=False, content=content)
 
         # todo: overhaul entirely. This is terrible.
-        
+
         number = random.randint(1, 1000)
         # funny supersecret 1%%
         if number == 1:

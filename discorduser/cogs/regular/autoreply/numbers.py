@@ -22,6 +22,8 @@ class NumberAutoreplyCog(commands.Cog):
             return
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'number'):
             return
+        # Todo: optimizable
+        # Example: something with text after the first space is clearly more than just a number
         txt: str = message.content
         try:
             num: float = float(txt)

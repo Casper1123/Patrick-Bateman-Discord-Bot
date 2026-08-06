@@ -12,7 +12,8 @@ class TokenConfig(AbstractJSONConfig):
 
     def __init__(self, path: str, token: str):
         super().__init__(path)
-        assert isinstance(token, str) and not token is None, 'Token not of type string'
+        if not (isinstance(token, str) and not token is None):
+            raise TypeError('Token not of type string')
 
         self.token = token
 

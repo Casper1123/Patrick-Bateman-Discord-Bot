@@ -10,10 +10,8 @@ Simple:
 - Letter autoreply DONE
 - Sayings DONE
 
-- number autoreply TODO: numerical conversion and incrementation. Preferences done.
+- number autoreply
 - Message content autoreply
 
 - Local moderation
 - Global moderation
-TODO: check autocomplete options for indices, esp for global
-TODO: remove usage of Assert and go for regular errors, ESPECIALLY in configs.
