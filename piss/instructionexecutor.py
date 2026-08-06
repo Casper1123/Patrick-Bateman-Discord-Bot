@@ -147,8 +147,6 @@ class InstructionExecutor:
                 'owner.roles': len(owner.roles) if owner else 0,
                 'owner.mutual_guilds': len(owner.mutual_guilds),
 
-                'message.jump_url': interaction.message.jump_url,
-
                 # external
                 'local_facts': local_facts,
                 'global_facts': global_facts,
@@ -360,8 +358,6 @@ class DebugInstructionExecutor(InstructionExecutor):
             'owner.account': 'owneraccount',
             'owner.roles': 0,
             'owner.mutual_guilds': 0,
-
-            'message.jump_url': 'messageurl',
 
             # external
             'local_facts': 1,
