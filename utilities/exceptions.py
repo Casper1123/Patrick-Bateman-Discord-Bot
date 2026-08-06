@@ -41,7 +41,7 @@ class CustomDiscordException(Exception):
             title=self.error_type,
             description=f"**An error has occurred.**\n"
                         f"{_tooltips[self.tooltip]}"
-                        f"{f'\n\n**Error:**\n{self.message}' if self.message else ''}"
+                        f"{f'\n**Error:**\n{self.message}' if self.message else ''}"
                         f"{cause}",
             colour=Colour.red()
         )

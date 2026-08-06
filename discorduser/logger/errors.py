@@ -67,6 +67,7 @@ class LoggableErrorContext(ABC):
             current = start.resolve()
 
             for _ in range(max_depth):
+                # It'll be fine trust
                 if (current / "main.py").exists():
                     return current
                 if current.parent == current:

@@ -63,7 +63,6 @@ class GlobalLogger:
                 # update cache
                 self.target_channels[act] = channel
 
-
         await channel.send(embed=embed)
     # endregion
 
