@@ -87,7 +87,7 @@ class InstructionExecutor:
         else:
             return build
 
-    async def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
+    def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
         guild: discord.Guild = interaction.guild
         if not guild:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
