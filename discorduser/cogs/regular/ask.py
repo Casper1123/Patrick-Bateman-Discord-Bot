@@ -43,7 +43,9 @@ class AskPatrick(commands.Cog):
                 await replyable.response.send_message(content=content) # noqa
             else:
                 await replyable.reply(mention_author=False, content=content)
-        # todo: system with weighted replies. Replies are defined as instructions.
+
+        # todo: overhaul entirely. This is terrible.
+        
         number = random.randint(1, 1000)
         # funny supersecret 1%%
         if number == 1:
