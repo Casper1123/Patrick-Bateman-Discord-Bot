@@ -44,6 +44,11 @@ class BotClient(commands.Bot):
 
         async def on_error(event, *args, **kwargs):
             error = sys.exc_info()[1]
+            if error is None:
+                return
+            if not isinstance(error, Exception):
+                raise error
+            
             # todo: parse params based on given event.
             await self.handle_exception(error_context=ListenerErrorContext(
                 error=error, event=event, params='[]'
@@ -72,6 +77,9 @@ class BotClient(commands.Bot):
 
         if error_context.log:
             await self.logger.error(error_context)
+
+            if isinstance(error_context, AppCommandErrorContext):
+                await error_context.interaction.edit_original_response(embed=error_context.error.as_embed())
 
 
     # endregion
