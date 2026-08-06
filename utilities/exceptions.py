@@ -37,10 +37,6 @@ class CustomDiscordException(Exception):
             cause = (f'\n\n**Caused by:** {type(self.cause).__name__}\n'
                      f'{self.cause}')
 
-            if isinstance(self.cause, Exception) and self.cause.__traceback__:
-                origin = traceback.extract_tb(self.cause.__traceback__)[-1]
-                cause += f"\nRaised in {origin.filename}:{origin.lineno} ({origin.name})"
-
         embed = Embed(
             title=self.error_type,
             description=f"**An error has occurred.**\n"

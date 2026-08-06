@@ -1,4 +1,6 @@
 import socket
+import sys
+from typing import Literal
 
 import aiohttp
 import discord
@@ -13,12 +15,11 @@ from data.interfaces.other import LocalAdminDataInterface
 from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import GlobalAdminSayingInterface
 from configuration.logger import LocalLoggerConfig, GlobalLoggerConfig
-from discorduser.logger import GlobalLogger
+from discorduser.logger import GlobalLogger, LoggableErrorContext
+from discorduser.logger.errors import ErrorSource, ListenerErrorContext, AppCommandErrorContext, \
+    AutocompleteErrorContext
 from discorduser.logger.local import LocalLogger
-from piss import InstructionParseError
 from utilities.exceptions import CustomDiscordException, ErrorTooltip
-
-UNLOGGED_EXCEPTION_TYPES = [InstructionParseError.__name__, CommandOnCooldown.__name__] # using __name__ to ensure that when I change the class names this updates.
 
 
 class BotClient(commands.Bot):
@@ -41,45 +42,39 @@ class BotClient(commands.Bot):
         intents.members = True
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
 
+        async def on_error(event, *args, **kwargs):
+            error = sys.exc_info()[1]
+            # todo: parse params based on given event.
+            await self.handle_exception(error_context=ListenerErrorContext(
+                error=error, event=event, params='[]'
+            ))
+
+        self.on_error = on_error
+
+    # region error-handling
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: Interaction, error: app_commands.AppCommandError):
             try:
-                if (True):  # todo: config to make uncaught public errors hidden or not
-                    await interaction.response.defer(ephemeral=True, thinking=False) # noqa
+                await interaction.response.defer(ephemeral=True, thinking=False) # noqa
             except Exception: # noqa Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
             # handle exceptions
             finally:
-                if (isinstance(error, aiohttp.client_exceptions.ClientConnectorDNSError)
-                        or isinstance(error, socket.gaierror)):
-                    return # Skip 'connection lost' exceptions, also removing them from the logging.
-                    # Idk why, but for some reason my host device seems to lose connection at unknown intervals for short periods of time.
-                    # So this is temporary glue fix.
-                if isinstance(error, CommandOnCooldown):
-                    log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES
-                    error = CustomDiscordException(message=f'Command on cooldown ({error.cooldown}s), try again in **{error.retry_after}s**.', error_type='Command on cooldown.', tooltip=ErrorTooltip.NONE)
-                elif not isinstance(error, CustomDiscordException):
-                    log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES
-                    error: CustomDiscordException = CustomDiscordException(cause=error, error_type=type(error).__name__)
-                else:
-                    assert isinstance(error, CustomDiscordException)
-                    log = error.cause is None or type(error.cause).__name__ not in UNLOGGED_EXCEPTION_TYPES
-
-                await interaction.edit_original_response(embed=error.as_embed())  # Can get more detailed information from this.
-                if log:
-                    await self.logger.error(interaction, error)
-                    raise error
-
-        # fixme: only takes tree errors. Autocomplete errors and listener errors are not included in this.
+                await self.handle_exception(AppCommandErrorContext(error=error, interaction=interaction))
         # fixme: solution: decorate autocompletes
-        """
-        How to solve, maybe, I guess?
-        turn on_tree_error into a general function available on the class, maybe handle_exception or smt
-        async def handle_exception(exception: Exception, ...) some context values.
-        
-        How to inform user, if anything?
-        """
         self.tree.on_error = on_tree_error
+
+
+    async def handle_exception(self, error_context: LoggableErrorContext) -> None:
+        # TODO: FIXME: Holy shit holy fucking shitty shit do NOT log Autocomplete errors they will SPAM EVERYTHING
+        if isinstance(error_context, AutocompleteErrorContext):
+            error_context.log = False # FUUUUUCK I gotta find a timeout for this or a reason to mute it. Cool the tech exists, but now what.
+
+        if error_context.log:
+            await self.logger.error(error_context)
+
+
+    # endregion
 
     async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None: # noqa
         """

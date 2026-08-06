@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import get_args
+from typing import get_args, Literal
 import traceback
 
 from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colour
@@ -9,6 +9,7 @@ from discord.ext import commands
 from data.interfaces.autoreplies import reply_types, trigger_types, SimpleReplyData, SimpleTriggerData
 from data.interfaces.fact import FactEditorData
 from data.interfaces.saying import SimpleSayingEditorData
+from discorduser.logger.errors import LoggableErrorContext
 from utilities.exceptions import CustomDiscordException
 from configuration.logger import loggable, GlobalLoggerConfig
 
@@ -71,29 +72,15 @@ class GlobalLogger:
 
         await self._channel_log(channel, 'general')
 
-    async def error(self, interaction: Interaction | Message, error: CustomDiscordException) -> None:
-        # Errors are logged to console by the command tree handler, but we can still log additional information.
+    async def error(self, error_context: LoggableErrorContext) -> None:
         # todo: somehow build a cooldown into the error? As in, if the same error source has been reported recently, don't log it? (maybe based on interaction user)
-        # todo: parameters of interaction?
-        origin = ''
-        if isinstance(error.cause, Exception) and error.cause.__traceback__:
-            origin = traceback.extract_tb(error.cause.__traceback__)[-1]
-            origin = f'at {origin.filename}:{origin.lineno} ({origin.name})'
 
-        self._console_log(f'Upcoming exception raise raised from command {interaction.command.qualified_name} by user {interaction.user.name} ({interaction.user.id}){origin}', 'error')
-
-        """embed: Embed = Embed(
-            title=error.error_type,
-            description=f'{error.message}\n'
-                        f'{f'\nCaused by: {type(error.cause).__name__} ({str(error.cause)})\n' if error.cause else ''}'
-                        f'Raised by: {interaction.command.qualified_name}',
-            colour=Colour.red()
-        )"""
-        embed = error.as_embed()
-        embed.description += (f'\n\nRaised in: {interaction.command.qualified_name}\n'
-                              f'Raised by: {interaction.user.name} ({interaction.user.id})')
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar.url)
-        await self._channel_log(embed, 'error')
+        # WARNING: IF NOT ENABLED ALL CAUGHT EXCEPTION TYPES WILL FIZZLE
+        self._console_log(error_context.as_console(), 'error')
+        try:
+            await self._channel_log(error_context.as_embed(), 'error')
+        except Exception as e: # noqa
+            raise e
 
     # region local-action
     # region fact

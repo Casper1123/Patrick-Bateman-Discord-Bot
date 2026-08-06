@@ -13,6 +13,7 @@ class RecursiveCacheEntry:
         self.val = val
         self.timeout = timeout
 
+# todo: cleaner traversal function for checking validity input and stuff.
 class RecursiveCacheHandler:
     """
     Automated data caching handler using a Tree-noded structure. Try not to go too deep.
