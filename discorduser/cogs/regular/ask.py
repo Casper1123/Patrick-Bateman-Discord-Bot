@@ -44,7 +44,7 @@ class AskPatrick(commands.Cog):
             else:
                 await replyable.reply(mention_author=False, content=content)
         # todo: system with weighted replies. Replies are defined as instructions.
-        number: random.randint(1, 1000)
+        number = random.randint(1, 1000)
         # funny supersecret 1%%
         if number == 1:
             await ask_reply(message, "Ahem.")
@@ -59,8 +59,10 @@ class AskPatrick(commands.Cog):
         # No 450%%
         elif number <= 901:
             await ask_reply(message, "No")
-        else:
+        elif number <= 951:
             saying: str = self.saying.get_saying()
             parsed: list[Instruction] = parse_variables(saying)
             executor: InstructionExecutor = InstructionExecutor(self.client)
             await executor.run(parsed, message)
+        else:
+            await ask_reply(message, 'Haha I am immune to this question because I am queer')
