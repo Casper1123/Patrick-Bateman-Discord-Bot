@@ -103,7 +103,8 @@ class LoggableErrorContext(ABC):
 class AppCommandErrorContext(LoggableErrorContext):
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
-        embed.description += (f'Raised in {self.interaction.command.qualified_name} ({self._filename}:{self._lineno} in {self._name})\n'
+        embed.description += (f'Raised in `/{self.interaction.command.qualified_name}`\n'
+                              f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
                               f'Given parameters: {self.params}')
         if self.error.cause: # noqa want flexibility
             embed.description += (f'\n\n'
@@ -139,7 +140,8 @@ class ListenerErrorContext(LoggableErrorContext):
         embed: Embed = super().as_embed()
         if self.error.message:
             embed.description += f'{self.error.message}\n\n'
-        embed.description += (f'Event type *{self.event}* ({self._filename}:{self._lineno} in {self._name})\n'
+        embed.description += (f'Event type *{self.event}*\n'
+                              f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
                               f'Parameters: {self.params}')
         if self.error.cause:
             embed.description += (f'\n\n'
@@ -157,7 +159,8 @@ class TaskErrorContext(LoggableErrorContext):
 
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
-        embed.description += f'In task {self.task} ({self._filename}:{self._lineno} in {self._name})'
+        embed.description += (f'In task {self.task}'
+                              f'In: *{self._name}* (`{self._filename}:{self._lineno}`)')
         if self.error.cause:
             embed.description += (f'\n\n'
                                   f'Caused by: {type(self.error.cause).__name__}\n'
@@ -188,7 +191,8 @@ class AutocompleteErrorContext(LoggableErrorContext):
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
         embed.description += (
-            f'Raised in {self.interaction.command.qualified_name} ({self._filename}:{self._lineno} in {self._name})\n'
+            f'Raised in `/{self.interaction.command.qualified_name}`\n'
+            f'In: *{self._name}* (`{self._filename}:{self._lineno}`)\n'
             f'Target: {self.target} = {self.current}'
             f'Given parameters: {self.params}')
         if self.error.cause: # noqa dupe cuz want the flexibility
