@@ -49,8 +49,9 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'owner.account': str,
     'owner.roles': int,
 
-    'message': int,
-    'message.jump_url': str,
+    # Not always available!
+    #'message': int,
+    #'message.jump_url': str,
 
     # external
     'local_facts': int,
