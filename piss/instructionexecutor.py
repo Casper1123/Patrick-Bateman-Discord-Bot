@@ -91,8 +91,15 @@ class InstructionExecutor:
         guild: discord.Guild = interaction.guild
         if not guild:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
-        user: discord.User = interaction.user
-        member: discord.Member = interaction.guild.get_member(interaction.user.id)
+
+        # fixme: pretty sure this don't work on messages.
+        if isinstance(interaction, Interaction):
+            user: discord.User = interaction.user
+            member: discord.Member = interaction.guild.get_member(interaction.user.id)
+        else:
+            user: discord.User = interaction.author
+            member: discord.Member = interaction.guild.get_member(interaction.author.id)
+
         me: discord.ClientUser = self.client.user
         me_member: discord.Member = interaction.guild.get_member(me.id)
 
@@ -160,7 +167,7 @@ class InstructionExecutor:
         except Exception as e:
             raise CustomDiscordException(message='Initial Instruction Memory failed to build.', cause=e, error_type='InstructionMemoryError')
 
-    def check_init_memory(self, mem: dict[str, ...]) -> None:
+    def check_init_memory(self, mem: dict[str, ...]) -> None: # noqa intentional non-static
         """
         Throws an exception if the memory is not safely initialized.
         :param mem: Initial memory.
@@ -191,7 +198,7 @@ class InstructionExecutor:
                                                      f'This is probably an implementation error. Please raise this issue to the developers **if not reported already**.\n'
                                                      f'Aborting execution to preserve memory safety.')
 
-    def mem_fetch(self, memdict: list[dict[str, ...]], keys: list[str]) -> dict[str, ...]:
+    def mem_fetch(self, memdict: list[dict[str, ...]], keys: list[str]) -> dict[str, ...]: # noqa intentional
         """
         Gets the given variables from memory.
         :param memdict: The given variable stack.

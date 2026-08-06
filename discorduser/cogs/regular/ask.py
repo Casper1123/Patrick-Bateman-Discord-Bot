@@ -1,14 +1,21 @@
+import random
+
+import asyncio
 import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 
+from data.interfaces.saying import SimpleSayingEditorData, SayingInterface
 from discorduser.user.abstract import BotClient
+from piss import Instruction, parse_variables
+from piss.instructionexecutor import InstructionExecutor
 
 
 @app_commands.guild_only()
 class AskPatrick(commands.Cog):
-    def __init__(self, client: BotClient) -> None:
+    def __init__(self, client: BotClient, saying: SayingInterface) -> None:
         self.client = client
+        self.saying = saying
 
     @commands.Cog.listener("on_message")
     async def ask_patrick_listener(self, message: discord.Message):
@@ -18,7 +25,6 @@ class AskPatrick(commands.Cog):
         split_content = message.content.split()
         if len(split_content) < 3:
             return # Ignore if no question asked.
-
         await self.ask_patrick(message, " ".join(split_content[3:]))
 
     @app_commands.command(name="ask", description="A command-type shortcut to 'ask @botname <question>'.")
@@ -38,13 +44,12 @@ class AskPatrick(commands.Cog):
             else:
                 await replyable.reply(mention_author=False, content=content)
         # todo: system with weighted replies. Replies are defined as instructions.
-        raise NotImplementedError()
-        """
+        number: random.randint(1, 1000)
         # funny supersecret 1%%
         if number == 1:
             await ask_reply(message, "Ahem.")
             async with message.channel.typing():
-                await _asyncio.sleep(3)
+                await asyncio.sleep(3)
                 await ask_reply(message,  # todo: can be compacted into Instructions
                                 "# **One day you will have to answer for your actions. And god.. may not be so merciful..**",
                                 send_in_channel=True)
@@ -54,18 +59,8 @@ class AskPatrick(commands.Cog):
         # No 450%%
         elif number <= 901:
             await ask_reply(message, "No")
-        # Random bouncerline 50%%
-        elif number <= 951:
-            await ask_reply(message,
-                            process_variables(self.cm.sayings.get_line(None), self.cm.facts_manager, message, self.bot))
-        # Drunk too much, random bouncerwords 49%%
-        elif number <= 1000:
-            await ask_reply(message, "*He's drank too many beers.*")
-            await ask_reply(message, " ".join(
-                [_r.choice(self.cm.sayings.get_sayings_words()) for _ in range(_r.randint(1, 20))]),
-                            send_in_channel=True)
-        # krabklub only: I dunno lemme ask the bouncer 50%%
-        elif number <= 1050:
-            await ask_reply(message, "I don't know, let me ask the Bouncer")
-            await ask_reply(message, f"ask <@756190206591369437> {question}", send_in_channel=True)
-        """
+        else:
+            saying: str = self.saying.get_saying()
+            parsed: list[Instruction] = parse_variables(saying)
+            executor: InstructionExecutor = InstructionExecutor(self.client)
+            await executor.run(parsed, message)
