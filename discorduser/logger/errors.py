@@ -39,8 +39,11 @@ def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool
         log = type(error) not in UNLOGGED_EXCEPTION_TYPES
         error: CustomDiscordException = CustomDiscordException(cause=error, error_type=type(error).__name__)
     else:
-        assert isinstance(error, CustomDiscordException)
-        log = (error.cause is None or type(error.cause) not in UNLOGGED_EXCEPTION_TYPES) and not type(error) in UNLOGGED_EXCEPTION_TYPES
+        error: CustomDiscordException # True by invariant above.
+        if type(error) in UNLOGGED_EXCEPTION_TYPES:
+            log = False
+        else:
+            log = error.cause is None or type(error.cause) not in UNLOGGED_EXCEPTION_TYPES
     return error, log
 
 class LoggableErrorContext(ABC):
