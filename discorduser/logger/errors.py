@@ -9,12 +9,11 @@ from discord.app_commands import CommandOnCooldown, CommandInvokeError, Transfor
 from piss import InstructionParseError
 from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException
 
-UNLOGGED_EXCEPTION_TYPES = [
-    InstructionParseError.__name__,
-    CommandOnCooldown.__name__,
-    RestrictedUseException.__name__,
-
-] # using __name__ to ensure that when I change the class names this updates.
+UNLOGGED_EXCEPTION_TYPES: list[type] = [
+    InstructionParseError,
+    CommandOnCooldown,
+    RestrictedUseException,
+]
 # todo: undetailed exception types --> not sending exception warning to user, or just something generic
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer'] # just putting
 
@@ -32,16 +31,16 @@ def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool
 
     # Todo: Go through and figure out which exceptions to the CDE-conversion are to be put here, just like CommandOnCooldown
     if isinstance(error, CommandOnCooldown):
-        log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES  # Leave logging to the above or not.
+        log = type(error) not in UNLOGGED_EXCEPTION_TYPES  # Leave logging to the above or not.
         error: CustomDiscordException = CustomDiscordException(
             message=f'Command on cooldown ({error.cooldown}s), try again in **{error.retry_after}s**.',
             error_type='Command on cooldown.', tooltip=ErrorTooltip.NONE)
     elif not isinstance(error, CustomDiscordException):
-        log = type(error).__name__ not in UNLOGGED_EXCEPTION_TYPES
+        log = type(error) not in UNLOGGED_EXCEPTION_TYPES
         error: CustomDiscordException = CustomDiscordException(cause=error, error_type=type(error).__name__)
     else:
         assert isinstance(error, CustomDiscordException)
-        log = error.cause is None or type(error.cause).__name__ not in UNLOGGED_EXCEPTION_TYPES
+        log = (error.cause is None or type(error.cause) not in UNLOGGED_EXCEPTION_TYPES) and not type(error) in UNLOGGED_EXCEPTION_TYPES
     return error, log
 
 class LoggableErrorContext(ABC):
@@ -103,7 +102,7 @@ class LoggableErrorContext(ABC):
 class AppCommandErrorContext(LoggableErrorContext):
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
-        embed.description += (f'Raised in `/{self.interaction.command.qualified_name}`\n'
+        embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
                               f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
                               f'Given parameters: {self.params}')
         if self.error.cause: # noqa want flexibility
@@ -191,7 +190,7 @@ class AutocompleteErrorContext(LoggableErrorContext):
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
         embed.description += (
-            f'Raised in `/{self.interaction.command.qualified_name}`\n'
+            f'Raised by `/{self.interaction.command.qualified_name}`\n'
             f'In: *{self._name}* (`{self._filename}:{self._lineno}`)\n'
             f'Target: {self.target} = {self.current}'
             f'Given parameters: {self.params}')
