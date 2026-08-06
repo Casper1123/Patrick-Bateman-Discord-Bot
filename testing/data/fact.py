@@ -49,7 +49,7 @@ class TestFactDatabase(GlobalAdminFactInterface):
         return 'PISS-test fact: {guild}, {user} at index ' + str(index)
 
     def get_fact_count(self, guild_id: int | None) -> int:
-        return 0 if not guild_id else guild_id
+        return 0 if not guild_id else 1
 
     def __init__(self):
         self.local_fact_kill_switch: bool = False
