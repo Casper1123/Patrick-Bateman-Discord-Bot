@@ -1,4 +1,5 @@
 import traceback
+from pathlib import Path
 from typing import Literal, TypeAlias
 from abc import ABC, abstractmethod
 
@@ -60,7 +61,20 @@ class LoggableErrorContext(ABC):
             return
 
         tb = traceback.extract_tb(tb_source.__traceback__)[-1]
-        self._filename = tb.filename
+        def find_project_root(start: Path, max_depth: int = 5) -> Path:
+            current = start.resolve()
+
+            for _ in range(max_depth):
+                if (current / "main.py").exists():
+                    return current
+                if current.parent == current:
+                    break
+                current = current.parent
+
+            return start.resolve()
+
+        project_root = find_project_root(Path(tb.filename).parent)
+        self._filename = str(Path(tb.filename).relative_to(project_root))
         self._lineno = tb.lineno
         self._name = tb.name
 
