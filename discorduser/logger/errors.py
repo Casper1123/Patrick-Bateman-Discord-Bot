@@ -124,7 +124,7 @@ class AppCommandErrorContext(LoggableErrorContext):
         super().__init__('app_command', error)
         self.interaction = interaction
         try:
-            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter())}]'
+            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace)}]'
         except TypeError:
             self.params = f'[]'
 
@@ -187,7 +187,7 @@ class AutocompleteErrorContext(LoggableErrorContext):
             self.current = '[PARSE ERROR]'
         self.interaction = interaction
         try:
-            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace.iter() if v != target)}]'
+            self.params = f'[{';'.join(f'{n}={v}' for n, v in self.interaction.namespace if v != target)}]'
         except TypeError: self.params = f'[]'
 
     def as_embed(self) -> Embed:
