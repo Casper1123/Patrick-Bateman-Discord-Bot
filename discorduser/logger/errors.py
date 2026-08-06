@@ -3,7 +3,7 @@ from typing import Literal, TypeAlias
 from abc import ABC, abstractmethod
 
 from discord import Embed, Interaction, Colour
-from discord.app_commands import CommandOnCooldown, CommandInvokeError
+from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
 
 from piss import InstructionParseError
 from utilities.exceptions import CustomDiscordException, ErrorTooltip
@@ -13,7 +13,7 @@ UNLOGGED_EXCEPTION_TYPES = [
     CommandOnCooldown.__name__
 ] # using __name__ to ensure that when I change the class names this updates.
 # todo: undetailed exception types --> not sending exception warning to user, or just something generic
-ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete'] # just putting
+ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer'] # just putting
 
 def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool]:
     """
@@ -24,6 +24,8 @@ def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool
     # Peel off it's skin.
     if isinstance(error, CommandInvokeError):
         error: Exception = error.original
+    elif isinstance(error, TransformerError):
+        error: Exception = error.__cause__ # noqa let's just suppress this hihi haha what could go wrong.
 
     # Todo: Go through and figure out which exceptions to the CDE-conversion are to be put here, just like CommandOnCooldown
     if isinstance(error, CommandOnCooldown):
@@ -184,3 +186,5 @@ class AutocompleteErrorContext(LoggableErrorContext):
 
     def as_console(self) -> str:
         return super().as_console() + f'{self.interaction.command.qualified_name} at {self._filename}:{self._lineno} ({self._name}) with target [{self.target}={self.current}] and parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id})'
+
+# todo: transformer class.
