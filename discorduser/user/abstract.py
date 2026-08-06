@@ -78,8 +78,8 @@ class BotClient(commands.Bot):
         if error_context.log:
             await self.logger.error(error_context)
 
-            if isinstance(error_context, AppCommandErrorContext):
-                await error_context.interaction.edit_original_response(embed=error_context.error.as_embed())
+        if isinstance(error_context, AppCommandErrorContext):
+            await error_context.interaction.edit_original_response(embed=error_context.error.as_embed())
 
 
     # endregion
