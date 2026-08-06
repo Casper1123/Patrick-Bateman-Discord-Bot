@@ -43,6 +43,11 @@ class RestrictedUseException(CustomDiscordException):
     def __init__(self, restriction: UseRestriction):
         super().__init__(message=f'Your action has been interrupted; ' + reasons[restriction], tooltip=ErrorTooltip.NONE) # todo: write on the wiki what's going on when you see this
 
+    def as_embed(self) -> discord.Embed:
+        embed = super().as_embed()
+        embed.title = 'Access denied'
+        return embed
+
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
