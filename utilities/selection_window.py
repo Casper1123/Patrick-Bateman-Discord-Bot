@@ -36,7 +36,7 @@ def selection_window(n: int, i: int, k: int, favour: _favour = 'higher') -> tupl
     lower = i - left
     upper = i + right
 
-    # Final adjustment for values to close to the bounds.
+    # Final adjustment for values too close to the bounds.
     if lower < 0:
         upper -= lower
         lower = 0
