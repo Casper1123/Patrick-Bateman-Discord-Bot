@@ -1,3 +1,4 @@
+import asyncio
 import sys
 
 import discord
@@ -13,7 +14,7 @@ from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import GlobalAdminSayingInterface
 from discorduser.logger import GlobalLogger, LoggableErrorContext
 from discorduser.logger.errors import ListenerErrorContext, AppCommandErrorContext, \
-    AutocompleteErrorContext
+    AutocompleteErrorContext, TaskErrorContext
 from discorduser.logger.local import LocalLogger
 
 
@@ -49,9 +50,14 @@ class BotClient(commands.Bot):
                 raise error
 
             # todo: parse params based on given event.
-            await self.handle_exception(error_context=ListenerErrorContext(
-                error=error, event=event, params='[]'
-            ))
+            # todo: supported events list.
+            await self.handle_exception(
+                error_context=ListenerErrorContext(
+                    error=error,
+                    event=event, # No source function required, that data should be obtainable from error.
+                    params='[]'
+                )
+            )
 
         self.on_error = on_error
 
@@ -80,6 +86,24 @@ class BotClient(commands.Bot):
         if isinstance(error_context, AppCommandErrorContext):
             await error_context.interaction.edit_original_response(embed=error_context.error.as_embed())
 
+    def handle_task_done(self, task: asyncio.Task) -> None:
+        """
+        Pass a Task into this to handle whenever it ends or crashes.
+        Passes crashing exception down to the Logger and Error handler.
+        """
+        if task.cancelled():
+            return
+
+        error: BaseException = task.exception()
+
+        if error is None:
+            return
+
+        asyncio.create_task(
+            self.handle_exception(
+                TaskErrorContext(error, task) # noqa good enough
+            )
+        )
     # endregion
 
     async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None,

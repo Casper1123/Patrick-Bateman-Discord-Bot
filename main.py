@@ -52,4 +52,31 @@ if __name__ == '__main__':
 
     client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
-    # client.run(token=token_config.token)
+    # Not supported yet
+    print('Exiting as upcoming code is not complete yet.\nThe application cannot run.')
+    sys.exit(0)
+
+    import asyncio
+    async def main():
+        from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
+        # Just for an example to myself for later
+        dummy: CachedAbstractSQLDatabase
+
+        maintenance_loops = [
+            dummy.get_cache_task()
+        ]
+
+        for loop in maintenance_loops:
+            loop.add_done_callback(client.handle_task_done)
+
+        # Run the client, and then clean up after. Raise any leftover exceptions.
+        try:
+            await client.start(token=token_config.token)
+        finally:
+            for task in maintenance_loops:
+                task.cancel()
+
+            await asyncio.gather(
+                *maintenance_loops,
+                return_exceptions=True,
+            )

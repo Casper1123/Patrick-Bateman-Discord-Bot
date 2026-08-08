@@ -1,3 +1,4 @@
+from asyncio import Task
 import traceback
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -163,13 +164,13 @@ class ListenerErrorContext(LoggableErrorContext):
 
 
 class TaskErrorContext(LoggableErrorContext):
-    def __init__(self, error: Exception, task: str):
+    def __init__(self, error: Exception, task: Task):
         super().__init__('task', error)
-        self.task = task
+        self.task: Task = task
 
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
-        embed.description += (f'In task {self.task}'
+        embed.description += (f'In task {self.task.get_name()}'
                               f'In: *{self._name}* (`{self._filename}:{self._lineno}`)')
         if self.error.cause:
             embed.description += (f'\n\n'
@@ -178,7 +179,7 @@ class TaskErrorContext(LoggableErrorContext):
         return embed
 
     def as_console(self) -> str:
-        return super().as_console() + f'{self.task} at {self._filename}:{self._lineno} ({self._name})'
+        return super().as_console() + f'{self.task.get_name()} at {self._filename}:{self._lineno} ({self._name})'
 
 
 class AutocompleteErrorContext(LoggableErrorContext):
