@@ -1,10 +1,13 @@
+import io
+import json as _json
+
 import discord
-from discord import app_commands, Interaction
+from discord import app_commands, Interaction, Colour, Embed
 from discord.app_commands import Choice
 from discord.ext import commands
 
 from configuration.global_config import CFG
-from data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData
+from data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData, SayingEditorData
 from discorduser.logger import GlobalLogger
 from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
@@ -61,6 +64,23 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         await self.logger.delete_saying(interaction, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Saying deleted successfully.')
 
+    @app_commands.command(name='index', description='Display all of the stored Sayings.')
+    @app_commands.describe(json='Output to a json file', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    async def index(self, interaction: Interaction, json: bool = False, ephemeral: bool = True) -> None:
+        sayings: list[SayingEditorData] = self.saying.get_sayings()
+        file: discord.File
+        if json:
+            sayings: list[dict] = [i.as_json() for i in sayings]
+            with io.StringIO(_json.dumps(sayings, indent=4)) as text_stream:
+                file = discord.File(fp=text_stream, filename=f"sayings.json")
+        else:
+            sayings: list[str] = [f'{i + 1} [{j.author_id} at {j.modified_at}]: {j.text}' for i, j in enumerate(sayings)]
+            sayings: str = '\n'.join(sayings)
+            with io.StringIO(sayings) as text_stream:
+                file = discord.File(fp=text_stream, filename=f"sayings.txt")
+        await interaction.response.send_message(file=file, ephemeral=ephemeral, embed=Embed(title='Sayings', description='See attached file for Sayings data.', colour=Colour.blue())) # noqa this exists
+
+    # region autocomplete
     async def _index_autocomplete_callback_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
         if not current:
             current = 0
@@ -75,3 +95,4 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
     @saying_delete.autocomplete('index')
     async def _index_autocomplete_callback_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
         return await self.autocomplete_guard(_, current, self._index_autocomplete_callback_impl, 'index')
+    # endregion
