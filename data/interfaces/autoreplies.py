@@ -11,7 +11,7 @@ class SimpleAliasData(AbstractDTO):
     Simplified Record class for alias data
     """
 
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         return {
             'name': self.name,
             'rate': self.rate,
@@ -54,14 +54,14 @@ class AliasData(SimpleAliasData):
         self.editor_id: int = editor_id
         self.modified_at: float = modified_at
 
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         val = super().as_json()
         val['editor_id'] = self.editor_id
         val['modified_at'] = self.modified_at
         return val
 
 class SimpleTriggerData(AbstractDTO):
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         val =  {
             'type': self.type,
             'data': self.data,
@@ -102,7 +102,7 @@ class TriggerData(SimpleTriggerData):
         self.editor_id: int = editor_id
         self.modified_at: int = modified_at
 
-    def as_json(self, include_alias: bool = False) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self, include_alias: bool = False) -> dict[str, int | float | None | str | bool | dict | list]:
         val = super().as_json()
         val['editor_id'] = self.editor_id
         val['modified_at'] = self.modified_at
@@ -115,7 +115,7 @@ class SimpleReplyData(AbstractDTO):
     Simple record for reply data. Really only used for direct usage of data.
     """
 
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         return {
             'type': self.type,
             'data': self.data,
@@ -145,7 +145,7 @@ class ReplyData(SimpleReplyData):
         self.editor_id: int = editor_id
         self.modified_at: int = modified_at
 
-    def as_json(self, include_alias: bool = False) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self, include_alias: bool = False) -> dict[str, int | float | None | str | bool | dict | list]:
         val = super().as_json()
         val['editor_id'] = self.editor_id
         val['modified_at'] = self.modified_at

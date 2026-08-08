@@ -12,7 +12,7 @@ class UserPreferenceData(AbstractDTO):
     Record for User Preference data.
     """
 
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         return {
             'text': self.text,
             'letter': self.letter,
@@ -39,7 +39,7 @@ class GuildChannelPreferenceData(AbstractDTO):
         self.number = number
         self.saying = saying
 
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         return {
             'text': self.text,
             'letter': self.letter,

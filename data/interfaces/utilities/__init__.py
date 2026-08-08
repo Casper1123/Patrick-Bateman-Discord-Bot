@@ -5,7 +5,7 @@ class AbstractDTO(ABC):
     Defines default required behaviour of Data Transfer Objects returned by the Database layer.
     """
     @abstractmethod
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         """
         Returns a JSON representation of the object.
         """

@@ -7,7 +7,7 @@ class SimpleFactEditorData(AbstractDTO):
     """
     Purely a record class to hold Fact data.
     """
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         val =  {
             'text': self.text,
             'author_id': self.author_id
@@ -41,7 +41,7 @@ class FactEditorData(SimpleFactEditorData):
         self.created_at: int = created_at
         self.modified_at: int = modified_at
 
-    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         val = super().as_json()
         val['created_at'] = self.created_at
         val['modified_at'] = self.modified_at

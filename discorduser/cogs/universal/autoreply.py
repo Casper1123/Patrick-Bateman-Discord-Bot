@@ -1,13 +1,15 @@
 # NOTE: COMMANDS ARE NOT GLOBALLY USABLE, THEY ARE GLOBAL ADMIN
+import io
+import json as _json
 
 import discord
-from discord import app_commands, Interaction
+from discord import app_commands, Interaction, Embed, Colour
 from discord.app_commands import Choice
 from discord.ext import commands
 
 from configuration.global_config import CFG
 from data.interfaces.autoreplies import GlobalTextAutoreplyInterface, reply_types, \
-    SimpleAliasData, SimpleTriggerData, SimpleReplyData
+    SimpleAliasData, SimpleTriggerData, SimpleReplyData, AliasData
 from discorduser.logger import GlobalLogger
 from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
@@ -84,6 +86,43 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
             return
         await self.logger.delete_alias(interaction, alias)
         await self.client.user_feedback(interaction, title='Alias deleted successfully', ephemeral=ephemeral)
+
+    @app_commands.command(name='index', description='Get all Alias data.')
+    @app_commands.describe(json='Export data in JSON format.', include_components='Include data on attached replies and triggers too.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    async def index(self, interaction: Interaction, json: bool = False, include_components: bool = False, ephemeral: bool = True):
+        aliases: list[SimpleAliasData] = self.repl.get_aliases() # todo: expand for full data compat --> Author id added to it.
+        if json:
+            out: list[dict] = []
+            for a in aliases:
+                val = a.as_json()
+                if include_components:
+                    val['triggers'] = [t.as_json() for t in self.repl.get_triggers_for_alias(a.name)]
+                    val['replies'] = [r.as_json() for r in self.repl.get_replies_by_alias(a.name)]
+            with io.StringIO(_json.dumps(out, indent=4)) as text_stream:
+                file = discord.File(fp=text_stream, filename=f"alias_data{'' if not include_components else '_complete'}.json") # noqa
+        else:
+            out: str = ''
+            for a in aliases:
+                # Header for Alias
+                out += f'# Alias {a.name} : Rate {a.rate}\n'
+                if include_components:
+                    # Triggers
+                    out += f'## Triggers:\n'
+                    for t in self.repl.get_triggers_for_alias(a.name):
+                        out += f'[{t.type};{t.rate}] {t.data}\n'
+
+                    # Line between each header, then replies header
+                    out += f'\n## Replies:\n'
+                    for r in self.repl.get_replies_by_alias(a.name):
+                        out += f'[{r.type};{r.weight}] {r.data}\n'
+                    # Final seperator between each Alias to make a teeny bit more space.
+                    out += '\n'
+            out: str = out.removesuffix('\n')
+            with io.StringIO(out) as text_stream:
+                file = discord.File(fp=text_stream, filename=f"alias_data{'' if not include_components else '_complete'}.txt") # noqa
+        await interaction.response.send_message(file=file, ephemeral=ephemeral, embed=Embed(title='Alias Data', # noqa
+                                                                                            description=f'See attached file for{' ' if not include_components else 'complete '}Alias data.',
+                                                                                            colour=Colour.blue()))
     # endregion
 
     # region autocomplete

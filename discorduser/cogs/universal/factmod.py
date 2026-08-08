@@ -69,10 +69,10 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                                         desc=f'Fact deleted successfully.')
 
     @app_commands.command(name='index',
-                          description='Exports an overview of Global (and Local) facts. Can be exported to JSON for easier automated use.')
+                          description='Exports an overview of Global (and Local) facts.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
-                           json='Export the facts to an attached JSON file instead.', local='Also export local facts, indexed by guild ID')
-    async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False, local: bool = False) -> None:
+                           json='Export data in JSON format.', local='Also export local facts, indexed by guild ID')
+    async def index(self, interaction: Interaction, json: bool = False, local: bool = False, ephemeral: bool = True,) -> None:
         # todo: rewrite
         global_facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         local_facts: dict[int, list[SimpleFactEditorData]] = {} if not local else self.fact.get_all_local_facts()

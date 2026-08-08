@@ -68,7 +68,6 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
     @app_commands.describe(json='Output to a json file', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def index(self, interaction: Interaction, json: bool = False, ephemeral: bool = True) -> None:
         sayings: list[SayingEditorData] = self.saying.get_sayings()
-        file: discord.File
         if json:
             sayings: list[dict] = [i.as_json() for i in sayings]
             with io.StringIO(_json.dumps(sayings, indent=4)) as text_stream:

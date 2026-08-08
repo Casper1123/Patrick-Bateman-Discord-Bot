@@ -199,9 +199,9 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
         await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title=title, description=other)) # noqa
 
-    @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
-    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, json='Export the facts to an attached JSON file instead.')
-    async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
+    @app_commands.command(name='index', description='Exports an overview of Local facts.')
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, json='Export data in JSON format.')
+    async def index(self, interaction: Interaction, json: bool = False, ephemeral: bool = True,) -> None:
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
 
