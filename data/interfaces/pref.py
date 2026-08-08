@@ -5,6 +5,7 @@ from data.interfaces.utilities import AbstractDTO
 
 supported_autoreply_features = Literal['saying', 'text', 'letter', 'number']
 
+
 # Only reason these are separate are just in case extra data needs to be supplied (like uid, gid, cid)
 # But yeah, copy pasted.
 class UserPreferenceData(AbstractDTO):
@@ -29,10 +30,12 @@ class UserPreferenceData(AbstractDTO):
         self.number = number
         self.saying = saying
 
+
 class GuildChannelPreferenceData(AbstractDTO):
     """
     Record for Guild Preference data.
     """
+
     def __init__(self, text: bool, letter: bool, number: bool, saying: bool):
         self.text = text
         self.letter = letter
@@ -47,10 +50,12 @@ class GuildChannelPreferenceData(AbstractDTO):
             'saying': self.saying,
         }
 
+
 class PreferencesInterface(ABC):
     """
     Handles preference fetching and setting. Not made into two interfaces with different permission levels as they are widely used in the same areas.
     """
+
     # region Server - Channel Pause
     @abstractmethod
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None, duration: int) -> None:
@@ -75,7 +80,8 @@ class PreferencesInterface(ABC):
 
     # region Server - Autoreply Features
     @abstractmethod
-    def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None, features: set[supported_autoreply_features]) -> None:
+    def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None,
+                                 features: set[supported_autoreply_features]) -> None:
         """
         Flips the activity state on each of the passed features.
         :param guild_id:
@@ -85,7 +91,8 @@ class PreferencesInterface(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None, feature: supported_autoreply_features) -> bool:
+    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None,
+                             feature: supported_autoreply_features) -> bool:
         """
         Gets enabled state for guild channel's autoreply feature.
         :param guild_id:
@@ -94,7 +101,6 @@ class PreferencesInterface(ABC):
         :return: Feature availability status.
         """
         raise NotImplementedError()
-
 
     @abstractmethod
     def guild_channel_autoreplies_enabled(self, guild_id: int, channel_id: int | None) -> GuildChannelPreferenceData:
@@ -105,6 +111,7 @@ class PreferencesInterface(ABC):
         :return: GuildChannelPreferenceData for the given data.
         """
         raise NotImplementedError()
+
     # endregion
 
     # region User - Autoreply Features

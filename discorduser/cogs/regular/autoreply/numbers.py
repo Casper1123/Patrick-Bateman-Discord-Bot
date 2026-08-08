@@ -1,10 +1,9 @@
-import re as _re
-
 import discord
 from discord.ext import commands
 
 from data.interfaces.pref import PreferencesInterface
 from discorduser.user.abstract import BotClient
+
 
 class NumberAutoreplyCog(commands.Cog):
     def __init__(self, client: BotClient, pref: PreferencesInterface) -> None:
@@ -32,7 +31,7 @@ class NumberAutoreplyCog(commands.Cog):
             try:
                 num: float = float(txt)
             except ValueError:
-                return # More expressive matching
+                return  # More expressive matching
         if num == int(num) and not '.' in txt:
             num = int(num)
 

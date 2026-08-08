@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
 
 from data.interfaces.utilities import AbstractDTO
+
 
 class SimpleFactEditorData(AbstractDTO):
     """
     Purely a record class to hold Fact data.
     """
+
     def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
-        val =  {
+        val = {
             'text': self.text,
             'author_id': self.author_id
         }
@@ -25,6 +26,7 @@ class SimpleFactEditorData(AbstractDTO):
         self.text: str = text
         self.guild_id: int | None = guild_id
         self.author_id: int = author_id
+
 
 class FactEditorData(SimpleFactEditorData):
     def __init__(self, text: str, guild_id: int | None, author_id: int, created_at: int, modified_at: int):
@@ -54,8 +56,9 @@ class FactInterface(ABC):
     As it is an Abstract Base Class, you are expected to inherit from this class.
     Each method will have descriptions listing the functionality required.
     """
+
     @abstractmethod
-    def get_fact(self, guild_id: int | None, index: int | None)  -> str:
+    def get_fact(self, guild_id: int | None, index: int | None) -> str:
         """
         Retrieves a fact from the database.
 
@@ -94,6 +97,7 @@ class LocalAdminFactInterface(FactInterface):
     An extra layer of power, stronger than `DataInterface`.
     Can do basic local-administrator operations, like adding local facts.
     """
+
     @abstractmethod
     def create_fact(self, guild_id: int, user_id: int, fact: str) -> None:
         """
@@ -144,6 +148,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
     The strongest layer of power, stronger than `LocalAdminDataInterface`.
     Can perform operations on the global data other than retrieving.
     """
+
     @abstractmethod
     def toggle_local_fact_killswitch(self) -> bool:
         """
@@ -163,7 +168,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
 
     @abstractmethod
     def edit_global_fact(self, index: int, editor_id: int,
-                  new_fact: str) -> SimpleFactEditorData:
+                         new_fact: str) -> SimpleFactEditorData:
         """
         Edits a fact, setting the new content to the old.
         Raises IndexError if index is out of range.

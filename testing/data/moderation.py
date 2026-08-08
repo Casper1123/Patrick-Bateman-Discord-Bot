@@ -16,6 +16,7 @@ class TestModerationDatabase(GlobalAdminModerationInterface):
 
     def is_super_server(self, guild_id: int) -> bool:
         return self.super_guild
+
     # endregion
 
     # region Global
