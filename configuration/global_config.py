@@ -22,32 +22,36 @@ class _GlobalConfig(AbstractJSONConfig):
     def __init__(self, path: str, global_admin_serverid: int, reply_weight_upper_bound: int,
                  local_fact_max: int, local_fact_charlimit: int,
                  preview_cd: float, delete_cd: float, edit_cd: float, add_cd: float,
+                 channel_pause_duration: int,
                  fact_cd: float,
                  saying_probability: int):
         super().__init__(path)
 
-        if not isinstance(global_admin_serverid, int):
+        if not isinstance(global_admin_serverid, int) or global_admin_serverid is None:
             raise TypeError('global_admin_serverid must be an int')
-        if not isinstance(reply_weight_upper_bound, int):
+        if not isinstance(reply_weight_upper_bound, int) or reply_weight_upper_bound is None:
             raise TypeError('reply_weight_upper_bound must be an int')
 
-        if not isinstance(local_fact_max, int):
+        if not isinstance(local_fact_max, int) or local_fact_max is None:
             raise TypeError('local_fact_max must be an int')
-        if not isinstance(local_fact_charlimit, int):
+        if not isinstance(local_fact_charlimit, int) or local_fact_charlimit is None:
             raise TypeError('local_fact_charlimit must be an int')
 
-        if not (isinstance(preview_cd, float) or isinstance(preview_cd, int)):
+        if not (isinstance(preview_cd, float) or isinstance(preview_cd, int)) or preview_cd is None:
             raise TypeError('preview_cd must be a float or int')
-        if not (isinstance(delete_cd, float) or isinstance(delete_cd, int)):
+        if not (isinstance(delete_cd, float) or isinstance(delete_cd, int)) or delete_cd is None:
             raise TypeError('delete_cd must be a float or int')
-        if not (isinstance(edit_cd, float) or isinstance(edit_cd, int)):
+        if not (isinstance(edit_cd, float) or isinstance(edit_cd, int)) or edit_cd is None:
             raise TypeError('edit_cd must be a float or int')
-        if not (isinstance(add_cd, float) or isinstance(add_cd, int)):
+        if not (isinstance(add_cd, float) or isinstance(add_cd, int)) or add_cd is None:
             raise TypeError('add_cd must be a float or int')
 
-        if not (isinstance(fact_cd, float) or isinstance(fact_cd, int)):
+        if not (isinstance(channel_pause_duration, float) or isinstance(channel_pause_duration, int)) or channel_pause_duration is None:
+            raise TypeError('channel_pause_duration must be a float or int')
+
+        if not (isinstance(fact_cd, float) or isinstance(fact_cd, int)) or fact_cd is None:
             raise TypeError('fact_cd must be a float or int')
-        if not isinstance(saying_probability, int):
+        if not isinstance(saying_probability, int) or saying_probability is None:
             raise TypeError('saying_probability must be an int')
 
         self.GLOBAL_ADMIN_SERVER_ID: int = global_admin_serverid
@@ -60,6 +64,8 @@ class _GlobalConfig(AbstractJSONConfig):
         self.DELETE_COOLDOWN_SECONDS: float = delete_cd
         self.EDIT_COOLDOWN_SECONDS: float = edit_cd
         self.ADD_COOLDOWN_SECONDS: float = add_cd
+
+        self.CHANNEL_PAUSE_DURATION: int = channel_pause_duration
 
         self.FACT_COOLDOWN: float = fact_cd
         self.SAYING_PROBABILIY: int = saying_probability
@@ -85,6 +91,8 @@ class _GlobalConfig(AbstractJSONConfig):
             'EDIT_COOLDOWN_SECONDS': self.EDIT_COOLDOWN_SECONDS,
             'ADD_COOLDOWN_SECONDS': self.ADD_COOLDOWN_SECONDS,
 
+            'CHANNEL_PAUSE_DURATION': self.CHANNEL_PAUSE_DURATION,
+
             'FACT_COOLDOWN': self.FACT_COOLDOWN,
             'SAYING_PROBABILIY': self.SAYING_PROBABILIY,
         }
@@ -104,6 +112,8 @@ class _GlobalConfig(AbstractJSONConfig):
             'EDIT_COOLDOWN_SECONDS': 5.0,
             'ADD_COOLDOWN_SECONDS': 5.0,
 
+            'CHANNEL_PAUSE_DURATION': 60,
+
             'FACT_COOLDOWN': 1.0,
             'SAYING_PROBABILIY': 300, # 1 / probability listed here, per message.
         }
@@ -113,7 +123,7 @@ class _GlobalConfig(AbstractJSONConfig):
     def from_json(path: str) -> '_GlobalConfig':
         from utilities import load_json
         cfg = load_json(path)
-        # Values
+
         GAD_SID = cfg['GLOBAL_ADMIN_SERVER_ID']
         REPL_W_UP = cfg['REPLY_WEIGHT_UPPER_BOUND']
         FACT_COUNT_MAX = cfg['FACT_COUNT_MAXIMUM']
@@ -122,10 +132,11 @@ class _GlobalConfig(AbstractJSONConfig):
         DELETE_CD = cfg['DELETE_COOLDOWN_SECONDS']
         EDIT_CD = cfg['EDIT_COOLDOWN_SECONDS']
         ADD_CD = cfg['ADD_COOLDOWN_SECONDS']
+        CHANNEL_PAUSE_DURATION = cfg['CHANNEL_PAUSE_DURATION']
         FACT_COOLDOWN = cfg['FACT_COOLDOWN']
         SAYING_PROBABILIY = cfg['SAYING_PROBABILIY']
 
-        return _GlobalConfig(path, GAD_SID, REPL_W_UP, FACT_COUNT_MAX, FACT_CHAR_LIMIT, PREVIEW_CD, DELETE_CD, EDIT_CD, ADD_CD, FACT_COOLDOWN, SAYING_PROBABILIY)
+        return _GlobalConfig(path, GAD_SID, REPL_W_UP, FACT_COUNT_MAX, FACT_CHAR_LIMIT, PREVIEW_CD, DELETE_CD, EDIT_CD, ADD_CD, CHANNEL_PAUSE_DURATION, FACT_COOLDOWN, SAYING_PROBABILIY)
 
 import os as _os
 

@@ -294,6 +294,17 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         )
     # endregion
 
+    # region other
+    @app_commands.command(name="pause", description=f'Pause all application interactions in this channel for {CFG.CHANNEL_PAUSE_DURATION} seconds. Refreshable.', )
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+                                            # Hardcoded 75% duration done; so refreshable every 60s with default config.
+    @app_commands.checks.cooldown(1, (CFG.CHANNEL_PAUSE_DURATION // 4) * 3, key=lambda i: (i.guild_id, i.channel_id))
+    async def pause(self, interaction: Interaction, ephemeral: bool = False) -> None:
+        self.pref.pause_all_in_channel(interaction.guild_id, interaction.channel_id, CFG.CHANNEL_PAUSE_DURATION)
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Features paused', desc=f'Features put on pause for another {CFG.CHANNEL_PAUSE_DURATION} seconds.')
+
+    # endregion
+
     # region autocomplete
     @edit.autocomplete('index')
     @delete.autocomplete('index')
