@@ -87,10 +87,10 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             for i, fact in enumerate(global_facts):
                 author = interaction.guild.get_member(fact.author_id)
                 if author:
-                    author = author.name
+                    author = f'{author.name} ({author.id})'
                 else:
-                    author = fact.author_id
-                out.append(f'{i + 1} ({author}): {fact.text}')
+                    author = f'({fact.author_id})'
+                out.append(f'{i + 1} {author}: {fact.text}')
             out: str = '\n'.join(out)
             with _io.StringIO(out) as text_stream:
                 files.append(discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt")) # noqa
@@ -98,7 +98,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         if local_facts and json:
             out: dict[int, list[dict[str, str | int]]] = {}
             for k, v in local_facts.items():
-                out[k] = [{'text': f.text, 'author_id': f.author_id} for f in v]
+                out[k] = [f.as_json() for f in v]
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
                 files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json")) # noqa
         elif local_facts and not json:

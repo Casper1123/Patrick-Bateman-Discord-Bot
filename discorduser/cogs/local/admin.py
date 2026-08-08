@@ -202,16 +202,16 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, json='Export the facts to an attached JSON file instead.')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
-        # todo: set up and use a FactEditorData.as_json() to be maintained there instead.
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
+
         local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(interaction.guild.id)
         if not local_facts:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Local Facts', desc='There are no local facts. Go add some!')
             return
 
         if json:
-            out: list[dict[str, str | int]] = [{'text': v.text, 'author_id': v.author_id} for v in local_facts]
+            out: list[dict] = [v.as_json() for v in local_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.json")
 
@@ -222,10 +222,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         for i, fact in enumerate(local_facts):
             author = interaction.guild.get_member(fact.author_id)
             if author:
-                author = author.name
+                author = f'{author.name} ({author.id})'
             else:
-                author = fact.author_id
-            out.append(f'{i+1} ({author}): {fact.text}')
+                author = f'({fact.author_id})'
+            out.append(f'{i+1} {author}: {fact.text}')
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
             file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.txt")
