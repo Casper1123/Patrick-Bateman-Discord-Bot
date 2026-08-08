@@ -19,7 +19,7 @@ if __name__ == '__main__':
         logger_created = True
 
     # This may create a global_config and close the application
-    from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+    from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
     from data.interfaces.fact import GlobalAdminFactInterface
     from data.interfaces.moderation import GlobalAdminModerationInterface
     from data.interfaces.other import LocalAdminDataInterface
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     token_config: TokenConfig = TokenConfig.from_json(token_cfg_fp)
 
     # DB
-    autoreplies: GlobalTextAutorepliesInterface = ...
+    autoreplies: GlobalTextAutoreplyInterface = ...
     fact: GlobalAdminFactInterface = ...
     mod: GlobalAdminModerationInterface = ...
     db: LocalAdminDataInterface = ...

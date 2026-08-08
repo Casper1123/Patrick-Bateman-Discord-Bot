@@ -8,7 +8,7 @@ from discord import app_commands, Colour, Interaction
 from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
-from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
 from data.interfaces.fact import GlobalAdminFactInterface
 from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
@@ -27,10 +27,10 @@ class BotClient(commands.Bot):
     Bot-inherited class with toolkit installed.
     WARNING: DOES NOT CONTAIN COGS.
     """
-    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutoreplyInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
         self.logger: GlobalLogger = GlobalLogger(self, global_logger_config)
         self.local_logger: LocalLogger = LocalLogger(local_logger_config, db)
-        self.autoreplies: GlobalTextAutorepliesInterface = autoreplies
+        self.autoreplies: GlobalTextAutoreplyInterface = autoreplies
         self.fact: GlobalAdminFactInterface = fact
         self.mod: GlobalAdminModerationInterface = mod
         self.db: LocalAdminDataInterface = db

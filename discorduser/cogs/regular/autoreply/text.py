@@ -4,7 +4,7 @@ import re as _re
 import discord
 from discord.ext import commands
 
-from data.interfaces.autoreplies import TextAutorepliesInterface, SimpleAliasData, SimpleReplyData
+from data.interfaces.autoreplies import TextAutoreplyInterface, SimpleAliasData, SimpleReplyData
 from data.interfaces.pref import PreferencesInterface
 from discorduser.user.abstract import BotClient
 from piss import Instruction, parse_variables
@@ -12,7 +12,7 @@ from piss.instructionexecutor import InstructionExecutor
 
 
 class MessageContentAutoreplyCog(commands.Cog):
-    def __init__(self, client: BotClient, pref: PreferencesInterface, replies: TextAutorepliesInterface) -> None:
+    def __init__(self, client: BotClient, pref: PreferencesInterface, replies: TextAutoreplyInterface) -> None:
         self.client = client
         self.pref = pref
         self.repl = replies

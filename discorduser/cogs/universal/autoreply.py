@@ -6,7 +6,7 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from configuration.global_config import CFG
-from data.interfaces.autoreplies import GlobalTextAutorepliesInterface, reply_types, \
+from data.interfaces.autoreplies import GlobalTextAutoreplyInterface, reply_types, \
     SimpleAliasData, SimpleTriggerData, SimpleReplyData
 from discorduser.logger import GlobalLogger
 from discorduser.user.abstract import BotClient
@@ -18,7 +18,7 @@ from utilities.selection_window import selection_window
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
-    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
+    def __init__(self, client: BotClient, repl: GlobalTextAutoreplyInterface, logger: GlobalLogger) -> None:
         super().__init__(client)
         self.repl = repl
         self.logger = logger
@@ -103,7 +103,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
-    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
+    def __init__(self, client: BotClient, repl: GlobalTextAutoreplyInterface, logger: GlobalLogger) -> None:
         super().__init__(client)
         self.repl = repl
         self.logger = logger
@@ -215,7 +215,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
-    def __init__(self, client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger) -> None:
+    def __init__(self, client: BotClient, repl: GlobalTextAutoreplyInterface, logger: GlobalLogger) -> None:
         super().__init__(client)
         self.repl = repl
         self.logger = logger
@@ -336,7 +336,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
         ]
     # endregion
 
-async def attach_cogs(client: BotClient, repl: GlobalTextAutorepliesInterface, logger: GlobalLogger):
+async def attach_cogs(client: BotClient, repl: GlobalTextAutoreplyInterface, logger: GlobalLogger):
     await client.add_cog(_AliasGlobalAdminCog(client, repl, logger))
     await client.add_cog(_TriggerGlobalAdminCog(client, repl, logger))
     await client.add_cog(_ReplyGlobalAdminCog(client, repl, logger))

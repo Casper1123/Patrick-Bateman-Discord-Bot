@@ -136,7 +136,7 @@ class ReplyData(SimpleReplyData):
         :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
         :param alias: Alias of the trigger.
         :param editor_id: ID of last editor of Reply.
-        :param modified_at: POSIX (rounded to int) timestamp of last modification of Reply..
+        :param modified_at: POSIX (rounded to int) timestamp of last modification of Reply.
         """
         super().__init__(reply_type, data, weight)
         self.alias: AliasData = alias
@@ -153,9 +153,9 @@ class ReplyData(SimpleReplyData):
             val['alias'] = self.alias.as_json()
         return val
 
-class TextAutorepliesInterface(ABC):
+class TextAutoreplyInterface(ABC):
     """
-    Abstract class for autoreplies interface.
+    Abstract class for autoreply interface.
     """
 
     @abstractmethod
@@ -183,7 +183,7 @@ class TextAutorepliesInterface(ABC):
         """
         raise NotImplementedError()
 
-class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
+class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
     """
     Extension of the standard authorization interface, which includes methods to modify the autoreply pool.
     """

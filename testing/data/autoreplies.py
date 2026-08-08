@@ -1,10 +1,10 @@
 from typing import get_args
 
-from data.interfaces.autoreplies import GlobalTextAutorepliesInterface, reply_types, trigger_types, \
+from data.interfaces.autoreplies import GlobalTextAutoreplyInterface, reply_types, trigger_types, \
     SimpleReplyData, SimpleTriggerData, SimpleAliasData
 
 
-class TestAutoreplyDatabase(GlobalTextAutorepliesInterface):
+class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
     def get_replies_by_alias(self, alias: str) -> list[SimpleReplyData]:
         return [self.get_reply(alias)] # only works because there's one singular reply in there.
 

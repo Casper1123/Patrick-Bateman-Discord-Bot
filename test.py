@@ -12,7 +12,7 @@ if __name__ == '__main__':
         logger_created = True
 
     # This may create a global_config and close the application
-    from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+    from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
     from data.interfaces.fact import GlobalAdminFactInterface
     from data.interfaces.moderation import GlobalAdminModerationInterface
     from data.interfaces.other import LocalAdminDataInterface
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     token_config: TokenConfig = TokenConfig.from_json(token_cfg_fp)
 
     # DB
-    autoreplies: GlobalTextAutorepliesInterface = TestAutoreplyDatabase()
+    autoreplies: GlobalTextAutoreplyInterface = TestAutoreplyDatabase()
     fact: GlobalAdminFactInterface = TestFactDatabase()
     mod: GlobalAdminModerationInterface = TestModerationDatabase(user_banned=False, banned_guild=False, super_guild=False)
     db: LocalAdminDataInterface = TestGeneralDatabase(test_output_channel_id=None, super_guilds=[]) # Put ids in here!

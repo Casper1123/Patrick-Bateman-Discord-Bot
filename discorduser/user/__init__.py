@@ -1,6 +1,6 @@
 import discord
 
-from data.interfaces.autoreplies import GlobalTextAutorepliesInterface
+from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
 from data.interfaces.fact import GlobalAdminFactInterface
 from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
@@ -25,7 +25,7 @@ from configuration.global_config import CFG
 
 
 class BotClient(_AbstractClient):
-    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutorepliesInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutoreplyInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
         super().__init__(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
     async def setup_hook(self) -> None:
