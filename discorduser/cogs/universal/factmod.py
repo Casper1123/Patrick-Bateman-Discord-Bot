@@ -278,13 +278,12 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                            reason='A reason, for logging purposes.')
     async def ban_user(self, interaction: Interaction, user_id: int, reason: str = None,
                        ephemeral: bool = False) -> None:
-        state: bool = self.mod.is_banned_user(user_id)
-        self.mod.unban_user(user_id) if state else self.mod.ban_user(user_id)
+        state: bool = self.mod.toggle_ban('user', user_id)
         user = self.client.get_user(user_id)
 
-        await self.logger.ban_user(interaction, user_id, user, not state, reason)
+        await self.logger.ban_user(interaction, user_id, user, state, reason)
 
-        embed = Embed(title=f'User {'un' if state else ''}banned')
+        embed = Embed(title=f'User {'un' if not state else ''}banned')
 
         if user:
             embed.set_author(name=user.name, icon_url=user.avatar.url)
@@ -299,13 +298,12 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                            reason='A reason, for logging purposes.')
     async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str = None,
                         ephemeral: bool = False) -> None:
-        state: bool = self.mod.is_banned_guild(guild_id)
-        self.mod.unban_guild(guild_id) if state else self.mod.ban_guild(guild_id)
+        state: bool = self.mod.toggle_ban('guild', guild_id)
         guild = self.client.get_guild(guild_id)
 
-        await self.logger.ban_guild(interaction, guild_id, guild, not state, reason)
+        await self.logger.ban_guild(interaction, guild_id, guild, state, reason)
 
-        embed = Embed(title=f'Guild {'un' if state else ''}banned')
+        embed = Embed(title=f'Guild {'un' if not state else ''}banned')
 
         if guild:
             embed.set_author(name=guild.name, icon_url=guild.icon.url)
