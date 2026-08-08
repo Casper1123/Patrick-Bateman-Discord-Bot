@@ -33,7 +33,7 @@ class InstructionExecutor:
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None,
                   build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
-        # FIXME: Repeatedly replies to Message input, only not-replies on first input. Rename 'fresh' to 'first-reply' and then invert logic on sending.
+        # todo : Repeatedly replies to Message input, only not-replies on first input. Rename 'fresh' to 'first-reply' and then invert logic on sending.
         """
         Execute the given instructions within the context of a message or interaction.
         :param instructions: Instructions to execute.
@@ -78,7 +78,7 @@ class InstructionExecutor:
                                                   memstack)
                     if build is None:
                         raise TypeError(
-                            'Instruction of type WRITING returned None value instead of String.')  # fixme: this can't be right
+                            'Instruction of type WRITING returned None value instead of String.')  # todo : this can't be right
                 elif instruction.type == InstructionType.CHOICE:
                     build = await self.choice(instruction.options['options'], interaction, depth, build, memstack)
                 elif instruction.type == InstructionType.RANDOM_REPL:
@@ -104,7 +104,7 @@ class InstructionExecutor:
         if not guild:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
 
-        # fixme: pretty sure this don't work on messages.
+        # todo : pretty sure this don't work on messages.
         if isinstance(interaction, Interaction):
             user: discord.User = interaction.user
             member: discord.Member = interaction.guild.get_member(interaction.user.id)
@@ -346,7 +346,7 @@ class DebugInstructionExecutor(InstructionExecutor):
                      memstack: list[dict[str, ...]]) -> str:
         index: int = _r.randint(0, len(options) - 1)
         chosen: list[Instruction] = options[index]
-        build += '{CHOICE[' + str(index) + '] START; { ' if not self.pure_output else ''  # fixme: test properly
+        build += '{CHOICE[' + str(index) + '] START; { ' if not self.pure_output else ''  # todo: test properly
         out = await self.run(chosen, interaction, depth, build, False, memstack)
         out += ' } CHOICE[' + str(index) + '] END}' if not self.pure_output else ''
         return out

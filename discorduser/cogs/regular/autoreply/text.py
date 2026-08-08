@@ -68,6 +68,6 @@ class MessageContentAutoreplyCog(commands.Cog):
             reactions: list[str] = reply.data.split(';')
             for reaction in reactions:
                 await message.add_reaction(reaction)
-            # FIXME: test on 'non-existent' emotes. That, or enforce that the emote is not server-bound when selected for generality purposes.
+            # todo test on 'non-existent' emotes. That, or enforce that the emote is not server-bound when selected for generality purposes.
         else:
             raise TypeError(f'Reply of invalid type **{reply.type}**')

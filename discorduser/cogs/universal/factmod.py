@@ -342,7 +342,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
 
     # region autoreply
-    # fixme: channel id too long, need to convert input into int using Transformer
+    # todo: channel id too long, need to convert input into int using Transformer
     async def _autocomplete_channel_id_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:  # noqa
         pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]  # noqa
         if not current:

@@ -72,11 +72,10 @@ class BotClient(commands.Bot):
             finally:
                 await self.handle_exception(AppCommandErrorContext(error=error, interaction=interaction))
 
-        # fixme: solution: decorate autocompletes
         self.tree.on_error = on_tree_error
 
     async def handle_exception(self, error_context: LoggableErrorContext) -> None:
-        # TODO: FIXME: Holy shit holy fucking shitty shit do NOT log Autocomplete errors they will SPAM EVERYTHING
+        # TODO: Holy shit holy fucking shitty shit do NOT log Autocomplete errors they will SPAM EVERYTHING
         if isinstance(error_context, AutocompleteErrorContext):
             error_context.log = False  # FUUUUUCK I gotta find a timeout for this or a reason to mute it. Cool the tech exists, but now what.
 

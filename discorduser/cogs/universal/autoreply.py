@@ -387,7 +387,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
                                             ephemeral=ephemeral)
             return
 
-        await self.logger.delete_reply(interaction, alias, old)  # FIXME: not passing data!
+        await self.logger.delete_reply(interaction, alias, old)
         await self.client.user_feedback(interaction, title='Reply deleted successfully', ephemeral=ephemeral)
 
     # endregion

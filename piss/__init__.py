@@ -160,7 +160,7 @@ class Instruction:
             if escaped:
                 subbuild += char
             elif char == terminator:
-                # inside of (i*) arguments of some function. required for, for example, Writing compat. fixme: figure this out properly.
+                # inside of (i*) arguments of some function. required for, for example, Writing compat. todo figure this out properly.
                 if len(layer_stack) > 0 and '(' in layer_stack:
                     subbuild += char
                 elif len(layer_stack) == 0:
@@ -342,7 +342,7 @@ class Instruction:
                                                 f'Received: **{options[0]}**.\n'
                                                 f'Expected: *One of* **{option_bounds}**.\n')
                 chosen_bound: str = options[0]
-                # fixme: needs to rely on a stack system where layering will working properly.
+                # todo: needs to rely on a stack system where layering will working properly.
                 # Solution: when opening, throw bound on top of the stack. Use known bounds variables and parsing.
                 # If the stack is empty, the next character MUST be a ,
                 # Once that was encountered, ignore any spaces until the known bound is found.
@@ -384,7 +384,7 @@ class Instruction:
                             if len(layer_stack) > 0 and layer_stack[-1] == char:
                                 # escape
                                 layer_stack.pop()
-                            else:  # fixme: this does not cover all cases. Remake.
+                            else:  # todo: this does not cover all cases. Remake.
                                 # bound
                                 layer_stack.append(char)
                             build_option += char

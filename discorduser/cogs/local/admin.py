@@ -353,7 +353,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         ]
 
     @log.autocomplete('channel')
-    # fixme: channel id too long, need to convert input into int using Transformer
+    # todo : channel id too long, need to convert input into int using Transformer
     async def _autocomplete_channel_id(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]
         if not current:
