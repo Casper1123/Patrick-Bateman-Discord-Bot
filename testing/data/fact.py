@@ -8,23 +8,23 @@ class TestFactDatabase(GlobalAdminFactInterface):
     def edit_global_fact(self, index: int, editor_id: int, new_fact: str) -> SimpleFactEditorData:
         if not index == 1:
             raise IndexError()
-        return SimpleFactEditorData(f'Edited global fact at index {index}', None, 0, 0, 0)
+        return SimpleFactEditorData(f'Edited global fact at index {index}', None, 0)
 
     def delete_global_fact(self, index: int) -> SimpleFactEditorData:
         if not index == 1:
             raise IndexError()
-        return SimpleFactEditorData(f'Deleted global fact at index {index}', None, 0, 0, 0)
+        return SimpleFactEditorData(f'Deleted global fact at index {index}', None, 0)
 
     def get_global_facts(self) -> list[SimpleFactEditorData]:
         return [
-            SimpleFactEditorData(f'Global fact at index {i}', None, 0, 0, 0) for i in range(10)
+            SimpleFactEditorData(f'Global fact at index {i}', None, 0) for i in range(10)
         ]
 
     def get_all_local_facts(self) -> dict[int, list[SimpleFactEditorData]]:
         return {
             g:
                 [
-                    SimpleFactEditorData(f'Local fact at index {i}', g, 0, 0, 0) for i in range(10)
+                    SimpleFactEditorData(f'Local fact at index {i}', g, 0) for i in range(10)
                 ]
             for g in range(5)
         }
@@ -33,14 +33,14 @@ class TestFactDatabase(GlobalAdminFactInterface):
         pass
 
     def edit_fact(self, guild_id: int, index: int, new_fact: str, editor_id: int) -> SimpleFactEditorData:
-        return SimpleFactEditorData(f'Edited local fact at index {index}', guild_id, 0, 0, 0)
+        return SimpleFactEditorData(f'Edited local fact at index {index}', guild_id, 0)
 
     def delete_fact(self, guild_id: int, index: int) -> SimpleFactEditorData:
-        return SimpleFactEditorData(f'Deleted local fact at index {index}', guild_id, 0, 0, 0)
+        return SimpleFactEditorData(f'Deleted local fact at index {index}', guild_id, 0)
 
     def get_local_facts(self, guild_id: int) -> list[SimpleFactEditorData]:
         return [
-            SimpleFactEditorData(f'Local fact at index {i}', guild_id, 0, 0, 0) for i in range(10)
+            SimpleFactEditorData(f'Local fact at index {i}', guild_id, 0) for i in range(10)
         ]
 
     def get_fact(self, guild_id: int | None, index: int | None) -> str:
