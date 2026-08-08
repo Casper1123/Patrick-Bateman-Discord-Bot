@@ -34,11 +34,12 @@ class PreferencesInterface(ABC):
     """
     # region Server - Channel Pause
     @abstractmethod
-    def pause_all_in_channel(self, guild_id: int, channel_id: int | None) -> None:
+    def pause_all_in_channel(self, guild_id: int, channel_id: int | None, duration: int) -> None:
         """
         Temporarily pauses all interactions in this channel, or refreshes it if already paused.
         :param guild_id:
         :param channel_id: Leave empty for entire guild.
+        :param duration: Pause duration in seconds.
         """
         # todo: use!
         raise NotImplementedError()
