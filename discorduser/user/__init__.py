@@ -19,7 +19,7 @@ from discorduser.cogs.regular.preferences import UserPreferenceCog
 from discorduser.cogs.universal.autoreply import attach_cogs as attach_autoreply_cogs
 from discorduser.cogs.universal.factmod import GlobalFactAdminCog, GlobalAdminCog
 from discorduser.cogs.universal.saying import GlobalAdminSayingCog
-from discorduser.cogs.utilities import ListenerCog
+from discorduser.cogs.universal.utilities import ListenerCog
 from .abstract import BotClient as _AbstractClient
 from ..cogs.regular.ask import AskPatrick
 
