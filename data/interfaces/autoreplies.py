@@ -277,3 +277,4 @@ class GlobalTextAutorepliesInterface(TextAutorepliesInterface):
     # endregion
 
     # todo: create indexing command options to dump complete data into file.
+

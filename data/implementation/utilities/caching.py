@@ -13,10 +13,9 @@ class RecursiveCacheEntry:
         self.val = val
         self.timeout = timeout
 
-# todo: cleaner traversal function for checking validity input and stuff.
 class RecursiveCacheHandler:
     """
-    Automated data caching handler using a Tree-noded structure. Try not to go too deep.
+    Automated data caching handler using a Tree-node structure. Try not to go too deep.
     """
     def __init__(self, root: RecursiveCacheHandler = None, path: tuple[str, ...] = None):
         """
