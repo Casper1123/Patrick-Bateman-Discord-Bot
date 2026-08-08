@@ -17,7 +17,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
         raise ValueError('bad alias name')
 
     def alias_exists(self, alias: str) -> bool:
-        return alias in ['reaction', 'text', 'number_wildcard_test']
+        return alias in ['reaction', 'text', 'number_wildcard_test', 'error_test']
 
     def create_alias(self, name: str, rate: int) -> None:
         if self.alias_exists(name):
@@ -95,7 +95,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
         return SimpleReplyData(reply_type='text', data=f'Reply from alias {alias} at index {index}', weight=1)
 
     def __init__(self):
-        ...  # not needed lmao
+        ...
 
     def get_reply(self, alias: str) -> SimpleReplyData | None:
         if not self.alias_exists(alias):
@@ -105,6 +105,8 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             return SimpleReplyData('reaction', data='🐑;🙃', weight=1)
         elif alias == 'text':
             return SimpleReplyData('text', data='Autoreply in <#{channel} !', weight=1)
+        elif alias == 'error_test':
+            raise RuntimeError('Listener error test')
         else:
             return SimpleReplyData('text', data=f'Numerical input with alias {alias}', weight=1)
 
@@ -118,6 +120,9 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             ],
             SimpleAliasData(name='number_wildcard_test', rate=256): [
                 SimpleTriggerData(trigger_type='regex', data=r'^number_(\d)+$', rate=None)
+            ],
+            SimpleAliasData(name='error_test', rate=256): [
+                SimpleTriggerData(trigger_type='regex', data=r'^error_test$', rate=None)
             ]
         }
 
@@ -125,7 +130,8 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
         return [
             SimpleAliasData(name='reaction', rate=256),
             SimpleAliasData(name='text', rate=256),
-            SimpleAliasData(name='number_wildcard_test', rate=256)
+            SimpleAliasData(name='number_wildcard_test', rate=256),
+            SimpleAliasData(name='error_test', rate=256),
         ]
 
     def get_trigger_by_index(self, alias: str, index: int) -> SimpleTriggerData:
@@ -138,6 +144,8 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             return SimpleTriggerData(trigger_type='regex', data=r'^reaction_test$', rate=None)
         elif alias == 'text':
             return SimpleTriggerData(trigger_type='regex', data=r'^text_autoreply_test$', rate=None)
+        elif alias == 'error_test':
+            return SimpleTriggerData(trigger_type='regex', data=r'^error_test$', rate=None)
         else:
             return SimpleTriggerData(trigger_type='regex', data=r'^number_(\d)+$', rate=None)
 
@@ -151,5 +159,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             return SimpleReplyData('reaction', data='🐑;🙃', weight=1)
         elif alias == 'text':
             return SimpleReplyData('text', data='Autoreply in <#{channel} !', weight=1)
+        elif alias == 'error_test':
+            return SimpleReplyData('text', data='Raises a RuntimeError when selected (Test DB)', weight=1)
         else:
             return SimpleReplyData('text', data=f'Numerical input with alias {alias}', weight=1)
