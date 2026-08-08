@@ -2,7 +2,7 @@ import asyncio
 import random
 
 import discord
-from discord import app_commands, Interaction
+from discord import app_commands, Interaction, Message
 from discord.ext import commands
 
 from data.interfaces.saying import SayingInterface
@@ -18,7 +18,7 @@ class AskPatrick(commands.Cog):
         self.saying = saying
 
     @commands.Cog.listener("on_message")
-    async def ask_patrick_listener(self, message: discord.Message):
+    async def ask_patrick_listener(self, message: Message):
         if not message.content.lower().startswith(f"ask <@{self.client.user.id}>"):
             return
         # todo: check if command is callable here by user. If not, back out.
@@ -32,8 +32,8 @@ class AskPatrick(commands.Cog):
     async def ask_patrick_command(self, interaction: Interaction, question: str):
         await self.ask_patrick(interaction, question)
 
-    async def ask_patrick(self, message: discord.Message | Interaction, question: str):
-        async def ask_reply(replyable: discord.Message | Interaction, content: str,
+    async def ask_patrick(self, message: Message | Interaction, question: str):
+        async def ask_reply(replyable: Message | Interaction, content: str,
                             send_in_channel: bool = False) -> None:
             if send_in_channel:
                 await replyable.channel.send(content=content)
@@ -65,6 +65,7 @@ class AskPatrick(commands.Cog):
             saying: str = self.saying.get_saying()
             parsed: list[Instruction] = parse_variables(saying)
             executor: InstructionExecutor = InstructionExecutor(self.client)
+            executor.fresh = False if isinstance(message, Message) else True # So we can reply to it if it is a message.
             await executor.run(parsed, message)
         else:
             await ask_reply(message, 'Haha I am immune to this question because I am queer')
