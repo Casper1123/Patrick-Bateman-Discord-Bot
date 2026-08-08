@@ -16,6 +16,7 @@ loggable = Literal['general', 'error',
     'saying_create', 'saying_edit', 'saying_delete',
 ]
 
+
 class GlobalLoggerConfig(AbstractJSONConfig):
     def __init__(self, output_to_console: dict[loggable, bool], actively_logging: dict[loggable, bool],
                  target_channels: dict[loggable, int], update_filepath: str):
