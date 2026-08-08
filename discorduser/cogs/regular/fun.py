@@ -35,9 +35,10 @@ class MainCommandsCog(commands.Cog):
     @app_commands.command(name="throwback", description="Replies to a random message in this channel's history.")
     @app_commands.describe(ephemeral="Hide the response; sneaky private throwback")
     async def throwback_command(self, interaction: Interaction, ephemeral: bool = False):
-        await interaction.response.send_message("Finding random message in channel history. This might take some time.",
-                                                # noqa
-                                                ephemeral=ephemeral)
+        await interaction.response.send_message( # noqa
+            content="Finding random message in channel history. This might take some time.",
+            ephemeral=ephemeral
+        )
         # Get current last message date
         newest: datetime.datetime = \
             [message async for message in interaction.channel.history(limit=1, oldest_first=False)][0].created_at

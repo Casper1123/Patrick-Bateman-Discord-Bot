@@ -155,8 +155,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.checks.cooldown(1, CFG.PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
-            await interaction.response.send_message(ephemeral=ephemeral,
-                                                    embed=discord.Embed(description='Performing PISS test.'))  # noqa
+            await interaction.response.send_message( # noqa
+                ephemeral=ephemeral,
+                embed=discord.Embed(description='Performing PISS test.')
+            )
         exception: CustomDiscordException | None = None
         description: str = 'If you see this, something went so wrong it executed neither the test nor the exception handler.'
         try:
@@ -199,8 +201,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not other:
             other = 'no body content'
 
-        await interaction.response.send_message(ephemeral=ephemeral,
-                                                embed=discord.Embed(title=title, description=other))  # noqa
+        await interaction.response.send_message( # noqa
+            ephemeral=ephemeral,
+            embed=discord.Embed(title=title, description=other)
+        )
 
     @app_commands.command(name='index', description='Exports an overview of Local facts.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, json='Export data in JSON format.')
@@ -217,11 +221,15 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if json:
             out: list[dict] = [v.as_json() for v in local_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
-                file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.json")
+                file = discord.File(
+                    fp=text_stream, # noqa
+                    filename=f"local_fact_data_{interaction.guild.id}.json"
+                )
 
-                await interaction.response.send_message(
-                    embed=discord.Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True,
-                    file=file)  # noqa
+                await interaction.response.send_message( # noqa
+                    embed=discord.Embed(title='Local fact data', description='JSON data attached.'),
+                    ephemeral=True,
+                    file=file)
                 return
 
         out: list[str] = []
@@ -234,10 +242,15 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             out.append(f'{i + 1} {author}: {fact.text}')
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
-            file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.txt")
-            await interaction.response.send_message(ephemeral=ephemeral, file=file,
-                                                    embed=discord.Embed(title='Local fact data',
-                                                                        description='See attached file for fact data.'))  # noqa
+            file = discord.File(
+                fp=text_stream, # noqa
+                filename=f"local_fact_data_{interaction.guild.id}.txt"
+            )
+            await interaction.response.send_message( # noqa
+                ephemeral=ephemeral,
+                file=file,
+                embed=discord.Embed(title='Local fact data', description='See attached file for fact data.')
+            )
 
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,

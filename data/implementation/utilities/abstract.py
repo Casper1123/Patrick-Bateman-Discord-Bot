@@ -3,6 +3,9 @@ from __future__ import annotations
 import os
 import sqlite3 as _sql
 from abc import ABC
+import asyncio
+
+from data.implementation.utilities.caching import RecursiveCacheHandler
 
 
 class AbstractSQLDatabase(ABC):
@@ -20,3 +23,19 @@ class AbstractSQLDatabase(ABC):
         conn = _sql.connect(self.path)
         conn.row_factory = _sql.Row
         return conn
+
+class CachedAbstractSQLDatabase(AbstractSQLDatabase, ABC):
+    def __init__(self, db_path: str, schema_path: str, default_cache_timeout) -> None:
+        super().__init__(db_path, schema_path)
+
+        self._default_cache_timeout = default_cache_timeout
+        self._cache: RecursiveCacheHandler = RecursiveCacheHandler() # Root node.
+
+    def get_cache_task(self) -> asyncio.Task:
+        return asyncio.create_task(
+            name=f'Cache maintenance of {type(self).__name__}',
+            coro=self._cache.maintenance_loop(
+                timeout=self._default_cache_timeout,
+                clean_empty_nodes=True,
+            )
+        )

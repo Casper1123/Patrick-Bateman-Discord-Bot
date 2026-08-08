@@ -178,15 +178,17 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             # todo: log to server locally
             pass
 
-        await interaction.response.send_message(ephemeral=ephemeral,
-                                                # todo: update to also display guild information # noqa
-                                                embed=Embed(title='Success',
-                                                            description=f'Fact {'deleted' if delete else 'edited'} {'successfully.'}'
-                                                                        f'\n# Old:\n'
-                                                                        f'`{old.text}`\n'
-                                                                        f'\n'
-                                                                        f'# New:\n'
-                                                                        f'`{text}`'))
+        await interaction.response.send_message( # noqa
+            ephemeral=ephemeral,
+            # todo: update to also display guild information
+            embed=Embed(title='Success',
+                        description=f'Fact {'deleted' if delete else 'edited'} {'successfully.'}'
+                                    f'\n# Old:\n'
+                                    f'`{old.text}`\n'
+                                    f'\n'
+                                    f'# New:\n'
+                                    f'`{text}`')
+        )
 
     @app_commands.command(name='list', description='List the local facts of the given guild.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
@@ -196,12 +198,14 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                           json: bool = False) -> None:
         local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
-            await interaction.response.send_message(ephemeral=ephemeral,
-                                                    embed=Embed(title='No local facts found.'))  # noqa
+            await interaction.response.send_message( # noqa
+                ephemeral=ephemeral,
+                embed=Embed(title='No local facts found.')
+            )
             return
         if json:
             out: dict[int, list[dict[str, str | int]]] = {
-                guild_id: [{'text': f.text, 'author_id': f.author_id} for f in local_facts]}
+                guild_id: [f.as_json() for f in local_facts]}
 
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")  # noqa

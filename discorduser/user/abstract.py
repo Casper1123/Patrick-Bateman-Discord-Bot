@@ -83,7 +83,7 @@ class BotClient(commands.Bot):
     # endregion
 
     async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None,
-                            ephemeral: bool = False) -> None:  # noqa
+                            ephemeral: bool = False) -> None:
         """
         Sends the following title and (optional) description in a standardized embed to the user.
         :param interaction: Interaction or Message to reply to.

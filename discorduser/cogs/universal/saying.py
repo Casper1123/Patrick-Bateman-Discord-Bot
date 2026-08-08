@@ -73,16 +73,28 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         if json:
             sayings: list[dict] = [i.as_json() for i in sayings]
             with io.StringIO(_json.dumps(sayings, indent=4)) as text_stream:
-                file = discord.File(fp=text_stream, filename=f"sayings.json")
+                file = discord.File(
+                    fp=text_stream, # noqa
+                    filename=f"sayings.json"
+                )
         else:
             sayings: list[str] = [f'{i + 1} [{j.author_id} at {j.modified_at}]: {j.text}' for i, j in
                                   enumerate(sayings)]
             sayings: str = '\n'.join(sayings)
             with io.StringIO(sayings) as text_stream:
-                file = discord.File(fp=text_stream, filename=f"sayings.txt")
-        await interaction.response.send_message(file=file, ephemeral=ephemeral, embed=Embed(title='Sayings',
-                                                                                            description='See attached file for Sayings data.',
-                                                                                            colour=Colour.blue()))  # noqa this exists
+                file = discord.File(
+                    fp=text_stream, # noqa
+                    filename=f"sayings.txt"
+                )
+        await interaction.response.send_message( # noqa
+            file=file,
+            ephemeral=ephemeral,
+            embed=Embed(
+                title='Sayings',
+                description='See attached file for Sayings data.',
+                colour=Colour.blue()
+            )
+        )
 
     # region autocomplete
     async def _index_autocomplete_callback_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
