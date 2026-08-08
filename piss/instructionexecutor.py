@@ -33,6 +33,7 @@ class InstructionExecutor:
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None,
                   build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
+        # FIXME: Repeatedly replies to Message input, only not-replies on first input. Rename 'fresh' to 'first-reply' and then invert logic on sending.
         """
         Execute the given instructions within the context of a message or interaction.
         :param instructions: Instructions to execute.
