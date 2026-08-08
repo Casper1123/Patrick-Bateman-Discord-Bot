@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from utilities import load_json, write_json
 
-
+# todo: add tool to 'fix' configuration for the integrity check part. Currently, if a key is missing the config is not updated app will crash.
 class AbstractJSONConfig(ABC):
     """
     Abstract json-maintainable configuration class.
