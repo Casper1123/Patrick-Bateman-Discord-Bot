@@ -6,7 +6,7 @@ from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
 from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import GlobalAdminSayingInterface
-from discorduser.cogs.local.commands import LocalAdminCog
+from discorduser.cogs.local.admin import LocalAdminCog
 from discorduser.cogs.regular.ask import AskPatrick
 from discorduser.cogs.regular.autoreply.letters import LetterAutoreplyCog
 from discorduser.cogs.regular.autoreply.numbers import NumberAutoreplyCog
