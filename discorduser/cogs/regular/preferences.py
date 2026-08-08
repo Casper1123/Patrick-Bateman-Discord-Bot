@@ -13,11 +13,14 @@ class UserPreferenceCog(commands.Cog):
 
     # User preference toggle.
     # Note: autocomplete not supported for Boolean types.
-    @app_commands.command(name="preferences", description="Toggle automatic features for yourself. Set to True to toggle. Leave empty to see current settings.")
-    @app_commands.describe(numbers="Incremental number replies.", letters='Letter-only replies.', text='Text content replies.')
-    async def user_toggle_preference(self, interaction: Interaction, numbers: bool = False, letters: bool = False, text: bool = False):
+    @app_commands.command(name="preferences",
+                          description="Toggle automatic features for yourself. Set to True to toggle. Leave empty to see current settings.")
+    @app_commands.describe(numbers="Incremental number replies.", letters='Letter-only replies.',
+                           text='Text content replies.')
+    async def user_toggle_preference(self, interaction: Interaction, numbers: bool = False, letters: bool = False,
+                                     text: bool = False):
         # Not allowing to disable sayings is on purpose.
-        await interaction.response.defer(ephemeral=True, thinking=True) # noqa
+        await interaction.response.defer(ephemeral=True, thinking=True)  # noqa
         pref: UserPreferenceData = self.pref.user_autoreplies_enabled(interaction.user.id)
         if not (numbers or letters or text):
             await self.client.user_feedback(interaction,
@@ -27,7 +30,7 @@ class UserPreferenceCog(commands.Cog):
                                                  f'**Text:** {'Off' if not pref.text else 'On'}\n')
             return
         desc: str = ''
-        feat: set[supported_autoreply_features] = set() # noqa because empty set
+        feat: set[supported_autoreply_features] = set()  # noqa because empty set
         if numbers:
             feat.add('number')
             desc += f'**Number:** {'Off' if pref.number else 'On'}\n'
@@ -45,6 +48,6 @@ class UserPreferenceCog(commands.Cog):
 
         desc = desc.removesuffix('\n')
         await self.client.user_feedback(interaction,
-            title='User preferences updated',
-            desc=desc,
-        )
+                                        title='User preferences updated',
+                                        desc=desc,
+                                        )

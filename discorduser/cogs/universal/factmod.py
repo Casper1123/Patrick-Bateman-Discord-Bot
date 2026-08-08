@@ -7,16 +7,16 @@ from discord import app_commands, Interaction, Embed, Guild, Colour
 from discord.app_commands import Choice
 
 from configuration.global_config import CFG
+from configuration.logger import loggable
 from data.interfaces.fact import GlobalAdminFactInterface, SimpleFactEditorData
 from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
 from discorduser.logger import GlobalLogger
-from configuration.logger import loggable
-
 from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
 from piss.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
+
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
@@ -36,7 +36,8 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             return
         self.fact.create_global_fact(interaction.user.id, text)
         await self.logger.fact_create(interaction, text)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact created successfully.')
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
+                                        desc=f'Fact created successfully.')
 
     @app_commands.command(name='edit', description='Edit or Remove a global fact.')
     @app_commands.describe(index='The index of the fact you\'re editing.',
@@ -53,7 +54,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
         await self.logger.fact_edit(interaction, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
-                                            desc=f'Fact edited successfully.')
+                                        desc=f'Fact edited successfully.')
 
     @app_commands.command(name='delete', description='Delete a global fact.')
     @app_commands.describe(index='The index of the fact to delete', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
@@ -72,7 +73,8 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                           description='Exports an overview of Global (and Local) facts.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export data in JSON format.', local='Also export local facts, indexed by guild ID')
-    async def index(self, interaction: Interaction, json: bool = False, local: bool = False, ephemeral: bool = True,) -> None:
+    async def index(self, interaction: Interaction, json: bool = False, local: bool = False,
+                    ephemeral: bool = True, ) -> None:
         # todo: rewrite
         global_facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         local_facts: dict[int, list[SimpleFactEditorData]] = {} if not local else self.fact.get_all_local_facts()
@@ -81,7 +83,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         if json:
             out: list[dict] = [v.as_json() for v in global_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json")) # noqa
+                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json"))  # noqa
         else:
             out: list[str] = []
             for i, fact in enumerate(global_facts):
@@ -93,14 +95,15 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 out.append(f'{i + 1} {author}: {fact.text}')
             out: str = '\n'.join(out)
             with _io.StringIO(out) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt")) # noqa
+                files.append(
+                    discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt"))  # noqa
 
         if local_facts and json:
             out: dict[int, list[dict[str, str | int]]] = {}
             for k, v in local_facts.items():
                 out[k] = [f.as_json() for f in v]
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json")) # noqa
+                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json"))  # noqa
         elif local_facts and not json:
             out: str = ''
             membercache: dict[int, str] = {}
@@ -118,12 +121,12 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                         member = guild.get_member(f.author_id).name
                         membercache[f.author_id] = member
                     guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
-                guild_facts += '\n\n\n' # factnl, nl, #guild, space of 2 between last fact and new guild.
+                guild_facts += '\n\n\n'  # factnl, nl, #guild, space of 2 between last fact and new guild.
                 out += guild_facts
             with _io.StringIO(out) as text_stream:
-                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt')) # noqa
+                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt'))  # noqa
 
-        await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed( # noqa
+        await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed(  # noqa
             title=f'{'Global' if not local else 'Total'} fact data',
             description='JSON data attached' if json else f'See attached file{'s' if len(files) > 0 else ''} for fact data.'
         ))
@@ -143,6 +146,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @delete.autocomplete('index')
     async def _gfact_index_autocomplete_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
         return await self.autocomplete_guard(_, current, self._gfact_index_autocomplete_impl, 'index')
+
     # endregion
     # endregion
 
@@ -153,7 +157,8 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                            text='Replacement text. Leave empty to remove entirely.',
                            local_log='Log to the given server\'s local log channel. Author will be denoted as the bot.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str = None, local_log: bool = True, ephemeral: bool = False) -> None:
+    async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str = None,
+                     local_log: bool = True, ephemeral: bool = False) -> None:
         delete: bool = text is None
         if not delete:
             if not await input_test(self.client, interaction, text, ephemeral):
@@ -164,7 +169,8 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             else:
                 old: SimpleFactEditorData = self.fact.delete_fact(guild_id, index)
         except IndexError:
-            await self.client.user_feedback(interaction, title='Fact modification failed', desc=f'Index {index} out of range.', ephemeral=ephemeral)
+            await self.client.user_feedback(interaction, title='Fact modification failed',
+                                            desc=f'Index {index} out of range.', ephemeral=ephemeral)
             return
 
         await self.logger.fact_modify(interaction, guild_id, old, text)
@@ -172,30 +178,33 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             # todo: log to server locally
             pass
 
-        await interaction.response.send_message(ephemeral=ephemeral, # todo: update to also display guild information # noqa
+        await interaction.response.send_message(ephemeral=ephemeral,
+                                                # todo: update to also display guild information # noqa
                                                 embed=Embed(title='Success',
                                                             description=f'Fact {'deleted' if delete else 'edited'} {'successfully.'}'
-                                                                                    f'\n# Old:\n'
-                                                                                       f'`{old.text}`\n'
-                                                                                       f'\n'
-                                                                                       f'# New:\n'
-                                                                                       f'`{text}`'))
+                                                                        f'\n# Old:\n'
+                                                                        f'`{old.text}`\n'
+                                                                        f'\n'
+                                                                        f'# New:\n'
+                                                                        f'`{text}`'))
 
     @app_commands.command(name='list', description='List the local facts of the given guild.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export the facts to an attached JSON file instead.',
-                           guild_id='The ID of the guild you wish to index from.',)
-    async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False, json: bool = False) -> None:
+                           guild_id='The ID of the guild you wish to index from.', )
+    async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False,
+                          json: bool = False) -> None:
         local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='No local facts found.')) # noqa
+            await interaction.response.send_message(ephemeral=ephemeral,
+                                                    embed=Embed(title='No local facts found.'))  # noqa
             return
         if json:
             out: dict[int, list[dict[str, str | int]]] = {
                 guild_id: [{'text': f.text, 'author_id': f.author_id} for f in local_facts]}
 
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json") # noqa
+                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")  # noqa
         else:
             membercache: dict[int, str] = {}
             guild: Guild = self.client.get_guild(guild_id)
@@ -212,8 +221,8 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                     membercache[f.author_id] = member
                 guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
             with _io.StringIO(guild_facts) as text_stream:
-                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt') # noqa
-        await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed( # noqa
+                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt')  # noqa
+        await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(  # noqa
             title=f'Local fact data',
             description='JSON data attached.' if json else f'See attached file for fact data.'
         ))
@@ -222,7 +231,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         guild_id: int = interaction.namespace.guild_id
         if not guild_id:
-            return [ Choice(name='Bad guild ID', value=-1) ]
+            return [Choice(name='Bad guild ID', value=-1)]
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not facts:
             return [Choice(name='No local facts', value=-1)]
@@ -241,21 +250,25 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     # endregion
     # endregion
 
+
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class GlobalAdminCog(CustomGroupCog, group_name='global'):
-    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
+    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface,
+                 db: LocalAdminDataInterface, logger: GlobalLogger) -> None:
         super().__init__(client)
         self.fact = fact
         self.mod = mod
         self.db = db
         self.logger = logger
 
-    @app_commands.command(name='userban', description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
+    @app_commands.command(name='userban',
+                          description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, user_id='The ID of the user you aim to (un)ban.',
                            reason='A reason, for logging purposes.')
-    async def ban_user(self, interaction: Interaction, user_id: int, reason: str = None, ephemeral: bool = False) -> None:
+    async def ban_user(self, interaction: Interaction, user_id: int, reason: str = None,
+                       ephemeral: bool = False) -> None:
         state: bool = self.mod.is_banned_user(user_id)
         self.mod.unban_user(user_id) if state else self.mod.ban_user(user_id)
         user = self.client.get_user(user_id)
@@ -268,14 +281,15 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
             embed.set_author(name=user.name, icon_url=user.avatar.url)
         else:
             embed.set_author(name=f'{user_id}')
-        await interaction.response.send_message(ephemeral=ephemeral, embed=embed) # noqa
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)  # noqa
 
     @app_commands.command(name='guildban',
                           description='Ban a guild from using Local Fact administrative features. If already banned, unbans it.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            guild_id='The ID of the guild you aim to (un)ban.',
                            reason='A reason, for logging purposes.')
-    async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str = None, ephemeral: bool = False) -> None:
+    async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str = None,
+                        ephemeral: bool = False) -> None:
         state: bool = self.mod.is_banned_guild(guild_id)
         self.mod.unban_guild(guild_id) if state else self.mod.ban_guild(guild_id)
         guild = self.client.get_guild(guild_id)
@@ -288,7 +302,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
             embed.set_author(name=guild.name, icon_url=guild.icon.url)
         else:
             embed.set_author(name=f'{guild}')
-        await interaction.response.send_message(ephemeral=ephemeral, embed=embed) # noqa
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)  # noqa
 
     # region other
     @app_commands.command(name='db_killswitch',
@@ -311,18 +325,22 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
     async def set_log_channel(self, interaction: Interaction, action: loggable, channel: int, ephemeral: bool = False):
         channel = interaction.guild.get_channel(channel)
         if channel:
-            await self.logger.set_log_channel(interaction, action, channel) # doing this first so it at least lands this type of information in the final channel :p
+            await self.logger.set_log_channel(interaction, action,
+                                              channel)  # doing this first so it at least lands this type of information in the final channel :p
             self.logger.update_output_channel(action, channel)
-            await self.client.user_feedback(interaction, title='Log output updated', desc=f'Set log output channel for {action} to <#{channel.id}>', ephemeral=ephemeral)
+            await self.client.user_feedback(interaction, title='Log output updated',
+                                            desc=f'Set log output channel for {action} to <#{channel.id}>',
+                                            ephemeral=ephemeral)
         else:
-            await self.client.user_feedback(interaction, title='Log output update failed', desc='Channel not found', ephemeral=ephemeral)
+            await self.client.user_feedback(interaction, title='Log output update failed', desc='Channel not found',
+                                            ephemeral=ephemeral)
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
 
     # region autoreply
     # fixme: channel id too long, need to convert input into int using Transformer
-    async def _autocomplete_channel_id_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]: # noqa
-        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels] # noqa
+    async def _autocomplete_channel_id_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:  # noqa
+        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]  # noqa
         if not current:
             return [
                 Choice(name=i[1], value=i[2]) for i in pairs[:4]

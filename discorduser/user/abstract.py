@@ -1,25 +1,20 @@
-import socket
 import sys
-from typing import Literal
 
-import aiohttp
 import discord
 from discord import app_commands, Colour, Interaction
-from discord.app_commands import CommandOnCooldown
 from discord.ext import commands
 
+from configuration.logger import LocalLoggerConfig, GlobalLoggerConfig
 from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
 from data.interfaces.fact import GlobalAdminFactInterface
 from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
 from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import GlobalAdminSayingInterface
-from configuration.logger import LocalLoggerConfig, GlobalLoggerConfig
 from discorduser.logger import GlobalLogger, LoggableErrorContext
-from discorduser.logger.errors import ErrorSource, ListenerErrorContext, AppCommandErrorContext, \
+from discorduser.logger.errors import ListenerErrorContext, AppCommandErrorContext, \
     AutocompleteErrorContext
 from discorduser.logger.local import LocalLogger
-from utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 
 class BotClient(commands.Bot):
@@ -27,7 +22,11 @@ class BotClient(commands.Bot):
     Bot-inherited class with toolkit installed.
     WARNING: DOES NOT CONTAIN COGS.
     """
-    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig, autoreplies: GlobalTextAutoreplyInterface, fact: GlobalAdminFactInterface, mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface, saying: GlobalAdminSayingInterface) -> None:
+
+    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig,
+                 autoreplies: GlobalTextAutoreplyInterface, fact: GlobalAdminFactInterface,
+                 mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface,
+                 saying: GlobalAdminSayingInterface) -> None:
         self.logger: GlobalLogger = GlobalLogger(self, global_logger_config)
         self.local_logger: LocalLogger = LocalLogger(local_logger_config, db)
         self.autoreplies: GlobalTextAutoreplyInterface = autoreplies
@@ -38,7 +37,7 @@ class BotClient(commands.Bot):
         self.saying: GlobalAdminSayingInterface = saying
 
         intents = discord.Intents.default()
-        intents.message_content = True # Required for autoreplies
+        intents.message_content = True  # Required for autoreplies
         intents.members = True
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
 
@@ -60,20 +59,20 @@ class BotClient(commands.Bot):
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: Interaction, error: app_commands.AppCommandError):
             try:
-                await interaction.response.defer(ephemeral=True, thinking=False) # noqa
-            except Exception: # noqa Shoddy attempt at hiding the error from users. todo: find better solution
+                await interaction.response.defer(ephemeral=True, thinking=False)  # noqa
+            except Exception:  # noqa Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
             # handle exceptions
             finally:
                 await self.handle_exception(AppCommandErrorContext(error=error, interaction=interaction))
+
         # fixme: solution: decorate autocompletes
         self.tree.on_error = on_tree_error
-
 
     async def handle_exception(self, error_context: LoggableErrorContext) -> None:
         # TODO: FIXME: Holy shit holy fucking shitty shit do NOT log Autocomplete errors they will SPAM EVERYTHING
         if isinstance(error_context, AutocompleteErrorContext):
-            error_context.log = False # FUUUUUCK I gotta find a timeout for this or a reason to mute it. Cool the tech exists, but now what.
+            error_context.log = False  # FUUUUUCK I gotta find a timeout for this or a reason to mute it. Cool the tech exists, but now what.
 
         if error_context.log:
             await self.logger.error(error_context)
@@ -81,10 +80,10 @@ class BotClient(commands.Bot):
         if isinstance(error_context, AppCommandErrorContext):
             await error_context.interaction.edit_original_response(embed=error_context.error.as_embed())
 
-
     # endregion
 
-    async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None, ephemeral: bool = False) -> None: # noqa
+    async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None,
+                            ephemeral: bool = False) -> None:  # noqa
         """
         Sends the following title and (optional) description in a standardized embed to the user.
         :param interaction: Interaction or Message to reply to.
@@ -95,8 +94,8 @@ class BotClient(commands.Bot):
         e = discord.Embed(title=title, description=desc, colour=Colour.blue())
         if isinstance(interaction, Interaction):
             try:
-                await interaction.response.send_message(embed=e, ephemeral=ephemeral) # noqa
+                await interaction.response.send_message(embed=e, ephemeral=ephemeral)  # noqa
             except discord.InteractionResponded:
-                await interaction.edit_original_response(embed=e) # ephemeral not supported.
+                await interaction.edit_original_response(embed=e)  # ephemeral not supported.
         else:
             await interaction.reply(embed=e, mention_author=False)

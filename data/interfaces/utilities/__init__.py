@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 
+
 class AbstractDTO(ABC):
     """
     Defines default required behaviour of Data Transfer Objects returned by the Database layer.
     """
+
     @abstractmethod
     def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
         """

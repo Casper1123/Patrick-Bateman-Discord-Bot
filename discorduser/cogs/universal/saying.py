@@ -4,7 +4,6 @@ import json as _json
 import discord
 from discord import app_commands, Interaction, Colour, Embed
 from discord.app_commands import Choice
-from discord.ext import commands
 
 from configuration.global_config import CFG
 from data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEditorData, SayingEditorData
@@ -13,6 +12,7 @@ from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
 from piss.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
+
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
@@ -31,7 +31,8 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
 
         self.saying.create_saying(saying)
         await self.logger.create_saying(interaction, saying)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc='Saying created successfully')
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
+                                        desc='Saying created successfully')
 
     @app_commands.command(name='edit', description='Edit an existing saying.')
     @app_commands.describe(index='The index of the saying you\'re editing.',
@@ -62,7 +63,8 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             return
 
         await self.logger.delete_saying(interaction, old)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Saying deleted successfully.')
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
+                                        desc=f'Saying deleted successfully.')
 
     @app_commands.command(name='index', description='Display all of the stored Sayings.')
     @app_commands.describe(json='Output to a json file', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
@@ -73,11 +75,14 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             with io.StringIO(_json.dumps(sayings, indent=4)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"sayings.json")
         else:
-            sayings: list[str] = [f'{i + 1} [{j.author_id} at {j.modified_at}]: {j.text}' for i, j in enumerate(sayings)]
+            sayings: list[str] = [f'{i + 1} [{j.author_id} at {j.modified_at}]: {j.text}' for i, j in
+                                  enumerate(sayings)]
             sayings: str = '\n'.join(sayings)
             with io.StringIO(sayings) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"sayings.txt")
-        await interaction.response.send_message(file=file, ephemeral=ephemeral, embed=Embed(title='Sayings', description='See attached file for Sayings data.', colour=Colour.blue())) # noqa this exists
+        await interaction.response.send_message(file=file, ephemeral=ephemeral, embed=Embed(title='Sayings',
+                                                                                            description='See attached file for Sayings data.',
+                                                                                            colour=Colour.blue()))  # noqa this exists
 
     # region autocomplete
     async def _index_autocomplete_callback_impl(self, _: Interaction, current: str) -> list[Choice[str]]:

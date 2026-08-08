@@ -8,6 +8,7 @@ class AbstractJSONConfig(ABC):
     Abstract json-maintainable configuration class.
     Basically just allows updating own data into given json file at path.
     """
+
     def __init__(self, update_filepath: str):
         self.update_filepath = update_filepath
 

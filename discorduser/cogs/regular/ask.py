@@ -1,11 +1,11 @@
+import asyncio
 import random
 
-import asyncio
 import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 
-from data.interfaces.saying import SimpleSayingEditorData, SayingInterface
+from data.interfaces.saying import SayingInterface
 from discorduser.user.abstract import BotClient
 from piss import Instruction, parse_variables
 from piss.instructionexecutor import InstructionExecutor
@@ -24,7 +24,7 @@ class AskPatrick(commands.Cog):
         # todo: check if command is callable here by user. If not, back out.
         split_content = message.content.split()
         if len(split_content) < 3:
-            return # Ignore if no question asked.
+            return  # Ignore if no question asked.
         await self.ask_patrick(message, " ".join(split_content[3:]))
 
     @app_commands.command(name="ask", description="A command-type shortcut to 'ask @botname <question>'.")
@@ -40,7 +40,7 @@ class AskPatrick(commands.Cog):
                 return
 
             if isinstance(replyable, Interaction):
-                await replyable.response.send_message(content=content) # noqa
+                await replyable.response.send_message(content=content)  # noqa
             else:
                 await replyable.reply(mention_author=False, content=content)
 

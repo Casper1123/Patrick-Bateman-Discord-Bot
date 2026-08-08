@@ -7,6 +7,7 @@ Table(s) and design:
 
 """
 
+
 class SayingDatabase(AbstractSQLDatabase, GlobalAdminSayingInterface):
     def __init__(self, path: str) -> None:
         super().__init__(path, 'data/schemas/saying.sql')

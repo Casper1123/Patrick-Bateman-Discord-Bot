@@ -1,12 +1,11 @@
 import io as _io
 import json as _json
-from enum import Enum
 
 import discord
 from discord import app_commands, Interaction
 from discord.app_commands import Choice
-from discord.ext import commands
 
+from configuration.global_config import CFG
 from data.interfaces.fact import LocalAdminFactInterface, SimpleFactEditorData
 from data.interfaces.moderation import LocalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
@@ -18,15 +17,16 @@ from discorduser.user.custom_cog import CustomGroupCog
 from piss import parse_variables, Instruction
 from piss.instructionexecutor import DebugInstructionExecutor
 from piss.testing import test_raw_input as input_test
-from utilities.selection_window import selection_window
 from utilities.exceptions import CustomDiscordException, ErrorTooltip, UseRestriction, RestrictedUseException
-from configuration.global_config import CFG
+from utilities.selection_window import selection_window
 
 
 @app_commands.guild_only()
 @app_commands.default_permissions(administrator=True)
 class LocalAdminCog(CustomGroupCog, group_name='admin'):
-    def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface, pref: PreferencesInterface, db: LocalAdminDataInterface, logger: GlobalLogger, local_logger: LocalLogger) -> None:
+    def __init__(self, client: BotClient, fact: LocalAdminFactInterface, mod: LocalAdminModerationInterface,
+                 pref: PreferencesInterface, db: LocalAdminDataInterface, logger: GlobalLogger,
+                 local_logger: LocalLogger) -> None:
         super().__init__(client)
         self.fact = fact
         self.mod = mod
@@ -91,7 +91,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not await self.kill_switch_check(interaction):
             return
         if interaction.user.bot:
-            raise RestrictedUseException(UseRestriction.USER) # todo: check for duplicates!
+            raise RestrictedUseException(UseRestriction.USER)  # todo: check for duplicates!
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         self.fact_limit_check(interaction.guild.id, text)
         if not await input_test(self.client, interaction, text, ephemeral):
@@ -99,7 +99,8 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         self.fact.create_fact(interaction.guild.id, interaction.user.id, text)
         await self.logger.local_fact_create(interaction.guild, interaction, text)
         await self.local_logger.fact_create(interaction, text)
-        await self.client.user_feedback(interaction, title='Success', desc=f'Fact created successfully.', ephemeral=ephemeral)
+        await self.client.user_feedback(interaction, title='Success', desc=f'Fact created successfully.',
+                                        ephemeral=ephemeral)
 
     @app_commands.command(name='edit', description='Edit or Remove a local fact.')
     @app_commands.describe(index='The index of the fact you\'re editing.',
@@ -127,7 +128,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         await self.local_logger.fact_edit(interaction, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                         title='Success', desc=f'Fact edited successfully.'
-                                                                f'\n# Old:\n{old.text}\n\n# New:\n{text}')
+                                                              f'\n# Old:\n{old.text}\n\n# New:\n{text}')
 
     @app_commands.command(name='delete', description='Delete a local fact.')
     @app_commands.describe(index='The index of the fact you\'re deleting.',
@@ -145,16 +146,17 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
         await self.logger.local_fact_remove(guild=interaction.guild, interaction=interaction, old=old)
         await self.local_logger.fact_remove(interaction, old)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success', desc=f'Fact deleted successfully.\n'
-                                                                                                f'# Old:\n{old.text}')
-
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
+                                        desc=f'Fact deleted successfully.\n'
+                                             f'# Old:\n{old.text}')
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on P.I.S.S.!)')
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, CFG.PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
-            await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(description='Performing PISS test.')) # noqa
+            await interaction.response.send_message(ephemeral=ephemeral,
+                                                    embed=discord.Embed(description='Performing PISS test.'))  # noqa
         exception: CustomDiscordException | None = None
         description: str = 'If you see this, something went so wrong it executed neither the test nor the exception handler.'
         try:
@@ -189,7 +191,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     async def help(self, interaction: Interaction, ephemeral: bool = True) -> None:
         with open("data/data/admin_help.md", "r", encoding="utf-8") as f:
             markdown_content = f.read()
-        nli: int = markdown_content.index('\n') # find first newline to separate first line as embed title.
+        nli: int = markdown_content.index('\n')  # find first newline to separate first line as embed title.
         title, other = markdown_content[:nli], markdown_content[nli:]
         title = title.replace('#', '').strip()
         if not title:
@@ -197,17 +199,19 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not other:
             other = 'no body content'
 
-        await interaction.response.send_message(ephemeral=ephemeral, embed=discord.Embed(title=title, description=other)) # noqa
+        await interaction.response.send_message(ephemeral=ephemeral,
+                                                embed=discord.Embed(title=title, description=other))  # noqa
 
     @app_commands.command(name='index', description='Exports an overview of Local facts.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, json='Export data in JSON format.')
-    async def index(self, interaction: Interaction, json: bool = False, ephemeral: bool = True,) -> None:
+    async def index(self, interaction: Interaction, json: bool = False, ephemeral: bool = True, ) -> None:
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
 
         local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(interaction.guild.id)
         if not local_facts:
-            await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Local Facts', desc='There are no local facts. Go add some!')
+            await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Local Facts',
+                                            desc='There are no local facts. Go add some!')
             return
 
         if json:
@@ -215,7 +219,9 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.json")
 
-                await interaction.response.send_message(embed=discord.Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True, file=file) # noqa
+                await interaction.response.send_message(
+                    embed=discord.Embed(title='Local fact data', description='JSON data attached.'), ephemeral=True,
+                    file=file)  # noqa
                 return
 
         out: list[str] = []
@@ -225,14 +231,17 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                 author = f'{author.name} ({author.id})'
             else:
                 author = f'({fact.author_id})'
-            out.append(f'{i+1} {author}: {fact.text}')
+            out.append(f'{i + 1} {author}: {fact.text}')
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
             file = discord.File(fp=text_stream, filename=f"local_fact_data_{interaction.guild.id}.txt")
-            await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=discord.Embed(title='Local fact data', description='See attached file for fact data.')) # noqa
+            await interaction.response.send_message(ephemeral=ephemeral, file=file,
+                                                    embed=discord.Embed(title='Local fact data',
+                                                                        description='See attached file for fact data.'))  # noqa
 
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
-    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
+                           channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
     async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
@@ -241,12 +250,15 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
         logchannel = interaction.guild.get_channel(channel)
         if not logchannel:
-            await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Input channel ID **{channel}** is invalid or not found.')
+            await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                            desc=f'Input channel ID **{channel}** is invalid or not found.')
 
         self.db.set_log_output(interaction.guild.id, logchannel.id)
         await self.logger.local_set_log_channel(interaction.guild, interaction, logchannel)
         await self.local_logger.set_log_channel(interaction, logchannel)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral, desc=f'Log output channel set to <#{logchannel.id}>')
+        await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                        desc=f'Log output channel set to <#{logchannel.id}>')
+
     # endregion
 
     # region preferences
@@ -256,17 +268,19 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                            numbers="Incremental number replies.", letters='Letter-only replies.',
                            text='Text content replies.')
     async def guild_toggle_preference(self, interaction: Interaction, here: bool, numbers: bool = False,
-                                      letters: bool = False, text: bool = False, saying: bool = False, ephemeral: bool = True) -> None:
-        await interaction.response.defer(ephemeral=ephemeral, thinking=True) # noqa
+                                      letters: bool = False, text: bool = False, saying: bool = False,
+                                      ephemeral: bool = True) -> None:
+        await interaction.response.defer(ephemeral=ephemeral, thinking=True)  # noqa
         guild_id: int = interaction.guild_id
         channel_id: int | None = interaction.channel_id if here else None
         pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)
         desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
         if not (numbers or letters or text or saying):
-            await self.client.user_feedback(interaction, title=desc.removesuffix('\n'), desc=f'**Number:** {'Off' if not pref.number else 'On'}\n'
-                                                                                     f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
-                                                                                     f'**Text:** {'Off' if not pref.text else 'On'}\n'
-                                                                                     f'**Saying:** {'Off' if not pref.saying else 'On'}\n')
+            await self.client.user_feedback(interaction, title=desc.removesuffix('\n'),
+                                            desc=f'**Number:** {'Off' if not pref.number else 'On'}\n'
+                                                 f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
+                                                 f'**Text:** {'Off' if not pref.text else 'On'}\n'
+                                                 f'**Saying:** {'Off' if not pref.saying else 'On'}\n')
             return
 
         feat: set[_supp_autr_features] = set()  # noqa because empty set
@@ -290,19 +304,23 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
         desc = desc.removesuffix('\n')
         await self.client.user_feedback(interaction,
-            title='Guild autoreply preferences updated',
-            desc=desc,
-        )
+                                        title='Guild autoreply preferences updated',
+                                        desc=desc,
+                                        )
+
     # endregion
 
     # region other
-    @app_commands.command(name="pause", description=f'Pause all application interactions in this channel for {CFG.CHANNEL_PAUSE_DURATION} seconds. Refreshable.', )
+    @app_commands.command(name="pause",
+                          description=f'Pause all application interactions in this channel for {CFG.CHANNEL_PAUSE_DURATION} seconds. Refreshable.', )
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
                                             # Hardcoded 75% duration done; so refreshable every 60s with default config.
     @app_commands.checks.cooldown(1, (CFG.CHANNEL_PAUSE_DURATION // 4) * 3, key=lambda i: (i.guild_id, i.channel_id))
     async def pause(self, interaction: Interaction, ephemeral: bool = False) -> None:
         self.pref.pause_all_in_channel(interaction.guild_id, interaction.channel_id, CFG.CHANNEL_PAUSE_DURATION)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Features paused', desc=f'Features put on pause for another {CFG.CHANNEL_PAUSE_DURATION} seconds.')
+        await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Features paused',
+                                        desc=f'Features put on pause for another {CFG.CHANNEL_PAUSE_DURATION} seconds.')
+
     # endregion
 
     # region autocomplete

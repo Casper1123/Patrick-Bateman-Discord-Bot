@@ -37,8 +37,8 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'guild.id': int,
     'guild.name': str,
     'guild.created_at': _datetime.datetime,
-    'guild.members': int, # member count
-    'guild.roles': int, # still, role count.
+    'guild.members': int,  # member count
+    'guild.roles': int,  # still, role count.
 
     # guild owner
     'owner.id': int,
@@ -50,22 +50,25 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'owner.roles': int,
 
     # Not always available!
-    #'message': int,
-    #'message.jump_url': str,
+    # 'message': int,
+    # 'message.jump_url': str,
 
     # external
     'local_facts': int,
     'global_facts': int,
     'total_facts': int,
 }
-SLEEP_TIMER_UPPER_BOUND: float = 3600 # in seconds
+SLEEP_TIMER_UPPER_BOUND: float = 3600  # in seconds
 SLEEP_TIMER_LOWER_BOUND: float = 0.25
+
 
 class InstructionParseError(CustomDiscordException):
     def __init__(self, bad_var: str, reason: str = None, tooltip: ErrorTooltip = ErrorTooltip.WIKI):
         self.bad_var: str = bad_var
         self.reason: str = reason
-        super().__init__(message=f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}', tooltip=tooltip)
+        super().__init__(message=f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}',
+                         tooltip=tooltip)
+
 
 class InstructionType(Enum):
     # Syntax descriptors:
@@ -81,25 +84,27 @@ class InstructionType(Enum):
 
     # Active actions
     PUSH = -1  # push(n[0,1,2] = 0) ; n: pingable: 0: None, 1: Interaction author, 2: All ; send built output.
-    SLEEP = -2 # sleep(f = 1) ; Async sleep execution for f seconds. f max decimals = 2
+    SLEEP = -2  # sleep(f = 1) ; Async sleep execution for f seconds. f max decimals = 2
     WRITING = -3  # writing(*i) ; async with message.channel.typing(): {i}
 
     # Primary text
-    BUILD = 0 # Not directly callable ; basic instruction, append content to next message.
+    BUILD = 0  # Not directly callable ; basic instruction, append content to next message.
     BASIC_REPLACE = 2
 
     RANDOMUSER = 25  # TRU - True Random User, todo: port this over.
-    CHOICE = 26 # choice('i', 'i', *('i') ; Options i, where the first two are mandatory.  Enclosed in ' or ".
+    CHOICE = 26  # choice('i', 'i', *('i') ; Options i, where the first two are mandatory.  Enclosed in ' or ".
 
     LOCAL_FACTS = 28
     GLOBAL_FACTS = 29
     TOTAL_FACTS = 30
     RANDOM_REPL = 31
 
+
 class MentionOptions(Enum):
     NONE = 0
     AUTHOR = 1
     ALL = 2
+
 
 class UserAttributeOptions(Enum):
     ID = 0
@@ -123,7 +128,8 @@ class Instruction:
         return str(self)
 
     @staticmethod
-    def from_string(build: str, depth: int = 0, memstack: list[dict[str, type]] = None, writing=False) -> list[Instruction]:
+    def from_string(build: str, depth: int = 0, memstack: list[dict[str, type]] = None, writing=False) -> list[
+        Instruction]:
         """
         Determines instruction type(s) and creates instructions using their parameters.
         :param build: Input string
@@ -133,12 +139,13 @@ class Instruction:
         :return: Instructions from Build
         """
         if depth > MAX_RECURSION_DEPTH:
-            raise InstructionParseError(build,'Maximum recursion depth exceeded. Lower the complexity of your input.')
+            raise InstructionParseError(build, 'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
         # region Step 1: separate into instruction subsections.
         terminator: str = ';'
-        bounds: list[str] = ['{', '[', '(', '\'', '"'] # Opens another subsection. Input is already stripped of containing {}
-        be_map: dict[str, str] = { '{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
+        bounds: list[str] = ['{', '[', '(', '\'',
+                             '"']  # Opens another subsection. Input is already stripped of containing {}
+        be_map: dict[str, str] = {'{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
         escapes: list[str] = list(be_map.values())  # convert to list, makes it easier to work with.
         doubles: list[str] = [b for b in bounds if be_map[b] == b]
         layer_stack: list[str] = []  # Keeps track of layers open as we need to distinguish in characters here.
@@ -148,7 +155,7 @@ class Instruction:
         i: int = 0
         while i < len(build):
             char: str = build[i]
-            escaped: bool = i > 0 and build[i-1] == '\\'
+            escaped: bool = i > 0 and build[i - 1] == '\\'
 
             if escaped:
                 subbuild += char
@@ -160,9 +167,11 @@ class Instruction:
                     subsections.append(subbuild.strip())
                     subbuild = ''
                 else:
-                    expected: list[str] = [be_map[b] for b in reversed(layer_stack)]  # running into some typing issues so this is the ugly version
+                    expected: list[str] = [be_map[b] for b in reversed(
+                        layer_stack)]  # running into some typing issues so this is the ugly version
                     raise InstructionParseError(subbuild,
-                        reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(expected))
+                                                reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(
+                                                    expected))
             elif char in doubles:
                 # doubles: ' bounds and escapes.
                 # no symbols to escape with this char, or top char is char (doubles property)
@@ -181,7 +190,8 @@ class Instruction:
                     subbuild += char
                     layer_stack.pop()
                 else:
-                    raise InstructionParseError(subbuild + char, reason=f'Encountered unescaped {char} before encountering {top_escape}')
+                    raise InstructionParseError(subbuild + char,
+                                                reason=f'Encountered unescaped {char} before encountering {top_escape}')
             elif char in bounds:
                 subbuild += char
                 layer_stack.append(char)
@@ -192,11 +202,13 @@ class Instruction:
             i += 1
         if len(layer_stack) > 0:
             expected: list[str] = [be_map[b] for b in reversed(layer_stack)]
-            raise InstructionParseError(subbuild, reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(expected))
+            raise InstructionParseError(subbuild,
+                                        reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(
+                                            expected))
         else:
             subsections.append(subbuild.strip())
 
-        del layer_stack, subbuild, i, char, escaped # Free this, and ensure that I cannot accidentally re-use old vars.
+        del layer_stack, subbuild, i, char, escaped  # Free this, and ensure that I cannot accidentally re-use old vars.
         # endregion
 
         # region Step 2: Instruction recognition
@@ -212,7 +224,8 @@ class Instruction:
 
         for subi, subsection in enumerate(subsections):
 
-            SLEEP_CONST = _re.match(r'^sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)$', subsection) # a.bc digits, a mandatory, .b option if a, c option if b, up to 2 digit decimal
+            SLEEP_CONST = _re.match(r'^sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)$',
+                                    subsection)  # a.bc digits, a mandatory, .b option if a, c option if b, up to 2 digit decimal
             if SLEEP_CONST:
                 time = SLEEP_CONST.group('time')
                 if not time:  # default value use as no parameter was passed in
@@ -254,19 +267,22 @@ class Instruction:
                 instructions.append(Instruction(InstructionType.PUSH, pingable=pingable))
                 continue
 
-            WRITING = _re.match(r'^writing\((?P<instr>(.*))\)$', subsection)  # just extract and see if output has at least one instruction.
+            WRITING = _re.match(r'^writing\((?P<instr>(.*))\)$',
+                                subsection)  # just extract and see if output has at least one instruction.
             if WRITING:
                 if writing:
-                    raise InstructionParseError(subsection, f'WRITING Instruction cannot be used inside of a WRITING instruction')
+                    raise InstructionParseError(subsection,
+                                                f'WRITING Instruction cannot be used inside of a WRITING instruction')
                 content = WRITING.group('instr')
                 content_instr: list[Instruction] = Instruction.from_string(content, depth + 1, memstack, writing=True)
                 if not content_instr:
-                    raise InstructionParseError(subsection, f'WRITING instruction did not receive any instructions (received **{content}**).')
+                    raise InstructionParseError(subsection,
+                                                f'WRITING instruction did not receive any instructions (received **{content}**).')
                 instructions.append(Instruction(InstructionType.WRITING, instructions=content_instr))
                 continue
 
             # todo: first version should support some form of choice, random user. Choice might want to support ' & "
-            RANDOM = _re.match(r"^rand(om)?\((?P<a>-?\d+),\s?(?P<b>-?\d+)\)$", subsection) # todo: support var
+            RANDOM = _re.match(r"^rand(om)?\((?P<a>-?\d+),\s?(?P<b>-?\d+)\)$", subsection)  # todo: support var
             if RANDOM:
                 a = RANDOM.group('a')
                 b = RANDOM.group('b')
@@ -279,11 +295,13 @@ class Instruction:
                 except ValueError:
                     raise InstructionParseError(subsection, f'**{b}** is not a Python-recognized integer.')
                 if a >= b:
-                    raise InstructionParseError(subsection, f'**left ({a})** should not be greater than **right ({b})**.')
+                    raise InstructionParseError(subsection,
+                                                f'**left ({a})** should not be greater than **right ({b})**.')
                 instructions.append(Instruction(InstructionType.RANDOM_REPL, lower=a, upper=b))
                 continue
 
-            RANDOMUSER = _re.match(r'^tru\((?P<num>-?\d+)(?:,\s*(?P<attr>\w+))?\)$', subsection) # id number, optional space, characters (0+)
+            RANDOMUSER = _re.match(r'^tru\((?P<num>-?\d+)(?:,\s*(?P<attr>\w+))?\)$',
+                                   subsection)  # id number, optional space, characters (0+)
             if RANDOMUSER:
                 num = RANDOMUSER.group('num')
                 attr = RANDOMUSER.group('attr')
@@ -313,14 +331,16 @@ class Instruction:
             if CHOICE_BASIS:
                 options = CHOICE_BASIS.group('options').strip()
                 if not options:
-                    raise InstructionParseError(subsection, f'CHOICE Instruction did not receive anything to choose from.')
+                    raise InstructionParseError(subsection,
+                                                f'CHOICE Instruction did not receive anything to choose from.')
                 options_raw: list[str] = []
                 option_bounds: list[str] = ['\'', '"']
                 build_option: str = ''
                 if not options[0] in option_bounds:
-                    raise InstructionParseError(subsection, f'CHOICE Instruction did not receive input starting with a valid option boundary.\n'
-                                                            f'Received: **{options[0]}**.\n'
-                                                            f'Expected: *One of* **{option_bounds}**.\n')
+                    raise InstructionParseError(subsection,
+                                                f'CHOICE Instruction did not receive input starting with a valid option boundary.\n'
+                                                f'Received: **{options[0]}**.\n'
+                                                f'Expected: *One of* **{option_bounds}**.\n')
                 chosen_bound: str = options[0]
                 # fixme: needs to rely on a stack system where layering will working properly.
                 # Solution: when opening, throw bound on top of the stack. Use known bounds variables and parsing.
@@ -329,7 +349,7 @@ class Instruction:
                 # Any non-picked bound is tossed aside
                 i: int = 1
                 layer_stack: list[str] = [chosen_bound]
-                jumping: int = 0 # 0: in string, 1: right after, 2: spaces optional
+                jumping: int = 0  # 0: in string, 1: right after, 2: spaces optional
                 while i < len(options):
                     char = options[i]
                     # We are outside of a variable
@@ -364,7 +384,7 @@ class Instruction:
                             if len(layer_stack) > 0 and layer_stack[-1] == char:
                                 # escape
                                 layer_stack.pop()
-                            else: # fixme: this does not cover all cases. Remake.
+                            else:  # fixme: this does not cover all cases. Remake.
                                 # bound
                                 layer_stack.append(char)
                             build_option += char
@@ -373,8 +393,9 @@ class Instruction:
                             build_option += char
                         elif char in escapes:
                             if not layer_stack:
-                                raise InstructionParseError(options, f'CHOICE Instruction parsing encountered unescaped escaping character before encountering any bounding characters.\n'
-                                                                     f'Received: **{char}**')
+                                raise InstructionParseError(options,
+                                                            f'CHOICE Instruction parsing encountered unescaped escaping character before encountering any bounding characters.\n'
+                                                            f'Received: **{char}**')
                             # escape has to be on top
                             top = layer_stack[-1]
                             top_escape = be_map[top]
@@ -382,24 +403,29 @@ class Instruction:
                                 layer_stack.pop()
                                 build_option += char
                             else:
-                                raise InstructionParseError(build_option + char, reason=f'Encountered unescaped {char} before encountering {top_escape}')
+                                raise InstructionParseError(build_option + char,
+                                                            reason=f'Encountered unescaped {char} before encountering {top_escape}')
                         else:
                             build_option += char
                     i += 1
 
                 if build_option:
-                    raise InstructionParseError(subsection, f'CHOICE Instruction parsing terminated with trailing option characters.\n'
-                                                            f'Received: **{build_option}**.\n'
-                                                            f'Expected: **{build_option}***...***{chosen_bound}**.\n'
-                                                            f'To fix: either finish writing your option and end it with a {chosen_bound}, or remove the leftover characters.')
+                    raise InstructionParseError(subsection,
+                                                f'CHOICE Instruction parsing terminated with trailing option characters.\n'
+                                                f'Received: **{build_option}**.\n'
+                                                f'Expected: **{build_option}***...***{chosen_bound}**.\n'
+                                                f'To fix: either finish writing your option and end it with a {chosen_bound}, or remove the leftover characters.')
                 if len(options_raw) < 2:
-                    raise InstructionParseError(subsection, f'CHOICE Instruction received too few options to decide from.'
-                                                            f'Received: **{len(options_raw)}**.\n'
-                                                            f'Expected: **>=2**.\n'
-                                                            f'\n'
-                                                            f'Found options:\n'
-                                                            + '\n'.join(options_raw))
-                options_parsed: list[list[Instruction]] = [parse_variables(opt, depth=depth+1, memstack=memstack + [{}], writing=writing) for opt in options_raw]
+                    raise InstructionParseError(subsection,
+                                                f'CHOICE Instruction received too few options to decide from.'
+                                                f'Received: **{len(options_raw)}**.\n'
+                                                f'Expected: **>=2**.\n'
+                                                f'\n'
+                                                f'Found options:\n'
+                                                + '\n'.join(options_raw))
+                options_parsed: list[list[Instruction]] = [
+                    parse_variables(opt, depth=depth + 1, memstack=memstack + [{}], writing=writing) for opt in
+                    options_raw]
                 instructions.append(Instruction(InstructionType.CHOICE, options=options_parsed))
                 continue
 
@@ -423,7 +449,9 @@ class Instruction:
 
         return instructions
 
-def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, ...]] = None, writing: bool = False) -> list[Instruction]:
+
+def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, ...]] = None, writing: bool = False) -> \
+        list[Instruction]:
     """
     Decomposes input string into text and command blocks by turning them into Instructions.
     :param parse_string: Input string containing variable blocks.
@@ -434,7 +462,8 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
     """
     recursion_depth = depth
     if recursion_depth > MAX_RECURSION_DEPTH:
-        raise InstructionParseError(parse_string, 'Maximum recursion depth exceeded. Lower the complexity of your input.')
+        raise InstructionParseError(parse_string,
+                                    'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
     mem: dict[str, type] = INITIAL_MEMORY_TYPES.copy() if not memstack else {}  # local memory
     memstack = [mem] if not memstack else memstack + [mem]
@@ -443,14 +472,15 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
     instructions: list[Instruction] = []
     i: int = 0
     build: str = ""
-    depth: int = 0 # count opened brackets. We consider the var closed when back to 0.
+    depth: int = 0  # count opened brackets. We consider the var closed when back to 0.
     while i < len(parse_string):
         char: str = parse_string[i]
 
         if char == "{":
-            if parse_string[i-1] == '\\' and i > 0: # ensure doesn't check end of string but char in front
+            if parse_string[i - 1] == '\\' and i > 0:  # ensure doesn't check end of string but char in front
                 build += char
-            elif i == 0 or parse_string[i-1] != '\\' and build and depth == 0:  # In a variable now. Previous build needs to be exited.
+            elif i == 0 or parse_string[
+                i - 1] != '\\' and build and depth == 0:  # In a variable now. Previous build needs to be exited.
                 if build != '':
                     instructions.append(Instruction(InstructionType.BUILD, content=build))
                     build = ""
@@ -459,7 +489,7 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
                 build += char
                 depth += 1
         elif char == "}":
-            if parse_string[i-1] == '\\':
+            if parse_string[i - 1] == '\\':
                 build += char
             else:
                 if depth > 1:
@@ -467,7 +497,8 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
                 depth -= 1
 
             if depth == 0:
-                instructions += Instruction.from_string(build, depth=recursion_depth, memstack=memstack, writing=writing)
+                instructions += Instruction.from_string(build, depth=recursion_depth, memstack=memstack,
+                                                        writing=writing)
                 build = ""
         else:
             build += char

@@ -8,7 +8,6 @@ from piss import parse_variables, Instruction
 from piss.instructionexecutor import InstructionExecutor
 
 
-
 @app_commands.guild_only()
 class FactsCog(commands.Cog):
     def __init__(self, client: BotClient, fact: FactInterface) -> None:
@@ -29,7 +28,6 @@ class FactsCog(commands.Cog):
         executor: InstructionExecutor = InstructionExecutor(self.client)
         await executor.run(fact, interaction=interaction)
 
-
     @app_commands.command(name="fact_index", description="Gives the number of stored facts.")
     @app_commands.checks.cooldown(1, 10, key=lambda i: (i.guild_id, i.user.id))
                 # hardcoded 10s because this command is not as useful
@@ -38,9 +36,9 @@ class FactsCog(commands.Cog):
         global_fact_count: int = self.fact.get_fact_count(None)
         local_fact_count: int = self.fact.get_fact_count(interaction.guild_id) if not self.fact.is_killswitch() else 0
         total_fact_count: int = global_fact_count + local_fact_count
-        title ="Current fact count"
-        desc =f"Total: {total_fact_count}\n" \
-              f"Global: {global_fact_count}\n" \
-              f"Local: {local_fact_count}\n" \
-              f"Index range: **{'NONE' if not total_fact_count else f'1..{total_fact_count}'}**"
+        title = "Current fact count"
+        desc = f"Total: {total_fact_count}\n" \
+               f"Global: {global_fact_count}\n" \
+               f"Local: {local_fact_count}\n" \
+               f"Index range: **{'NONE' if not total_fact_count else f'1..{total_fact_count}'}**"
         await self.client.user_feedback(interaction, ephemeral=True, title=title, desc=desc)

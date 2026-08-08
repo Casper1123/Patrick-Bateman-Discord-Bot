@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class DataInterface(ABC):
     @abstractmethod
     def get_log_channel(self, guild_id: int) -> int | None:
@@ -10,6 +11,7 @@ class DataInterface(ABC):
         :return: Channel ID if found, otherwise None
         """
         raise NotImplementedError()
+
 
 class LocalAdminDataInterface(DataInterface):
     @abstractmethod

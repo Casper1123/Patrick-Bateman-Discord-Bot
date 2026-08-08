@@ -1,8 +1,8 @@
 from typing import get_args
 
 from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
-from configuration.logger.local import loggable as local_loggable
 from configuration.logger import loggable
+from configuration.logger.local import loggable as local_loggable
 
 
 class TestGlobalLoggerConfig(GlobalLoggerConfig):
@@ -19,11 +19,12 @@ class TestGlobalLoggerConfig(GlobalLoggerConfig):
             output_to_console=otc,
             actively_logging=al,
             target_channels=tc,
-            update_filepath=None # noqa Never used as long as we override all its use cases. Which there is only one.
+            update_filepath=None  # noqa Never used as long as we override all its use cases. Which there is only one.
         )
 
     def update_config_json(self):
         pass
+
 
 class TestLocalLoggerConfig(LocalLoggerConfig):
     def __init__(self):
@@ -33,7 +34,7 @@ class TestLocalLoggerConfig(LocalLoggerConfig):
 
         super().__init__(
             actively_logging=al,
-            update_filepath=None # noqa
+            update_filepath=None  # noqa
         )
 
     def update_config_json(self):

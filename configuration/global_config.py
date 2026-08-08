@@ -13,11 +13,12 @@ _GITHUB_WIKI_URL: str = 'https://github.com/Casper1123/Patrick-Bateman-Discord-B
 # Just used everywhere, wanna be consistent.
 _EPHEMERAL_DESCRIPTION: str = 'Hide this command from other users.'
 
-
 # Made to run when imported to ensure that it's created.
 # Has some more local and variable stuff, but permanent stuff that I want synced with Git will be included above and assigned to the class itself.
 
 from configuration.abstract import AbstractJSONConfig
+
+
 class _GlobalConfig(AbstractJSONConfig):
     def __init__(self, path: str, global_admin_serverid: int, reply_weight_upper_bound: int,
                  local_fact_max: int, local_fact_charlimit: int,
@@ -46,7 +47,8 @@ class _GlobalConfig(AbstractJSONConfig):
         if not (isinstance(add_cd, float) or isinstance(add_cd, int)) or add_cd is None:
             raise TypeError('add_cd must be a float or int')
 
-        if not (isinstance(channel_pause_duration, float) or isinstance(channel_pause_duration, int)) or channel_pause_duration is None:
+        if not (isinstance(channel_pause_duration, float) or isinstance(channel_pause_duration,
+                                                                        int)) or channel_pause_duration is None:
             raise TypeError('channel_pause_duration must be a float or int')
 
         if not (isinstance(fact_cd, float) or isinstance(fact_cd, int)) or fact_cd is None:
@@ -77,7 +79,6 @@ class _GlobalConfig(AbstractJSONConfig):
         self.GITHUB_WIKI_URL = _GITHUB_WIKI_URL
         self.EPHEMERAL_DESCRIPTION = _EPHEMERAL_DESCRIPTION
 
-
     def to_json(self) -> dict:
         return {
             'GLOBAL_ADMIN_SERVER_ID': self.GLOBAL_ADMIN_SERVER_ID,
@@ -101,7 +102,7 @@ class _GlobalConfig(AbstractJSONConfig):
     def build_config(path: str):
         from utilities import write_json
         defaults: dict[str, ...] = {
-            'GLOBAL_ADMIN_SERVER_ID': None, # Mandate manually setting this value.
+            'GLOBAL_ADMIN_SERVER_ID': None,  # Mandate manually setting this value.
             'REPLY_WEIGHT_UPPER_BOUND': 1024,
 
             'FACT_COUNT_MAXIMUM': 50,
@@ -115,7 +116,7 @@ class _GlobalConfig(AbstractJSONConfig):
             'CHANNEL_PAUSE_DURATION': 60,
 
             'FACT_COOLDOWN': 1.0,
-            'SAYING_PROBABILIY': 300, # 1 / probability listed here, per message.
+            'SAYING_PROBABILIY': 300,  # 1 / probability listed here, per message.
         }
         write_json(path, defaults, sort_keys=False, indent=4)
 
@@ -136,7 +137,9 @@ class _GlobalConfig(AbstractJSONConfig):
         FACT_COOLDOWN = cfg['FACT_COOLDOWN']
         SAYING_PROBABILIY = cfg['SAYING_PROBABILIY']
 
-        return _GlobalConfig(path, GAD_SID, REPL_W_UP, FACT_COUNT_MAX, FACT_CHAR_LIMIT, PREVIEW_CD, DELETE_CD, EDIT_CD, ADD_CD, CHANNEL_PAUSE_DURATION, FACT_COOLDOWN, SAYING_PROBABILIY)
+        return _GlobalConfig(path, GAD_SID, REPL_W_UP, FACT_COUNT_MAX, FACT_CHAR_LIMIT, PREVIEW_CD, DELETE_CD, EDIT_CD,
+                             ADD_CD, CHANNEL_PAUSE_DURATION, FACT_COOLDOWN, SAYING_PROBABILIY)
+
 
 import os as _os
 
@@ -146,6 +149,7 @@ if not _os.path.exists(_cfg_fp):
     _GlobalConfig.build_config(_cfg_fp)
     print(f'Global config built at {_cfg_fp}, please edit accordingly.')
     import sys
+
     sys.exit(0)
 
 # To be imported by other files.

@@ -8,6 +8,7 @@ class TestSayingDatabase(GlobalAdminSayingInterface):
     # region Regular
     def get_saying(self) -> str:
         return 'PISS-compatible saying for {user}'
+
     # endregion
 
     # region Global

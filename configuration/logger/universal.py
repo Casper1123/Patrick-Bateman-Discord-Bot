@@ -17,7 +17,8 @@ loggable = Literal['general', 'error',
 ]
 
 class GlobalLoggerConfig(AbstractJSONConfig):
-    def __init__(self, output_to_console: dict[loggable, bool], actively_logging: dict[loggable, bool], target_channels: dict[loggable, int], update_filepath: str):
+    def __init__(self, output_to_console: dict[loggable, bool], actively_logging: dict[loggable, bool],
+                 target_channels: dict[loggable, int], update_filepath: str):
         """
         Each dict requires exactly all, and no other, of the `loggable` properties to be set, otherwise it will raise a ValueError.
         :param output_to_console: Should this loggable be printed to console?
@@ -31,15 +32,18 @@ class GlobalLoggerConfig(AbstractJSONConfig):
         validation: set[loggable] = set(get_args(loggable))
         output_to_console_keys_set: set[loggable] = set(output_to_console.keys())
         if not output_to_console_keys_set == validation:
-            raise ValueError(f'output_to_console must contain only and all loggables, currently missing {validation - output_to_console_keys_set} and includes unneeded {output_to_console_keys_set - validation}')
+            raise ValueError(
+                f'output_to_console must contain only and all loggables, currently missing {validation - output_to_console_keys_set} and includes unneeded {output_to_console_keys_set - validation}')
 
         actively_logging_keys_set: set[loggable] = set(actively_logging.keys())
         if not actively_logging_keys_set == validation:
-            raise ValueError(f'actively_logging must contain only and all loggables, currently missing {validation - actively_logging_keys_set} and includes unneeded {actively_logging_keys_set - validation}')
+            raise ValueError(
+                f'actively_logging must contain only and all loggables, currently missing {validation - actively_logging_keys_set} and includes unneeded {actively_logging_keys_set - validation}')
 
         target_channels_keys_set: set[loggable] = set(target_channels.keys())
         if not target_channels_keys_set == validation:
-            raise ValueError(f'target_channels must contain only and all loggables, currently missing {validation - target_channels_keys_set} and includes unneeded {target_channels_keys_set - validation}')
+            raise ValueError(
+                f'target_channels must contain only and all loggables, currently missing {validation - target_channels_keys_set} and includes unneeded {target_channels_keys_set - validation}')
 
         self.output_to_console: dict[loggable, bool] = output_to_console
         self.actively_logging: dict[loggable, bool] = actively_logging

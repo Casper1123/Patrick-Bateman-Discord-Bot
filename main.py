@@ -31,6 +31,7 @@ if __name__ == '__main__':
 
     if logger_created:
         import sys
+
         sys.exit(0)
 
     # Logger config
@@ -48,7 +49,6 @@ if __name__ == '__main__':
     db: LocalAdminDataInterface = ...
     pref: PreferencesInterface = ...
     saying: GlobalAdminSayingInterface = ...
-
 
     client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 

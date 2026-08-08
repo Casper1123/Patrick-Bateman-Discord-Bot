@@ -1,10 +1,8 @@
 from discord import Interaction, TextChannel, Guild, Embed, Colour
 
+from configuration.logger.local import LocalLoggerConfig, loggable
 from data.interfaces.fact import SimpleFactEditorData
 from data.interfaces.other import LocalAdminDataInterface
-from configuration.logger.local import LocalLoggerConfig, loggable
-
-
 
 
 class LocalLogger:
@@ -18,7 +16,8 @@ class LocalLogger:
             return None
         channel = guild.get_channel(res)
         if channel is None:
-            self.db.set_log_output(guild.id, None) # Do this to prevent the call of get_channel getting used for no reason.
+            self.db.set_log_output(guild.id,
+                                   None)  # Do this to prevent the call of get_channel getting used for no reason.
             return None
         return channel
 
@@ -29,6 +28,7 @@ class LocalLogger:
             channel: TextChannel = self._get_log_channel(guild)
             if channel:
                 await channel.send(embed=embed)
+
     # endregion
 
     async def fact_create(self, interaction: Interaction, text: str) -> None:

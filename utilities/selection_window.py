@@ -47,4 +47,3 @@ def selection_window(n: int, i: int, k: int, favour: _favour = 'higher') -> tupl
     assert upper - lower == k, 'Not of width k'
     assert 0 <= lower <= upper <= n, '0 <= lower <= upper <= n not valid.'
     return lower, upper
-

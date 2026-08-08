@@ -6,7 +6,8 @@ from discord.ext import commands as _commands
 
 
 # Code was designed and taken in from another project and thus not originally designed for this.
-async def embedify(bot: _commands.Bot, message: _discord.Message, reply: bool = True, message_jump_link: bool = True) -> list[_discord.Embed]:
+async def embedify(bot: _commands.Bot, message: _discord.Message, reply: bool = True, message_jump_link: bool = True) -> \
+        list[_discord.Embed]:
     embed = _discord.Embed()
     embed.set_author(
         name=f"{message.author.name if message.author.name else message.author.global_name} in {message.channel.name}",
@@ -31,7 +32,8 @@ async def embedify(bot: _commands.Bot, message: _discord.Message, reply: bool = 
         # noinspection PyBroadException
         try:
             reply = await embedify(bot,
-                await bot.get_channel(message.channel.id).fetch_message(message.reference.message_id), reply=False, message_jump_link=False)
+                                   await bot.get_channel(message.channel.id).fetch_message(
+                                       message.reference.message_id), reply=False, message_jump_link=False)
             embeds = [reply[0], embed]
         except:
             ...
@@ -66,7 +68,8 @@ def _is_auto_embedded(message: str):
 def _has_media_attachment(message: _discord.Message) -> _discord.Attachment | None:
     for attachment in message.attachments:
         media_type = attachment.content_type.split("/")[0]
-        if media_type in ["image"]:  # Videos unsupported. Unfortunately. If it ever changes, this is here. Not optimised for speed, of course. I wouldn't be doing this in Python if that were the case.
+        if media_type in [
+            "image"]:  # Videos unsupported. Unfortunately. If it ever changes, this is here. Not optimised for speed, of course. I wouldn't be doing this in Python if that were the case.
             return attachment
     return None
 

@@ -9,6 +9,7 @@ class SimpleSayingEditorData(AbstractDTO):
     """
     Simplified record class for Saying Editor data.
     """
+
     def __init__(self, text: str) -> None:
         self.text = text
 
@@ -17,11 +18,13 @@ class SimpleSayingEditorData(AbstractDTO):
             'text': self.text,
         }
 
+
 class SayingEditorData(SimpleSayingEditorData):
     """
     Record class for Saying Editor data
     """
-    def __init__(self, text: str, author_id: int, modified_at: int,) -> None:
+
+    def __init__(self, text: str, author_id: int, modified_at: int, ) -> None:
         super().__init__(text)
 
         # Moderation purposes
@@ -34,6 +37,7 @@ class SayingEditorData(SimpleSayingEditorData):
         val['modified_at'] = int(self.modified_at.timestamp())
         return val
 
+
 class SayingInterface(ABC):
     @abstractmethod
     def get_saying(self) -> str:
@@ -42,6 +46,7 @@ class SayingInterface(ABC):
         :return: Unprocessed PISS-compatible string.
         """
         raise NotImplementedError()
+
 
 class GlobalAdminSayingInterface(SayingInterface):
     @abstractmethod

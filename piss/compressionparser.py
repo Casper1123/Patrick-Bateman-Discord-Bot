@@ -16,8 +16,10 @@ class ParseTreeNode(ABC):
         new_right_child.left = self.right
         self.right = new_right_child
 
+
 class ParseTreeValue(ParseTreeNode):
     ...
+
 
 class ParseTreeOperation(ParseTreeNode):
     ...

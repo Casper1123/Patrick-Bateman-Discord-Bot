@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
+
 class ModerationInterface(ABC):
     ...
+
 
 class LocalAdminModerationInterface(ModerationInterface):
     @abstractmethod
@@ -28,6 +30,7 @@ class LocalAdminModerationInterface(ModerationInterface):
         :return: Whether the Guild is a Super Server.
         """
         raise NotImplementedError()
+
 
 class GlobalAdminModerationInterface(LocalAdminModerationInterface):
     # region User Moderation

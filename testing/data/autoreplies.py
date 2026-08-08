@@ -6,7 +6,7 @@ from data.interfaces.autoreplies import GlobalTextAutoreplyInterface, reply_type
 
 class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
     def get_replies_by_alias(self, alias: str) -> list[SimpleReplyData]:
-        return [self.get_reply(alias)] # only works because there's one singular reply in there.
+        return [self.get_reply(alias)]  # only works because there's one singular reply in there.
 
     def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
         # Small enough custom sample to do it this shoddy way.
@@ -95,7 +95,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
         return SimpleReplyData(reply_type='text', data=f'Reply from alias {alias} at index {index}', weight=1)
 
     def __init__(self):
-        ... # not needed lmao
+        ...  # not needed lmao
 
     def get_reply(self, alias: str) -> SimpleReplyData | None:
         if not self.alias_exists(alias):
@@ -153,4 +153,3 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             return SimpleReplyData('text', data='Autoreply in <#{channel} !', weight=1)
         else:
             return SimpleReplyData('text', data=f'Numerical input with alias {alias}', weight=1)
-

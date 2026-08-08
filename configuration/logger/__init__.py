@@ -12,7 +12,7 @@ def build_config(filepath: str):
     """
     otc: dict[loggable, bool] = {i: True for i in get_args(loggable)}
     al: dict[loggable, bool] = {i: True for i in get_args(loggable)}
-    tc: dict[loggable, int] = {i: None for i in get_args(loggable)} # noqa intentional
+    tc: dict[loggable, int] = {i: None for i in get_args(loggable)}  # noqa intentional
     # local
     lal: dict[local_loggable, bool] = {i: True for i in get_args(local_loggable)}
 
@@ -24,7 +24,8 @@ def build_config(filepath: str):
     }
     write_json(filepath, cfg, sort_keys=False, indent=4)
 
-def from_json(filepath: str)-> tuple[GlobalLoggerConfig, LocalLoggerConfig]:
+
+def from_json(filepath: str) -> tuple[GlobalLoggerConfig, LocalLoggerConfig]:
     """
     Parses input filepath as json to create logger configurations.
     """

@@ -24,7 +24,7 @@ class TestFactDatabase(GlobalAdminFactInterface):
         return {
             g:
                 [
-                SimpleFactEditorData(f'Local fact at index {i}', g, 0, 0, 0) for i in range(10)
+                    SimpleFactEditorData(f'Local fact at index {i}', g, 0, 0, 0) for i in range(10)
                 ]
             for g in range(5)
         }

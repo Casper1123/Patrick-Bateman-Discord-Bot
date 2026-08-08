@@ -6,6 +6,7 @@ from data.interfaces.utilities import AbstractDTO
 trigger_types = Literal['regex']
 reply_types = Literal['text', 'reaction']
 
+
 class SimpleAliasData(AbstractDTO):
     """
     Simplified Record class for alias data
@@ -36,10 +37,12 @@ class SimpleAliasData(AbstractDTO):
             return False
         return self.name == other.name
 
+
 class AliasData(SimpleAliasData):
     """
     Record class for alias data
     """
+
     def __init__(self, name: str, rate: int, editor_id: int, modified_at: int):
         """
         Represents expanded Data Transfer Object for Alias data.
@@ -60,9 +63,10 @@ class AliasData(SimpleAliasData):
         val['modified_at'] = self.modified_at
         return val
 
+
 class SimpleTriggerData(AbstractDTO):
     def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
-        val =  {
+        val = {
             'type': self.type,
             'data': self.data,
         }
@@ -81,11 +85,14 @@ class SimpleTriggerData(AbstractDTO):
         self.data: str = data
         self.rate: int | None = rate
 
+
 class TriggerData(SimpleTriggerData):
     """
     Record class for trigger data.
     """
-    def __init__(self, trigger_type: trigger_types, data: str, rate: int | None, alias: AliasData, editor_id: int, modified_at: int):
+
+    def __init__(self, trigger_type: trigger_types, data: str, rate: int | None, alias: AliasData, editor_id: int,
+                 modified_at: int):
         """
         Represents Data Transfer Object for Trigger data.
         :param trigger_type: Type of trigger. Needs to be supported.
@@ -110,6 +117,7 @@ class TriggerData(SimpleTriggerData):
             val['alias'] = self.alias.as_json()
         return val
 
+
 class SimpleReplyData(AbstractDTO):
     """
     Simple record for reply data. Really only used for direct usage of data.
@@ -127,11 +135,14 @@ class SimpleReplyData(AbstractDTO):
         self.data: str = data
         self.weight: int = weight
 
+
 class ReplyData(SimpleReplyData):
     """
     Record for reply data.
     """
-    def __init__(self, reply_type: reply_types, data: str, weight: int, alias: AliasData, editor_id: int, modified_at: int):
+
+    def __init__(self, reply_type: reply_types, data: str, weight: int, alias: AliasData, editor_id: int,
+                 modified_at: int):
         """
         :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
         :param alias: Alias of the trigger.
@@ -152,6 +163,7 @@ class ReplyData(SimpleReplyData):
         if include_alias:
             val['alias'] = self.alias.as_json()
         return val
+
 
 class TextAutoreplyInterface(ABC):
     """
@@ -183,10 +195,12 @@ class TextAutoreplyInterface(ABC):
         """
         raise NotImplementedError()
 
+
 class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
     """
     Extension of the standard authorization interface, which includes methods to modify the autoreply pool.
     """
+
     # region alias
     @abstractmethod
     def create_alias(self, name: str, rate: int) -> None:
@@ -255,7 +269,8 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None, rate: int | None) -> None:
+    def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None,
+                     rate: int | None) -> None:
         """
         Edits the Trigger at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
@@ -273,6 +288,7 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
         :return: Trigger data of removed trigger.
         """
         raise NotImplementedError()
+
     # endregion
 
     # region reply
@@ -326,4 +342,3 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
     # endregion
 
     # todo: create indexing command options to dump complete data into file.
-

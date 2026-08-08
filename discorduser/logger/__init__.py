@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-from typing import get_args, Literal
-import traceback
+from typing import get_args
 
-from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colour
+from discord import Interaction, Embed, Guild, TextChannel, User, Colour
 from discord.ext import commands
 
+from configuration.logger import loggable, GlobalLoggerConfig
 from data.interfaces.autoreplies import reply_types, trigger_types, SimpleReplyData, SimpleTriggerData
 from data.interfaces.fact import SimpleFactEditorData
 from data.interfaces.saying import SimpleSayingEditorData
 from discorduser.logger.errors import LoggableErrorContext
-from utilities.exceptions import CustomDiscordException
-from configuration.logger import loggable, GlobalLoggerConfig
 
 
 class GlobalLogger:
@@ -23,7 +21,7 @@ class GlobalLogger:
         """
         self.client = client
         self.config = config
-        self.target_channels: dict[loggable, TextChannel | None] = { i: None for i in get_args(loggable)}
+        self.target_channels: dict[loggable, TextChannel | None] = {i: None for i in get_args(loggable)}
 
     def update_output_channel(self, act: loggable, target: TextChannel):
         self.target_channels[act] = target
@@ -53,10 +51,11 @@ class GlobalLogger:
                 channel = None
 
             if not channel:
-                await self.client.close() # This is harsh. But it's easily the most secure way; if cannot log information, crash application.
-                print(f'Closing application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
-                      f'{embed.title}\n'
-                      f'{embed.description}')
+                await self.client.close()  # This is harsh. But it's easily the most secure way; if cannot log information, crash application.
+                print(
+                    f'Closing application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
+                    f'{embed.title}\n'
+                    f'{embed.description}')
                 import sys
                 sys.exit(1)
             else:
@@ -64,6 +63,7 @@ class GlobalLogger:
                 self.target_channels[act] = channel
 
         await channel.send(embed=embed)
+
     # endregion
 
     async def log_general(self, console: str, channel: Embed) -> None:
@@ -78,7 +78,7 @@ class GlobalLogger:
         self._console_log(error_context.as_console(), 'error')
         try:
             await self._channel_log(error_context.as_embed(), 'error')
-        except Exception as e: # noqa
+        except Exception as e:  # noqa
             raise e
 
     # region local-action
@@ -99,7 +99,8 @@ class GlobalLogger:
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_create')
 
-    async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData, text: str) -> None:
+    async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData,
+                              text: str) -> None:
         self._console_log(
             f'[LOCAL FACT_EDIT] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {text}',
             'local_fact_edit')
@@ -135,10 +136,13 @@ class GlobalLogger:
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_delete')
+
     # endregion
     # region other local
     async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel) -> None:
-        self._console_log(f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.name} : {interaction.user.id}', 'local_log_channel_modify')
+        self._console_log(
+            f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.name} : {interaction.user.id}',
+            'local_log_channel_modify')
 
         embed: Embed = Embed(
             title='[LOCAL_SET_LOG_CHANNEL]',
@@ -148,6 +152,7 @@ class GlobalLogger:
             colour=Colour.blue()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
+
     # endregion
     # endregion
 
@@ -227,9 +232,11 @@ class GlobalLogger:
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_modify')
+
     # endregion
     # region moderation
-    async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, new_state: bool, reason: str | None) -> None:
+    async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, new_state: bool,
+                       reason: str | None) -> None:
         self._console_log(
             f'[BAN USER] {interaction.user.id} : {interaction.user.name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not user else user.name} : {user_id} {'' if not reason else f'({reason})'}',
             'ban_user')
@@ -247,8 +254,11 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed, 'ban_user')
 
-    async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool, reason: str | None) -> None:
-        self._console_log(f'[BAN GUILD] {interaction.user.id} : {interaction.user.name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id} {'' if not reason else f'({reason})'}', 'ban_guild')
+    async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool,
+                        reason: str | None) -> None:
+        self._console_log(
+            f'[BAN GUILD] {interaction.user.id} : {interaction.user.name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id} {'' if not reason else f'({reason})'}',
+            'ban_guild')
         # todo: api call for this information? Should be a rare command.
         embed: Embed = Embed(
             title='[BAN GUILD]',
@@ -267,7 +277,9 @@ class GlobalLogger:
         """
         Call BEFORE moving channel!
         """
-        self._console_log(f'[SET LOG CHANNEL] {interaction.user.id} : {interaction.user.name} set {action} to {target.id} : {target.name}', 'general')
+        self._console_log(
+            f'[SET LOG CHANNEL] {interaction.user.id} : {interaction.user.name} set {action} to {target.id} : {target.name}',
+            'general')
 
         embed: Embed = Embed(
             title='[SET_LOG_CHANNEL]',
@@ -277,7 +289,7 @@ class GlobalLogger:
             colour=Colour.blue()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
-        await self._channel_log(embed=embed, act=action) # logging to old output channel that it's been moved
+        await self._channel_log(embed=embed, act=action)  # logging to old output channel that it's been moved
         await self._channel_log(embed=embed, act='general')
 
     # endregion
@@ -327,9 +339,11 @@ class GlobalLogger:
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_alias')
+
     # endregion
     # region trigger
-    async def create_trigger(self, interaction: Interaction, alias: str, trigger_type: trigger_types, data: str, rate: int | None):
+    async def create_trigger(self, interaction: Interaction, alias: str, trigger_type: trigger_types, data: str,
+                             rate: int | None):
         self._console_log(
             f'[TRIGGER_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
             'edit_trigger')
@@ -347,7 +361,8 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_trigger')
 
-    async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str, rate: int | None) -> None:
+    async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str,
+                           rate: int | None) -> None:
         self._console_log(
             f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
             'edit_trigger')
@@ -386,9 +401,11 @@ class GlobalLogger:
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_trigger')
+
     # endregion
     # region reply
-    async def create_reply(self, interaction: Interaction, alias: str, reply_type: reply_types, data: str, weight: int | None):
+    async def create_reply(self, interaction: Interaction, alias: str, reply_type: reply_types, data: str,
+                           weight: int | None):
         self._console_log(
             f'[REPLY_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
             'edit_reply')
@@ -406,7 +423,8 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_reply')
 
-    async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str, weight: int | None):
+    async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str,
+                         weight: int | None):
         self._console_log(
             f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
             'edit_reply')
@@ -445,6 +463,7 @@ class GlobalLogger:
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_reply')
+
     # endregion
     # endregion
     # region saying

@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     if logger_created:
         import sys
+
         sys.exit(0)
 
     # Logger config
@@ -42,8 +43,9 @@ if __name__ == '__main__':
     # DB
     autoreplies: GlobalTextAutoreplyInterface = TestAutoreplyDatabase()
     fact: GlobalAdminFactInterface = TestFactDatabase()
-    mod: GlobalAdminModerationInterface = TestModerationDatabase(user_banned=False, banned_guild=False, super_guild=False)
-    db: LocalAdminDataInterface = TestGeneralDatabase(test_output_channel_id=None, super_guilds=[]) # Put ids in here!
+    mod: GlobalAdminModerationInterface = TestModerationDatabase(user_banned=False, banned_guild=False,
+                                                                 super_guild=False)
+    db: LocalAdminDataInterface = TestGeneralDatabase(test_output_channel_id=None, super_guilds=[])  # Put ids in here!
     pref: PreferencesInterface = TestPreferencesDatabase(text=True, number=True, letter=True)
     saying: GlobalAdminSayingInterface = TestSayingDatabase()
 

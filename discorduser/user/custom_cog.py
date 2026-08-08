@@ -20,6 +20,7 @@ class CustomGroupCog(commands.GroupCog):
             )
             return []
 
+
 class CustomCog(commands.Cog):
     def __init__(self, client: BotClient):
         self.client = client

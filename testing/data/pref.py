@@ -2,7 +2,6 @@ from data.interfaces.pref import PreferencesInterface, UserPreferenceData, suppo
     GuildChannelPreferenceData
 
 
-
 class TestPreferencesDatabase(PreferencesInterface):
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None) -> None:
         pass
@@ -14,7 +13,8 @@ class TestPreferencesDatabase(PreferencesInterface):
                                  features: set[supported_autoreply_features]) -> None:
         pass
 
-    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None, feature: supported_autoreply_features) -> bool:
+    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None,
+                             feature: supported_autoreply_features) -> bool:
         if feature == 'text':
             return self.text
         elif feature == 'letter':
@@ -26,7 +26,8 @@ class TestPreferencesDatabase(PreferencesInterface):
 
     def guild_channel_autoreplies_enabled(self, guild_id: int, channel_id: int | None) -> GuildChannelPreferenceData:
         return GuildChannelPreferenceData(
-            text=self.text, letter=self.letter, number=self.number, saying=True # saying configurable but leaving True to make testing easier.
+            text=self.text, letter=self.letter, number=self.number, saying=True
+            # saying configurable but leaving True to make testing easier.
         )
 
     def toggle_user_autoreply_feature(self, user_id: int, features: set[supported_autoreply_features]) -> None:
