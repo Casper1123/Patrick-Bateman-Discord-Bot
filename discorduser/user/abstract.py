@@ -3,6 +3,7 @@ import sys
 
 import discord
 from discord import app_commands, Colour, Interaction
+from discord.app_commands import TransformerError, AppCommandError
 from discord.ext import commands
 
 from configuration.logger import LocalLoggerConfig, GlobalLoggerConfig
@@ -14,7 +15,7 @@ from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import GlobalAdminSayingInterface
 from discorduser.logger import GlobalLogger, LoggableErrorContext
 from discorduser.logger.errors import ListenerErrorContext, AppCommandErrorContext, \
-    AutocompleteErrorContext, TaskErrorContext
+    AutocompleteErrorContext, TaskErrorContext, TransformerErrorContext
 from discorduser.logger.local import LocalLogger
 
 
@@ -54,23 +55,32 @@ class BotClient(commands.Bot):
             await self.handle_exception(
                 error_context=ListenerErrorContext(
                     error=error,
-                    event=event, # No source function required, that data should be obtainable from error.
+                    event=event,
                     params='[]'
                 )
             )
+            await super().on_error(event, *args, **kwargs) # Maintain original functionality
 
         self.on_error = on_error
 
     # region error-handling
     async def setup_hook(self) -> None:
-        async def on_tree_error(interaction: Interaction, error: app_commands.AppCommandError):
+        async def on_tree_error(interaction: Interaction, error: AppCommandError):
             try:
                 await interaction.response.defer(ephemeral=True, thinking=False)  # noqa
             except Exception:  # noqa Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
             # handle exceptions
             finally:
-                await self.handle_exception(AppCommandErrorContext(error=error, interaction=interaction))
+                context: LoggableErrorContext
+
+                # Modify contexts for better feedback formatting for logger
+                if isinstance(error, TransformerError):
+                    context = TransformerErrorContext(error, interaction)
+                else:
+                    context = AppCommandErrorContext(error=error, interaction=interaction)
+
+                await self.handle_exception(context)
 
         self.tree.on_error = on_tree_error
 

@@ -1,7 +1,9 @@
+import functools
+
 from discord import Interaction
 from discord.ext import commands
 
-from discorduser.logger.errors import AutocompleteErrorContext
+from discorduser.logger.errors import AutocompleteErrorContext, ListenerErrorContext
 from discorduser.user.abstract import BotClient
 
 

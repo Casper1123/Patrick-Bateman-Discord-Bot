@@ -28,8 +28,8 @@ def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool
     # Peel off it's skin.
     if isinstance(error, CommandInvokeError):
         error: Exception = error.original
-    elif isinstance(error, TransformerError):
-        error: Exception = error.__cause__  # noqa let's just suppress this hihi haha what could go wrong.
+    elif isinstance(error, TransformerError) and error.__cause__:
+        error: Exception = error.__cause__  # noqa Documentation specifies to do so.
 
     # Todo: Go through and figure out which exceptions to the CDE-conversion are to be put here, just like CommandOnCooldown
     if isinstance(error, CommandOnCooldown):
@@ -105,35 +105,25 @@ class LoggableErrorContext(ABC):
     def as_console(self) -> str:
         """
         Templated console logging string.
+        Ends with 'for {ErrorSource} '
         """
-        return f'[[ ERROR ]] {self.error.error_type}{f' ({self.error.message})' if self.error.message else ''} from {self.source}:'
+        return f'[[ {self.source.upper()} ERROR ]] {self.error.error_type}{f' ({self.error.message})' if self.error.message else ''} from {self.source} at {self._filename}:{self._lineno} ({self._name}) for {self.source} '
 
-
-class AppCommandErrorContext(LoggableErrorContext):
-    def as_embed(self) -> Embed:
-        embed: Embed = super().as_embed()
-        embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
-                              f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
-                              f'Given parameters: {self.params}')
-        if self.error.cause:  # noqa want flexibility
-            embed.description += (f'\n\n'
-                                  f'Caused by: {type(self.error.cause).__name__}\n'
-                                  f'{self.error.cause}')
-        embed.description += (f'\n\n'
-                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
-        embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
-        return embed
-
-    def as_console(self) -> str:
-        return super().as_console() + f'{self.interaction.command.qualified_name} at {self._filename}:{self._lineno} ({self._name}) with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id})'
-
-    def __init__(self, error: Exception, interaction: Interaction, ):
-        super().__init__('app_command', error)
+class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
+    def __init__(self, source: ErrorSource, error: Exception, interaction: Interaction):
+        super().__init__(source, error)
         self.interaction = interaction
+
         try:
             self.params = f'[{'; '.join(f'{n} = {v}' for n, v in vars(self.interaction.namespace).items())}]'
         except TypeError:
             self.params = f'[]'
+
+    def as_console(self) -> str:
+        return super().as_console() + f'{self.interaction.command.qualified_name} with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id})'
+
+    def as_embed(self) -> Embed:
+        ...
 
 
 class ListenerErrorContext(LoggableErrorContext):
@@ -160,7 +150,7 @@ class ListenerErrorContext(LoggableErrorContext):
         return embed
 
     def as_console(self) -> str:
-        return super().as_console() + f'{self.event} at {self._filename}:{self._lineno} ({self._name}) with parameters {self.params}'
+        return super().as_console() + f'{self.event} with parameters {self.params}'
 
 
 class TaskErrorContext(LoggableErrorContext):
@@ -179,27 +169,43 @@ class TaskErrorContext(LoggableErrorContext):
         return embed
 
     def as_console(self) -> str:
-        return super().as_console() + f'{self.task.get_name()} at {self._filename}:{self._lineno} ({self._name})'
+        return super().as_console() + f'{self.task.get_name()}'
 
 
-class AutocompleteErrorContext(LoggableErrorContext):
-    # todo: definitely fucking
+class AppCommandErrorContext(LoggableInteractionErrorContext):
+    def as_embed(self) -> Embed:
+        # todo: check
+        embed: Embed = super().as_embed()
+        embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
+                              f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
+                              f'Given parameters: {self.params}')
+        if self.error.cause:  # noqa want flexibility
+            embed.description += (f'\n\n'
+                                  f'Caused by: {type(self.error.cause).__name__}\n'
+                                  f'{self.error.cause}')
+        embed.description += (f'\n\n'
+                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
+        embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
+        return embed
+
+    def __init__(self, error: Exception, interaction: Interaction, ):
+        super().__init__('app_command', error, interaction)
+
+
+class AutocompleteErrorContext(LoggableInteractionErrorContext):
+    # todo: current param needs work.
     def __init__(self, error: Exception, target: str, current: ..., interaction: Interaction):
         """
         :param target: Target parameter name
         :param current: Target parameter value.
         """
-        super().__init__('autocomplete', error)
+        super().__init__('autocomplete', error, interaction)
         self.target = target
+
         try:
             self.current = str(current)
         except:  # noqa it's simple enough as is who gives a damn.
             self.current = '[PARSE ERROR]'
-        self.interaction = interaction
-        try:
-            self.params = f'[{'; '.join(f'{n} = {v}' for n, v in vars(self.interaction.namespace).items() if v != target)}]'
-        except TypeError:
-            self.params = f'[]'
 
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
@@ -218,6 +224,34 @@ class AutocompleteErrorContext(LoggableErrorContext):
         return embed
 
     def as_console(self) -> str:
-        return super().as_console() + f'{self.interaction.command.qualified_name} at {self._filename}:{self._lineno} ({self._name}) with target [{self.target}={self.current}] and parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id})'
+        return super().as_console() + f'with target [{self.target}={self.current}]'
 
-# todo: transformer class.
+
+class TransformerErrorContext(LoggableInteractionErrorContext):
+    def as_embed(self) -> Embed:
+        embed: Embed = super().as_embed()
+        embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
+                              f'In the Transformer {type(self._original_error.transformer)}\n'
+                              f'At *{self._name}* (`{self._filename}:{self._lineno}`)\n'
+                              f'Given value ({self._original_error.type}) {self._original_error.value}\n'
+                              f'And params: {self.params}')
+        if self.error.cause:  # noqa want flexibility
+            embed.description += (f'\n\n'
+                                  f'Caused by: {type(self.error.cause).__name__}\n'
+                                  f'{self.error.cause}')
+        embed.description += (f'\n\n'
+                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
+        embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
+        return embed
+
+    def as_console(self) -> str:
+        return super().as_console() + f'for Transformer {type(self._original_error.transformer)} given the value ({self._original_error.type}) {self._original_error.value}'
+
+    def __init__(self, error: TransformerError, interaction: Interaction):
+        super().__init__('transformer', error, interaction)
+        self._original_error: TransformerError = error
+
+        if type(self.error.cause) == ValueError:
+            # This error is returned when invalid input is supplied.
+            # Thus, we do not log it.
+            self.log = False
