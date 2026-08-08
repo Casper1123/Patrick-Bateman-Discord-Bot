@@ -5,10 +5,9 @@ import json as _json
 import discord
 from discord import app_commands, Interaction, Embed, Guild, Colour
 from discord.app_commands import Choice
-from discord.ext import commands
 
 from configuration.global_config import CFG
-from data.interfaces.fact import GlobalAdminFactInterface, FactEditorData
+from data.interfaces.fact import GlobalAdminFactInterface, SimpleFactEditorData
 from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
 from discorduser.logger import GlobalLogger
@@ -47,7 +46,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         try:
-            old: FactEditorData = self.fact.edit_global_fact(index, interaction.user.id , text)
+            old: SimpleFactEditorData = self.fact.edit_global_fact(index, interaction.user.id, text)
         except IndexError:
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
@@ -60,7 +59,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.describe(index='The index of the fact to delete', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
         try:
-            old: FactEditorData = self.fact.delete_global_fact(index)
+            old: SimpleFactEditorData = self.fact.delete_global_fact(index)
         except IndexError:
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
@@ -74,14 +73,15 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export the facts to an attached JSON file instead.', local='Also export local facts, indexed by guild ID')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False, local: bool = False) -> None:
-        global_facts: list[FactEditorData] = self.fact.get_global_facts()
-        local_facts: dict[int, list[FactEditorData]] = {} if not local else self.fact.get_all_local_facts()
+        # todo: rewrite
+        global_facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
+        local_facts: dict[int, list[SimpleFactEditorData]] = {} if not local else self.fact.get_all_local_facts()
 
         files: list[discord.File] = []
         if json:
-            out: list[dict[str, str | int]] = [{'text': v.text, 'author_id': v.author_id} for v in global_facts]
+            out: list[dict] = [v.as_json() for v in global_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json"))
+                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json")) # noqa
         else:
             out: list[str] = []
             for i, fact in enumerate(global_facts):
@@ -93,14 +93,14 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 out.append(f'{i + 1} ({author}): {fact.text}')
             out: str = '\n'.join(out)
             with _io.StringIO(out) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt"))
+                files.append(discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt")) # noqa
 
         if local_facts and json:
             out: dict[int, list[dict[str, str | int]]] = {}
             for k, v in local_facts.items():
                 out[k] = [{'text': f.text, 'author_id': f.author_id} for f in v]
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json"))
+                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json")) # noqa
         elif local_facts and not json:
             out: str = ''
             membercache: dict[int, str] = {}
@@ -121,7 +121,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 guild_facts += '\n\n\n' # factnl, nl, #guild, space of 2 between last fact and new guild.
                 out += guild_facts
             with _io.StringIO(out) as text_stream:
-                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt'))
+                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt')) # noqa
 
         await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed( # noqa
             title=f'{'Global' if not local else 'Total'} fact data',
@@ -132,7 +132,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     async def _gfact_index_autocomplete_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
         if not current:
             current = 0
-        facts: list[FactEditorData] = self.fact.get_global_facts()
+        facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         lower, upper = selection_window(len(facts), current, 4, favour='higher')
         return [
             Choice(name=f'{offset}: {fact[:80]}', value=offset)
@@ -160,9 +160,9 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 return
         try:
             if not delete:
-                old: FactEditorData = self.fact.edit_fact(guild_id, index, text, interaction.user.id)
+                old: SimpleFactEditorData = self.fact.edit_fact(guild_id, index, text, interaction.user.id)
             else:
-                old: FactEditorData = self.fact.delete_fact(guild_id, index)
+                old: SimpleFactEditorData = self.fact.delete_fact(guild_id, index)
         except IndexError:
             await self.client.user_feedback(interaction, title='Fact modification failed', desc=f'Index {index} out of range.', ephemeral=ephemeral)
             return
@@ -186,7 +186,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                            json='Export the facts to an attached JSON file instead.',
                            guild_id='The ID of the guild you wish to index from.',)
     async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False, json: bool = False) -> None:
-        local_facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
+        local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
             await interaction.response.send_message(ephemeral=ephemeral, embed=Embed(title='No local facts found.')) # noqa
             return
@@ -195,7 +195,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 guild_id: [{'text': f.text, 'author_id': f.author_id} for f in local_facts]}
 
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")
+                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json") # noqa
         else:
             membercache: dict[int, str] = {}
             guild: Guild = self.client.get_guild(guild_id)
@@ -212,7 +212,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                     membercache[f.author_id] = member
                 guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
             with _io.StringIO(guild_facts) as text_stream:
-                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt')
+                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt') # noqa
         await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed( # noqa
             title=f'Local fact data',
             description='JSON data attached.' if json else f'See attached file for fact data.'
@@ -223,7 +223,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         guild_id: int = interaction.namespace.guild_id
         if not guild_id:
             return [ Choice(name='Bad guild ID', value=-1) ]
-        facts: list[FactEditorData] = self.fact.get_local_facts(guild_id)
+        facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not facts:
             return [Choice(name='No local facts', value=-1)]
 

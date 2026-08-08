@@ -1,14 +1,25 @@
 from abc import ABC, abstractmethod
 from typing import Literal
 
+from data.interfaces.utilities import AbstractDTO
+
 supported_autoreply_features = Literal['saying', 'text', 'letter', 'number']
 
 # Only reason these are separate are just in case extra data needs to be supplied (like uid, gid, cid)
 # But yeah, copy pasted.
-class UserPreferenceData:
+class UserPreferenceData(AbstractDTO):
     """
     Record for User Preference data.
     """
+
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        return {
+            'text': self.text,
+            'letter': self.letter,
+            'number': self.number,
+            'saying': self.saying,
+        }
+
     def __init__(self, text: bool, letter: bool, number: bool, saying: bool):
         """
         Creates a Data Transfer Object containing data on each of the supported features for the given user id.
@@ -18,7 +29,7 @@ class UserPreferenceData:
         self.number = number
         self.saying = saying
 
-class GuildChannelPreferenceData:
+class GuildChannelPreferenceData(AbstractDTO):
     """
     Record for Guild Preference data.
     """
@@ -27,6 +38,14 @@ class GuildChannelPreferenceData:
         self.letter = letter
         self.number = number
         self.saying = saying
+
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        return {
+            'text': self.text,
+            'letter': self.letter,
+            'number': self.number,
+            'saying': self.saying,
+        }
 
 class PreferencesInterface(ABC):
     """
@@ -41,7 +60,6 @@ class PreferencesInterface(ABC):
         :param channel_id: Leave empty for entire guild.
         :param duration: Pause duration in seconds.
         """
-        # todo: use!
         raise NotImplementedError()
 
     @abstractmethod

@@ -1,26 +1,52 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
+from data.interfaces.utilities import AbstractDTO
 
-class FactEditorData:
+class SimpleFactEditorData(AbstractDTO):
     """
     Purely a record class to hold Fact data.
     """
-    def __init__(self, text: str, guild_id: int | None, created_at: int, author_id: int, modified_at: int):
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        val =  {
+            'text': self.text,
+            'author_id': self.author_id
+        }
+        if self.guild_id:
+            val['guild_id'] = self.guild_id
+        return val
+
+    def __init__(self, text: str, guild_id: int | None, author_id: int, ):
         """
-        Represents the object data that should be returned for some subfunctions.
+        :param text: Fact text, PISS-compatible
         :param guild_id: Only None when Global fact
-        :param author_id:
-        :param text:
-        :param modified_at:
+        :param author_id: ID of author
         """
         self.text: str = text
         self.guild_id: int | None = guild_id
-        self.created_at: datetime = datetime.fromtimestamp(created_at, timezone.utc)
+        self.author_id: int = author_id
+
+class FactEditorData(SimpleFactEditorData):
+    def __init__(self, text: str, guild_id: int | None, author_id: int, created_at: int, modified_at: int):
+        """
+        :param text: Fact text, PISS-compatible
+        :param guild_id: Only None when Global fact
+        :param author_id: ID of author
+        :param created_at: POSIX (rounded to int) timestamp of object creation.
+        :param modified_at: POSIX (rounded to int) timestamp of last modification.
+        """
+        super().__init__(text, guild_id, author_id)
 
         # Moderation purposes
-        self.author_id: int = author_id
-        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
+        self.created_at: int = created_at
+        self.modified_at: int = modified_at
+
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        val = super().as_json()
+        val['created_at'] = self.created_at
+        val['modified_at'] = self.modified_at
+        return val
+
 
 class FactInterface(ABC):
     """
@@ -79,7 +105,7 @@ class LocalAdminFactInterface(FactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_fact(self, guild_id: int, index: int, new_fact: str, editor_id: int) -> FactEditorData:
+    def edit_fact(self, guild_id: int, index: int, new_fact: str, editor_id: int) -> SimpleFactEditorData:
         """
         Edits a fact, setting the old content to the new.
         Raises IndexError if index is out of range.
@@ -93,7 +119,7 @@ class LocalAdminFactInterface(FactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_fact(self, guild_id: int, index: int) -> FactEditorData:
+    def delete_fact(self, guild_id: int, index: int) -> SimpleFactEditorData:
         """
         Deletes the local fact at the given index.
         Raises IndexError if index is out of range.
@@ -105,7 +131,7 @@ class LocalAdminFactInterface(FactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_local_facts(self, guild_id: int) -> list[FactEditorData]:
+    def get_local_facts(self, guild_id: int) -> list[SimpleFactEditorData]:
         """
         Gets all local facts for guild.
         Ordered on edit date.
@@ -137,7 +163,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
 
     @abstractmethod
     def edit_global_fact(self, index: int, editor_id: int,
-                  new_fact: str) -> FactEditorData:
+                  new_fact: str) -> SimpleFactEditorData:
         """
         Edits a fact, setting the new content to the old.
         Raises IndexError if index is out of range.
@@ -150,7 +176,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_global_fact(self, index: int) -> FactEditorData:
+    def delete_global_fact(self, index: int) -> SimpleFactEditorData:
         """
         Deletes the global fact at the given index.
         Raises IndexError if index is out of range.
@@ -161,7 +187,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_global_facts(self) -> list[FactEditorData]:
+    def get_global_facts(self) -> list[SimpleFactEditorData]:
         """
         Gets all global facts.
         Ordered on creation date.
@@ -169,7 +195,7 @@ class GlobalAdminFactInterface(LocalAdminFactInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_all_local_facts(self) -> dict[int, list[FactEditorData]]:
+    def get_all_local_facts(self) -> dict[int, list[SimpleFactEditorData]]:
         """
         Gets all local facts, indexed by guild ID.
         """

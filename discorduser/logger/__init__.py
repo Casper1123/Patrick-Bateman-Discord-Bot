@@ -7,7 +7,7 @@ from discord import Interaction, Embed, Guild, TextChannel, User, Message, Colou
 from discord.ext import commands
 
 from data.interfaces.autoreplies import reply_types, trigger_types, SimpleReplyData, SimpleTriggerData
-from data.interfaces.fact import FactEditorData
+from data.interfaces.fact import SimpleFactEditorData
 from data.interfaces.saying import SimpleSayingEditorData
 from discorduser.logger.errors import LoggableErrorContext
 from utilities.exceptions import CustomDiscordException
@@ -99,7 +99,7 @@ class GlobalLogger:
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_create')
 
-    async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: FactEditorData, text: str) -> None:
+    async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData, text: str) -> None:
         self._console_log(
             f'[LOCAL FACT_EDIT] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {text}',
             'local_fact_edit')
@@ -119,7 +119,7 @@ class GlobalLogger:
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_edit')
 
-    async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: FactEditorData) -> None:
+    async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData) -> None:
         self._console_log(
             f'[LOCAL FACT_DELETE] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {old.text}',
             'local_fact_delete')
@@ -168,7 +168,7 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_create')
 
-    async def fact_edit(self, interaction: Interaction, old: FactEditorData, text: str) -> None:
+    async def fact_edit(self, interaction: Interaction, old: SimpleFactEditorData, text: str) -> None:
         self._console_log(
             f'[FACT_EDIT] {interaction.user.id} : {interaction.user.name} :: {text}',
             'fact_edit')
@@ -187,7 +187,7 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_edit')
 
-    async def fact_remove(self, interaction: Interaction, old: FactEditorData):
+    async def fact_remove(self, interaction: Interaction, old: SimpleFactEditorData):
         self._console_log(
             f'[FACT_DELETE] {interaction.user.id} : {interaction.user.name} :: {old.text}',
             'fact_delete')
@@ -203,7 +203,7 @@ class GlobalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_delete')
 
-    async def fact_modify(self, interaction: Interaction, guild_id: int, old: FactEditorData, text: str) -> None:
+    async def fact_modify(self, interaction: Interaction, guild_id: int, old: SimpleFactEditorData, text: str) -> None:
         self._console_log(
             f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.name} in GuildID {guild_id}, from {old.text} by {old.author_id} :: {text if text else 'Deleted'}',
             'fact_modify')

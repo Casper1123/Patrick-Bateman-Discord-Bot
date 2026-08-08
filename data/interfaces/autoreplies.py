@@ -1,14 +1,22 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
 from typing import Literal
+
+from data.interfaces.utilities import AbstractDTO
 
 trigger_types = Literal['regex']
 reply_types = Literal['text', 'reaction']
 
-class SimpleAliasData:
+class SimpleAliasData(AbstractDTO):
     """
     Simplified Record class for alias data
     """
+
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        return {
+            'name': self.name,
+            'rate': self.rate,
+        }
+
     def __init__(self, name: str, rate: int):
         """
         Represents Data Transfer Object for Alias data.
@@ -38,15 +46,30 @@ class AliasData(SimpleAliasData):
         :param name: Alias name. Unique.
         :param rate: Rate of alias in [1..256]. Probability of trigger in alias activating, if not overridden by trigger.
         :param editor_id: ID of last editor of Alias.
-        :param modified_at: int timestamp of last modification of Alias.
+        :param modified_at: POSIX (rounded to int) timestamp of last modification of Alias.
         """
         super().__init__(name, rate)
 
         # Moderation purposes
         self.editor_id: int = editor_id
-        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
+        self.modified_at: float = modified_at
 
-class SimpleTriggerData:
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        val = super().as_json()
+        val['editor_id'] = self.editor_id
+        val['modified_at'] = self.modified_at
+        return val
+
+class SimpleTriggerData(AbstractDTO):
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        val =  {
+            'type': self.type,
+            'data': self.data,
+        }
+        if self.rate is not None:
+            val['rate'] = self.rate
+        return val
+
     def __init__(self, trigger_type: trigger_types, data: str, rate: int | None):
         """
         Represents Data Transfer Object for Trigger data.
@@ -70,19 +93,35 @@ class TriggerData(SimpleTriggerData):
         :param rate: If present, overrides rate of alias in [1..256].
         :param alias: Alias of the trigger.
         :param editor_id: ID of last editor of Trigger.
-        :param modified_at: int timestamp of last modification of Trigger.
+        :param modified_at: POSIX (rounded to int) timestamp of last modification of Trigger.
         """
         super().__init__(trigger_type, data, rate)
         self.alias: AliasData = alias
 
         # Moderation purposes
         self.editor_id: int = editor_id
-        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
+        self.modified_at: int = modified_at
 
-class SimpleReplyData:
+    def as_json(self, include_alias: bool = False) -> dict[str, int | float | None | str | bool | dict]:
+        val = super().as_json()
+        val['editor_id'] = self.editor_id
+        val['modified_at'] = self.modified_at
+        if include_alias:
+            val['alias'] = self.alias.as_json()
+        return val
+
+class SimpleReplyData(AbstractDTO):
     """
     Simple record for reply data. Really only used for direct usage of data.
     """
+
+    def as_json(self) -> dict[str, int | float | None | str | bool | dict]:
+        return {
+            'type': self.type,
+            'data': self.data,
+            'weight': self.weight,
+        }
+
     def __init__(self, reply_type: reply_types, data: str, weight: int):
         self.type = reply_type
         self.data: str = data
@@ -92,17 +131,27 @@ class ReplyData(SimpleReplyData):
     """
     Record for reply data.
     """
-    def __init__(self, reply_type: reply_types, data: str, weight: int, uid: str, alias: AliasData, editor_id: int, modified_at: int):
+    def __init__(self, reply_type: reply_types, data: str, weight: int, alias: AliasData, editor_id: int, modified_at: int):
         """
         :param data: For type `text`, PISS-compatible string. For type `reaction`, unicode characters seperated by `;`
+        :param alias: Alias of the trigger.
+        :param editor_id: ID of last editor of Reply.
+        :param modified_at: POSIX (rounded to int) timestamp of last modification of Reply..
         """
         super().__init__(reply_type, data, weight)
         self.alias: AliasData = alias
-        self.id = uid
 
         # Moderation purposes
         self.editor_id: int = editor_id
-        self.modified_at: datetime = datetime.fromtimestamp(modified_at, timezone.utc)
+        self.modified_at: int = modified_at
+
+    def as_json(self, include_alias: bool = False) -> dict[str, int | float | None | str | bool | dict]:
+        val = super().as_json()
+        val['editor_id'] = self.editor_id
+        val['modified_at'] = self.modified_at
+        if include_alias:
+            val['alias'] = self.alias.as_json()
+        return val
 
 class TextAutorepliesInterface(ABC):
     """

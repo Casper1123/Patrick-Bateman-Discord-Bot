@@ -7,7 +7,7 @@ from discord import app_commands, Interaction
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from data.interfaces.fact import LocalAdminFactInterface, FactEditorData
+from data.interfaces.fact import LocalAdminFactInterface, SimpleFactEditorData
 from data.interfaces.moderation import LocalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
 from data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
@@ -118,7 +118,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         try:
-            old: FactEditorData = self.fact.edit_fact(interaction.guild_id, index, text, interaction.user.id)
+            old: SimpleFactEditorData = self.fact.edit_fact(interaction.guild_id, index, text, interaction.user.id)
         except IndexError:
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
@@ -138,7 +138,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             return
 
         try:
-            old: FactEditorData = self.fact.delete_fact(interaction.guild_id, index)
+            old: SimpleFactEditorData = self.fact.delete_fact(interaction.guild_id, index)
         except IndexError:
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
@@ -202,9 +202,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.command(name='index', description='Exports an overview of Local facts. Can be exported to JSON for easier automated use.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, json='Export the facts to an attached JSON file instead.')
     async def index(self, interaction: Interaction, ephemeral: bool = True, json: bool = False) -> None:
+        # todo: set up and use a FactEditorData.as_json() to be maintained there instead.
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
-        local_facts: list[FactEditorData] = self.fact.get_local_facts(interaction.guild.id)
+        local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(interaction.guild.id)
         if not local_facts:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Local Facts', desc='There are no local facts. Go add some!')
             return
@@ -302,14 +303,13 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     async def pause(self, interaction: Interaction, ephemeral: bool = False) -> None:
         self.pref.pause_all_in_channel(interaction.guild_id, interaction.channel_id, CFG.CHANNEL_PAUSE_DURATION)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Features paused', desc=f'Features put on pause for another {CFG.CHANNEL_PAUSE_DURATION} seconds.')
-
     # endregion
 
     # region autocomplete
     @edit.autocomplete('index')
     @delete.autocomplete('index')
     async def _local_fact_index_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        facts: list[FactEditorData] = self.fact.get_local_facts(interaction.guild_id)
+        facts: list[SimpleFactEditorData] = self.fact.get_local_facts(interaction.guild_id)
         if not facts:
             return [Choice(name='No local facts', value=-1)]
 

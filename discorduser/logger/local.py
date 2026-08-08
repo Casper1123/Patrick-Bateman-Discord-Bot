@@ -1,6 +1,6 @@
 from discord import Interaction, TextChannel, Guild, Embed, Colour
 
-from data.interfaces.fact import FactEditorData
+from data.interfaces.fact import SimpleFactEditorData
 from data.interfaces.other import LocalAdminDataInterface
 from configuration.logger.local import LocalLoggerConfig, loggable
 
@@ -41,7 +41,7 @@ class LocalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='fact_create')
 
-    async def fact_edit(self, interaction: Interaction, old: FactEditorData, text: str) -> None:
+    async def fact_edit(self, interaction: Interaction, old: SimpleFactEditorData, text: str) -> None:
         embed: Embed = Embed(
             title='[FACT_EDIT]',
             description=f'**Old:**\n'
@@ -55,7 +55,7 @@ class LocalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='fact_edit')
 
-    async def fact_remove(self, interaction: Interaction, old: FactEditorData) -> None:
+    async def fact_remove(self, interaction: Interaction, old: SimpleFactEditorData) -> None:
         embed: Embed = Embed(
             title='[FACT_REMOVE]',
             description=f'**Old:**\n'
