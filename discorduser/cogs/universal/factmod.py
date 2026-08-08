@@ -4,7 +4,7 @@ import json as _json
 
 import discord
 from discord import app_commands, Interaction, Embed, Guild, Colour
-from discord.app_commands import Choice
+from discord.app_commands import Choice, Transform
 
 from configuration.global_config import CFG
 from configuration.logger import loggable
@@ -12,8 +12,10 @@ from data.interfaces.fact import GlobalAdminFactInterface, SimpleFactEditorData
 from data.interfaces.moderation import GlobalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
 from discorduser.logger import GlobalLogger
+from discorduser.logger.local import LocalLogger
 from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
+from discorduser.user.transformers.channel import ChannelIDTransformer
 from piss.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
 
@@ -22,10 +24,11 @@ from utilities.selection_window import selection_window
 @app_commands.default_permissions(administrator=True)
 @app_commands.guilds(discord.Object(id=CFG.GLOBAL_ADMIN_SERVER_ID))
 class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
-    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger: GlobalLogger) -> None:
+    def __init__(self, client: BotClient, fact: GlobalAdminFactInterface, logger: GlobalLogger, local_logger: LocalLogger) -> None:
         super().__init__(client)
         self.fact = fact
         self.logger = logger
+        self.local_logger = local_logger
 
     # region facts
     @app_commands.command(name='add', description='Add a new global fact. Will be test-compiled, but not in detail.')
@@ -75,7 +78,6 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                            json='Export data in JSON format.', local='Also export local facts, indexed by guild ID')
     async def index(self, interaction: Interaction, json: bool = False, local: bool = False,
                     ephemeral: bool = True, ) -> None:
-        # todo: rewrite
         global_facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         local_facts: dict[int, list[SimpleFactEditorData]] = {} if not local else self.fact.get_all_local_facts()
 
@@ -174,9 +176,12 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             return
 
         await self.logger.fact_modify(interaction, guild_id, old, text)
-        if local_log:
-            # todo: log to server locally
-            pass
+        guild: Guild = self.client.get_guild(guild_id) # used for getting the appropriate log channel.
+        # If it is None it's fine
+        if local_log and not delete:
+            await self.local_logger.fact_edit(interaction, guild, old, text, externally_modified=True)
+        elif local_log and delete:
+            await self.local_logger.fact_remove(interaction, guild, old, externally_modified=True)
 
         await interaction.response.send_message( # noqa
             ephemeral=ephemeral,
@@ -326,7 +331,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
 
     @app_commands.command(name='set_log',
                           description='Sets a log channel in global config.')
-    async def set_log_channel(self, interaction: Interaction, action: loggable, channel: int, ephemeral: bool = False):
+    async def set_log_channel(self, interaction: Interaction, action: loggable, channel: Transform[int, ChannelIDTransformer], ephemeral: bool = False):
         channel = interaction.guild.get_channel(channel)
         if channel:
             await self.logger.set_log_channel(interaction, action,
@@ -340,25 +345,4 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                                             ephemeral=ephemeral)
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
-
-    # region autoreply
-    # todo: channel id too long, need to convert input into int using Transformer
-    async def _autocomplete_channel_id_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:  # noqa
-        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]  # noqa
-        if not current:
-            return [
-                Choice(name=i[1], value=i[2]) for i in pairs[:4]
-            ]
-        # Obtain stuff based on the typed in number
-        current: str = str(current)
-        filtered: list[tuple[str, str, int]] = [i for i in pairs if i[0].startswith(current)]
-        filtered.sort(key=lambda x: x[0])
-        return [
-            Choice(name=f'[{i[0]}] {i[1]}', value=int(i[2])) for i in filtered[:4]
-        ]
-
-    @set_log_channel.autocomplete('channel')
-    async def _autocomplete_channel_id_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        return await self.autocomplete_guard(interaction, current, self._autocomplete_channel_id_impl, 'channel')
-    # endregion
     # endregion

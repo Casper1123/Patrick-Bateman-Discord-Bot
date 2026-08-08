@@ -37,7 +37,7 @@ class BotClient(_AbstractClient):
 
         # Global
         await attach_autoreply_cogs(self, self.autoreplies, self.logger)
-        await self.add_cog(GlobalFactAdminCog(self, self.fact, self.logger))
+        await self.add_cog(GlobalFactAdminCog(self, self.fact, self.logger, self.local_logger))
         await self.add_cog(GlobalAdminCog(self, self.fact, self.mod, self.db, self.logger))
         await self.add_cog(GlobalAdminSayingCog(self, self.saying, self.logger))
 

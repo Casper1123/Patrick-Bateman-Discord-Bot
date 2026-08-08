@@ -1,8 +1,8 @@
-from typing import Literal, get_args
+from typing import Literal, get_args, TypeAlias
 
 from configuration.abstract import AbstractJSONConfig
 
-loggable = Literal['general', 'error',
+loggable: TypeAlias = Literal['general', 'error',
     'local_fact_create', 'local_fact_edit', 'local_fact_delete',
     'local_log_channel_modify',
 

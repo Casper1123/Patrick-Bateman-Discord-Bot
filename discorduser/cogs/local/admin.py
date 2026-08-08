@@ -3,7 +3,7 @@ import json as _json
 
 import discord
 from discord import app_commands, Interaction
-from discord.app_commands import Choice
+from discord.app_commands import Choice, Transform
 
 from configuration.global_config import CFG
 from data.interfaces.fact import LocalAdminFactInterface, SimpleFactEditorData
@@ -14,6 +14,7 @@ from discorduser.logger import GlobalLogger
 from discorduser.logger.local import LocalLogger
 from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
+from discorduser.user.transformers.channel import ChannelIDTransformer
 from piss import parse_variables, Instruction
 from piss.instructionexecutor import DebugInstructionExecutor
 from piss.testing import test_raw_input as input_test
@@ -91,9 +92,11 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not await self.kill_switch_check(interaction):
             return
         if interaction.user.bot:
-            raise RestrictedUseException(UseRestriction.USER)  # todo: check for duplicates!
+            raise RestrictedUseException(UseRestriction.USER)
+
         self.user_authorize_check(interaction.guild.id, interaction.user.id)
         self.fact_limit_check(interaction.guild.id, text)
+
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         self.fact.create_fact(interaction.guild.id, interaction.user.id, text)
@@ -125,7 +128,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             return
 
         await self.logger.local_fact_edit(interaction.guild, interaction, old, text)
-        await self.local_logger.fact_edit(interaction, old, text)
+        await self.local_logger.fact_edit(interaction, interaction.guild, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                         title='Success', desc=f'Fact edited successfully.'
                                                               f'\n# Old:\n{old.text}\n\n# New:\n{text}')
@@ -145,7 +148,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             return
 
         await self.logger.local_fact_remove(guild=interaction.guild, interaction=interaction, old=old)
-        await self.local_logger.fact_remove(interaction, old)
+        await self.local_logger.fact_remove(interaction, interaction.guild, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc=f'Fact deleted successfully.\n'
                                              f'# Old:\n{old.text}')
@@ -252,26 +255,6 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                 embed=discord.Embed(title='Local fact data', description='See attached file for fact data.')
             )
 
-    @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
-    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
-                           channel='Channel ID to log in. Requires writing permission. Leave empty to remove.')
-    async def log(self, interaction: Interaction, channel: int = None, ephemeral: bool = True) -> None:
-        if not channel:
-            self.db.set_log_output(interaction.guild.id, None)
-            await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
-            return
-
-        logchannel = interaction.guild.get_channel(channel)
-        if not logchannel:
-            await self.client.user_feedback(interaction, ephemeral=ephemeral,
-                                            desc=f'Input channel ID **{channel}** is invalid or not found.')
-
-        self.db.set_log_output(interaction.guild.id, logchannel.id)
-        await self.logger.local_set_log_channel(interaction.guild, interaction, logchannel)
-        await self.local_logger.set_log_channel(interaction, logchannel)
-        await self.client.user_feedback(interaction, ephemeral=ephemeral,
-                                        desc=f'Log output channel set to <#{logchannel.id}>')
-
     # endregion
 
     # region preferences
@@ -324,6 +307,26 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     # endregion
 
     # region other
+    @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
+    @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
+                           channel='Channel ID to log in. Leave empty to remove.')
+    async def set_log_channel(self, interaction: Interaction, channel: Transform[int, ChannelIDTransformer] | None = None, ephemeral: bool = True) -> None:
+        if not channel:
+            self.db.set_log_output(interaction.guild.id, None)
+            await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
+            return
+
+        log_channel = interaction.guild.get_channel(channel)
+        if not log_channel:
+            await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                            desc=f'Input channel ID **{channel}** is invalid or not found.')
+
+        self.db.set_log_output(interaction.guild.id, log_channel.id)
+        await self.logger.local_set_log_channel(interaction.guild, interaction, log_channel)
+        await self.local_logger.set_log_channel(interaction, log_channel)
+        await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                        desc=f'Log output channel set to <#{log_channel.id}>')
+
     @app_commands.command(name="pause",
                           description=f'Pause all application interactions in this channel for {CFG.CHANNEL_PAUSE_DURATION} seconds. Refreshable.', )
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
@@ -337,34 +340,21 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     # endregion
 
     # region autocomplete
-    @edit.autocomplete('index')
-    @delete.autocomplete('index')
-    async def _local_fact_index_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _local_fact_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(interaction.guild_id)
         if not facts:
             return [Choice(name='No local facts', value=-1)]
 
         if not current:
             current = 0
-        lower, upper = selection_window(len(facts), current, 4, favour='higher')
+        lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
             Choice(name=f'{offset}: {fact[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
-    @log.autocomplete('channel')
-    # todo : channel id too long, need to convert input into int using Transformer
-    async def _autocomplete_channel_id(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        pairs: list[tuple[str, str, int]] = [(str(i.id), i.name, i.id) for i in interaction.guild.channels]
-        if not current:
-            return [
-                Choice(name=i[1], value=i[2]) for i in pairs[:4]
-            ]
-        # Obtain stuff based on the typed in number
-        current: str = str(current)
-        filtered: list[tuple[str, str, int]] = [i for i in pairs if i[0].startswith(current)]
-        filtered.sort(key=lambda x: x[0])
-        return [
-            Choice(name=f'[{i[0]}] {i[1]}', value=int(i[2])) for i in filtered[:4]
-        ]
+    @edit.autocomplete('index')
+    @delete.autocomplete('index')
+    async def _local_fact_index_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+        return await self.autocomplete_guard(interaction, current, self._local_fact_index_autocomplete_impl, 'index')
     # endregion

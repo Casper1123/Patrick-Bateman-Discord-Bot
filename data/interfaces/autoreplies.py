@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, TypeAlias
 
 from data.interfaces.utilities import AbstractDTO
 
-trigger_types = Literal['regex']
-reply_types = Literal['text', 'reaction']
+trigger_types: TypeAlias = Literal['regex']
+reply_types: TypeAlias = Literal['text', 'reaction']
 
 
 class SimpleAliasData(AbstractDTO):

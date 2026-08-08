@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, TypeAlias
 
 from data.interfaces.utilities import AbstractDTO
 
-supported_autoreply_features = Literal['saying', 'text', 'letter', 'number']
+supported_autoreply_features: TypeAlias = Literal['saying', 'text', 'letter', 'number']
 
 
 # Only reason these are separate are just in case extra data needs to be supplied (like uid, gid, cid)

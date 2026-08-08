@@ -2,7 +2,7 @@ import asyncio
 import sys
 
 import discord
-from discord import app_commands, Colour, Interaction
+from discord import Colour, Interaction
 from discord.app_commands import TransformerError, AppCommandError
 from discord.ext import commands
 
@@ -30,7 +30,7 @@ class BotClient(commands.Bot):
                  mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface,
                  saying: GlobalAdminSayingInterface) -> None:
         self.logger: GlobalLogger = GlobalLogger(self, global_logger_config)
-        self.local_logger: LocalLogger = LocalLogger(local_logger_config, db)
+        self.local_logger: LocalLogger = LocalLogger(self, local_logger_config, db)
         self.autoreplies: GlobalTextAutoreplyInterface = autoreplies
         self.fact: GlobalAdminFactInterface = fact
         self.mod: GlobalAdminModerationInterface = mod

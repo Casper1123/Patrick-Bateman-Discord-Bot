@@ -1,13 +1,18 @@
-from data.interfaces.moderation import GlobalAdminModerationInterface
+from data.interfaces.moderation import GlobalAdminModerationInterface, BanDomains
 
 
 class TestModerationDatabase(GlobalAdminModerationInterface):
+    def get_banlist(self, ban_type: BanDomains) -> list[int]:
+        return []
+
+    def toggle_ban(self, ban_type: BanDomains, identifier: int) -> bool:
+        pass
+
     def __init__(self, user_banned: bool, banned_guild: bool, super_guild: bool) -> None:
         self.user_banned = user_banned
         self.banned_guild = banned_guild
         self.super_guild = super_guild
 
-    # region Local
     def is_banned_user(self, user_id: int) -> bool:
         return self.user_banned
 
@@ -16,19 +21,3 @@ class TestModerationDatabase(GlobalAdminModerationInterface):
 
     def is_super_server(self, guild_id: int) -> bool:
         return self.super_guild
-
-    # endregion
-
-    # region Global
-    def ban_user(self, user_id: int) -> None:
-        pass
-
-    def unban_user(self, user_id: int) -> None:
-        pass
-
-    def ban_guild(self, guild_id: int) -> None:
-        pass
-
-    def unban_guild(self, guild_id: int) -> None:
-        pass
-    # endregion

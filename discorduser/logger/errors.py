@@ -15,7 +15,7 @@ UNLOGGED_EXCEPTION_TYPES: list[type] = [
     CommandOnCooldown,
     RestrictedUseException,
 ]
-# todo: undetailed exception types --> not sending exception warning to user, or just something generic
+
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer']  # just putting
 
 
@@ -122,9 +122,6 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
     def as_console(self) -> str:
         return super().as_console() + f'{self.interaction.command.qualified_name} with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id})'
 
-    def as_embed(self) -> Embed:
-        ...
-
 
 class ListenerErrorContext(LoggableErrorContext):
     def __init__(self, error: Exception, event: str, params: str):
@@ -193,7 +190,6 @@ class AppCommandErrorContext(LoggableInteractionErrorContext):
 
 
 class AutocompleteErrorContext(LoggableInteractionErrorContext):
-    # todo: current param needs work.
     def __init__(self, error: Exception, target: str, current: ..., interaction: Interaction):
         """
         :param target: Target parameter name

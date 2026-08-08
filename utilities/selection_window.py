@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Literal, TypeAlias
 
-_favour = Literal['lower', 'higher']
+_favour: TypeAlias = Literal['lower', 'higher']
 
 
 def selection_window(n: int, i: int, k: int, favour: _favour = 'higher') -> tuple[int, int]:
