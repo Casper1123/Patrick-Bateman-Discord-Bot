@@ -107,7 +107,7 @@ class LoggableErrorContext(ABC):
         Templated console logging string.
         Ends with 'for {ErrorSource} '
         """
-        return f'[[ {self.source.upper()} ERROR ]] {self.error.error_type}{f' ({self.error.message})' if self.error.message else ''} from {self.source} at {self._filename}:{self._lineno} ({self._name}) for {self.source} '
+        return f'[[ {self.source.upper()} ERROR ]] {self.error.error_type}{f' ({self.error.cause})' if isinstance(self.error.cause, Exception) else ''} from {self.source} at {self._filename}:{self._lineno} ({self._name}) for {self.source} '
 
 class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
     def __init__(self, source: ErrorSource, error: Exception, interaction: Interaction):
@@ -120,7 +120,7 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
             self.params = f'[]'
 
     def as_console(self) -> str:
-        return super().as_console() + f'{self.interaction.command.qualified_name} with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id})'
+        return super().as_console() + f'/{self.interaction.command.qualified_name} with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id}) '
 
 
 class ListenerErrorContext(LoggableErrorContext):
