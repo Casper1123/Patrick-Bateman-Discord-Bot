@@ -83,6 +83,22 @@ class GlobalLogger:
 
     # region local-action
     # region fact
+
+    # todo: redo embeds. See below:
+    # Standard data
+    #
+    # Field: Created By
+    # Name
+    # Id
+    # < icon_url to author avatar >
+    #
+    # Field: Created In
+    # Guild name
+    # Guild Id
+
+    # Author: Guild, with icon
+    #
+
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
         self._console_log(
             f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.display_name} in {guild.id} : {guild.name} :: {text}',
@@ -96,7 +112,7 @@ class GlobalLogger:
                         f'In: {guild.name} ({guild.id})',
             colour=Colour.green()
         )
-        embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_create')
 
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData,
@@ -117,7 +133,7 @@ class GlobalLogger:
                         f'In: {guild.name} ({guild.id})',
             colour=Colour.yellow()
         )
-        embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_edit')
 
     async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData) -> None:
@@ -134,7 +150,7 @@ class GlobalLogger:
                         f'In: {guild.name} ({guild.id})',
             colour=Colour.red()
         )
-        embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
         await self._channel_log(embed=embed, act='local_fact_delete')
 
     # endregion
@@ -151,7 +167,7 @@ class GlobalLogger:
                         f'Set by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.blue()
         )
-        embed.set_author(name=guild.name, icon_url=guild.icon.url)
+        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
 
     # endregion
     # endregion
@@ -170,7 +186,7 @@ class GlobalLogger:
                         f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_create')
 
     async def fact_edit(self, interaction: Interaction, old: SimpleFactEditorData, text: str) -> None:
@@ -189,7 +205,7 @@ class GlobalLogger:
                         f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_edit')
 
     async def fact_remove(self, interaction: Interaction, old: SimpleFactEditorData):
@@ -205,7 +221,7 @@ class GlobalLogger:
                         f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_delete')
 
     async def fact_modify(self, interaction: Interaction, guild_id: int, old: SimpleFactEditorData, text: str) -> None:
@@ -230,7 +246,7 @@ class GlobalLogger:
                         f'For Guild **{guild.name if guild else '[fetch failed]'}** ({guild_id})',
             colour=Colour.orange()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_modify')
 
     # endregion
@@ -251,7 +267,7 @@ class GlobalLogger:
                         f'{'' if not reason else f'\nReason: *{reason}*'}',
             colour=Colour.red()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed, 'ban_user')
 
     async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool,
@@ -270,7 +286,7 @@ class GlobalLogger:
                         f'{'' if not reason else f'\nReason: *{reason}*'}',
             colour=Colour.red()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed, 'ban_guild')
 
     async def set_log_channel(self, interaction: Interaction, action: loggable, target: TextChannel):
@@ -288,7 +304,7 @@ class GlobalLogger:
                         f'Moved by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.blue()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act=action)  # logging to old output channel that it's been moved
         await self._channel_log(embed=embed, act='general')
 
@@ -307,7 +323,7 @@ class GlobalLogger:
                         f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_alias')
 
     async def edit_alias(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
@@ -322,7 +338,7 @@ class GlobalLogger:
                         f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_alias')
 
     async def delete_alias(self, interaction: Interaction, old_name: str):
@@ -337,7 +353,7 @@ class GlobalLogger:
                         f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_alias')
 
     # endregion
@@ -358,7 +374,7 @@ class GlobalLogger:
                         f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_trigger')
 
     async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str,
@@ -381,7 +397,7 @@ class GlobalLogger:
                         f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_trigger')
 
     async def delete_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData):
@@ -399,7 +415,7 @@ class GlobalLogger:
                         f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_trigger')
 
     # endregion
@@ -420,7 +436,7 @@ class GlobalLogger:
                         f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_reply')
 
     async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str,
@@ -443,7 +459,7 @@ class GlobalLogger:
                         f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_reply')
 
     async def delete_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData):
@@ -461,7 +477,7 @@ class GlobalLogger:
                         f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='delete_reply')
 
     # endregion
@@ -477,7 +493,7 @@ class GlobalLogger:
                         f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='saying_create')
 
     async def edit_saying(self, interaction: Interaction, old: SimpleSayingEditorData, text: str):
@@ -496,7 +512,7 @@ class GlobalLogger:
                         f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='saying_edit')
 
     async def delete_saying(self, interaction: Interaction, old: SimpleSayingEditorData):
@@ -512,7 +528,7 @@ class GlobalLogger:
                         f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='saying_delete')
     # endregion
     # endregion
