@@ -24,6 +24,9 @@ class NumberAutoreplyCog(commands.Cog):
 
         # Todo: optimizable / improvable
         # Example: something with text after the first space is clearly more than just a number
+
+        # todo: fixme;; 1231087891741,100009908 -> 1231087891742.1
+        # Solution: cast to int, lose floating point, remove that as the prefix, keep the remainder, append that at the end.
         txt: str = message.content
         try:
             num: float = float(txt)
