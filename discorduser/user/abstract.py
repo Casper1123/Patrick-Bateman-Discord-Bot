@@ -47,8 +47,11 @@ class BotClient(commands.Bot):
             error = sys.exc_info()[1]
             if error is None:
                 return
+
             if not isinstance(error, Exception):
                 raise error
+
+            params: str = '[ Event type not explicitly supported ]'
 
             # todo: parse params based on given event.
             # todo: supported events list.
@@ -56,7 +59,7 @@ class BotClient(commands.Bot):
                 error_context=ListenerErrorContext(
                     error=error,
                     event=event,
-                    params='[]'
+                    params=params
                 )
             )
 
