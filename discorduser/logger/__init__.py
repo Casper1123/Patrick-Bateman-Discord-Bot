@@ -85,15 +85,15 @@ class GlobalLogger:
     # region fact
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
         self._console_log(
-            f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {text}',
+            f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.display_name} in {guild.id} : {guild.name} :: {text}',
             'local_fact_create')
 
         embed: Embed = Embed(
             title='[LOCAL_FACT_CREATE]',
             description=f'{text}\n'
                         f'\n'
-                        f'Created by: {interaction.user.name} ({interaction.user.id})\n'
-                        f'In: {guild.name} : {guild.id}',
+                        f'Created by: {interaction.user.display_name} ({interaction.user.id})\n'
+                        f'In: {guild.name} ({guild.id})',
             colour=Colour.green()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
@@ -102,7 +102,7 @@ class GlobalLogger:
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData,
                               text: str) -> None:
         self._console_log(
-            f'[LOCAL FACT_EDIT] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {text}',
+            f'[LOCAL FACT_EDIT] {interaction.user.id} : {interaction.user.display_name} in {guild.id} : {guild.name} :: {text}',
             'local_fact_edit')
 
         embed: Embed = Embed(
@@ -113,8 +113,8 @@ class GlobalLogger:
                         f'**New:**\n'
                         f'{text}\n'
                         f'\n'
-                        f'Edited by: {interaction.user.name} ({interaction.user.id})\n'
-                        f'In: {guild.name} : {guild.id}',
+                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})\n'
+                        f'In: {guild.name} ({guild.id})',
             colour=Colour.yellow()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
@@ -122,7 +122,7 @@ class GlobalLogger:
 
     async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData) -> None:
         self._console_log(
-            f'[LOCAL FACT_DELETE] {interaction.user.id} : {interaction.user.name} in {guild.id} : {guild.name} :: {old.text}',
+            f'[LOCAL FACT_DELETE] {interaction.user.id} : {interaction.user.display_name} in {guild.id} : {guild.name} :: {old.text}',
             'local_fact_delete')
 
         embed: Embed = Embed(
@@ -130,8 +130,8 @@ class GlobalLogger:
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
-                        f'Removed by: {interaction.user.name} ({interaction.user.id})\n'
-                        f'In: {guild.name} : {guild.id}',
+                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})\n'
+                        f'In: {guild.name} ({guild.id})',
             colour=Colour.red()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
@@ -141,14 +141,14 @@ class GlobalLogger:
     # region other local
     async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel) -> None:
         self._console_log(
-            f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.name} : {interaction.user.id}',
+            f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.display_name} : {interaction.user.id}',
             'local_log_channel_modify')
 
         embed: Embed = Embed(
             title='[LOCAL_SET_LOG_CHANNEL]',
             description=f'Set to: {channel.name} ({channel.id})\n'
                         f'\n'
-                        f'Set by: {interaction.user.name} ({interaction.user.id})',
+                        f'Set by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.blue()
         )
         embed.set_author(name=guild.name, icon_url=guild.icon.url)
@@ -160,14 +160,14 @@ class GlobalLogger:
     # region fact
     async def fact_create(self, interaction: Interaction, text: str) -> None:
         self._console_log(
-            f'[FACT_CREATE] {interaction.user.id} : {interaction.user.name} :: {text}',
+            f'[FACT_CREATE] {interaction.user.id} : {interaction.user.display_name} :: {text}',
             'fact_create')
 
         embed: Embed = Embed(
             title='[FACT_CREATE]',
             description=f'{text}\n'
                         f'\n'
-                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -175,7 +175,7 @@ class GlobalLogger:
 
     async def fact_edit(self, interaction: Interaction, old: SimpleFactEditorData, text: str) -> None:
         self._console_log(
-            f'[FACT_EDIT] {interaction.user.id} : {interaction.user.name} :: {text}',
+            f'[FACT_EDIT] {interaction.user.id} : {interaction.user.display_name} :: {text}',
             'fact_edit')
 
         embed: Embed = Embed(
@@ -186,7 +186,7 @@ class GlobalLogger:
                         f'**New:**\n'
                         f'{text}\n'
                         f'\n'
-                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -194,7 +194,7 @@ class GlobalLogger:
 
     async def fact_remove(self, interaction: Interaction, old: SimpleFactEditorData):
         self._console_log(
-            f'[FACT_DELETE] {interaction.user.id} : {interaction.user.name} :: {old.text}',
+            f'[FACT_DELETE] {interaction.user.id} : {interaction.user.display_name} :: {old.text}',
             'fact_delete')
 
         embed: Embed = Embed(
@@ -202,7 +202,7 @@ class GlobalLogger:
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
-                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -210,7 +210,7 @@ class GlobalLogger:
 
     async def fact_modify(self, interaction: Interaction, guild_id: int, old: SimpleFactEditorData, text: str) -> None:
         self._console_log(
-            f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.name} in GuildID {guild_id}, from {old.text} by {old.author_id} :: {text if text else 'Deleted'}',
+            f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.display_name} in GuildID {guild_id}, from {old.text} by {old.author_id} :: {text if text else 'Deleted'}',
             'fact_modify')
 
         try:
@@ -226,7 +226,7 @@ class GlobalLogger:
                         f'**New:**\n'
                         f'{text if text else 'Deleted'}\n'
                         f'\n'
-                        f'Edited by: {interaction.user.name} ({interaction.user.id})'
+                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})'
                         f'For Guild **{guild.name if guild else '[fetch failed]'}** ({guild_id})',
             colour=Colour.orange()
         )
@@ -238,16 +238,16 @@ class GlobalLogger:
     async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, new_state: bool,
                        reason: str | None) -> None:
         self._console_log(
-            f'[BAN USER] {interaction.user.id} : {interaction.user.name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not user else user.name} : {user_id} {'' if not reason else f'({reason})'}',
+            f'[BAN USER] {interaction.user.id} : {interaction.user.display_name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not user else user.display_name} : {user_id} {'' if not reason else f'({reason})'}',
             'ban_user')
         # todo: api call for this information? Should be a rare command.
         embed: Embed = Embed(
             title='[BAN USER]',
             description=f'**{'UN' if not new_state else ''}BANNED**\n'
                         f'\n'
-                        f'{'NO NAME AVAILABLE' if not user else user.name} : {user_id}\n'
+                        f'{'NO NAME AVAILABLE' if not user else user.display_name} : {user_id}\n'
                         f'\n'
-                        f'Done by: {interaction.user.name} ({interaction.user.id})\n'
+                        f'Done by: {interaction.user.display_name} ({interaction.user.id})\n'
                         f'{'' if not reason else f'\nReason: *{reason}*'}',
             colour=Colour.red()
         )
@@ -257,7 +257,7 @@ class GlobalLogger:
     async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool,
                         reason: str | None) -> None:
         self._console_log(
-            f'[BAN GUILD] {interaction.user.id} : {interaction.user.name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id} {'' if not reason else f'({reason})'}',
+            f'[BAN GUILD] {interaction.user.id} : {interaction.user.display_name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id} {'' if not reason else f'({reason})'}',
             'ban_guild')
         # todo: api call for this information? Should be a rare command.
         embed: Embed = Embed(
@@ -266,7 +266,7 @@ class GlobalLogger:
                         f'\n'
                         f'{'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id}\n'
                         f'\n'
-                        f'Done by: {interaction.user.name} ({interaction.user.id})\n'
+                        f'Done by: {interaction.user.display_name} ({interaction.user.id})\n'
                         f'{'' if not reason else f'\nReason: *{reason}*'}',
             colour=Colour.red()
         )
@@ -278,14 +278,14 @@ class GlobalLogger:
         Call BEFORE moving channel!
         """
         self._console_log(
-            f'[SET LOG CHANNEL] {interaction.user.id} : {interaction.user.name} set {action} to {target.id} : {target.name}',
+            f'[SET LOG CHANNEL] {interaction.user.id} : {interaction.user.display_name} set {action} to {target.id} : {target.name}',
             'general')
 
         embed: Embed = Embed(
             title='[SET_LOG_CHANNEL]',
             description=f'Moving of {action} logging to <#{target.id}> ({target.name}; {target.id})\n'
                         f'\n'
-                        f'Moved by: {interaction.user.name} ({interaction.user.id})',
+                        f'Moved by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.blue()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -297,14 +297,14 @@ class GlobalLogger:
     # region alias
     async def create_alias(self, interaction: Interaction, name: str, rate: int) -> None:
         self._console_log(
-            f'[ALIAS_CREATE] {interaction.user.id} : {interaction.user.name} :: [Rate: {rate}; Name: {name}]',
+            f'[ALIAS_CREATE] {interaction.user.id} : {interaction.user.display_name} :: [Rate: {rate}; Name: {name}]',
             'create_alias')
         embed: Embed = Embed(
             title='[ALIAS_CREATE]',
             description=f'Name: {name}\n'
                         f'Rate: {rate}\n'
                         f'\n'
-                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -312,14 +312,14 @@ class GlobalLogger:
 
     async def edit_alias(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
         self._console_log(
-            f'[ALIAS_EDIT] {interaction.user.id} : {interaction.user.name} from [{old_name}] :: [Name: {new_name}; Rate: {rate}]',
+            f'[ALIAS_EDIT] {interaction.user.id} : {interaction.user.display_name} from [{old_name}] :: [Name: {new_name}; Rate: {rate}]',
             'edit_alias')
         embed: Embed = Embed(
             title='[ALIAS_EDIT]',
             description=f'**Old:**\n'
                         f'\t{old_name}\n'
                         f'\n'
-                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -327,14 +327,14 @@ class GlobalLogger:
 
     async def delete_alias(self, interaction: Interaction, old_name: str):
         self._console_log(
-            f'[ALIAS_DELETE] {interaction.user.id} : {interaction.user.name} :: [{old_name}]',
+            f'[ALIAS_DELETE] {interaction.user.id} : {interaction.user.display_name} :: [{old_name}]',
             'delete_alias')
         embed: Embed = Embed(
             title='[ALIAS_DELETE]',
             description=f'**Old:**\n'
                         f'\t{old_name}\n'
                         f'\n'
-                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -345,7 +345,7 @@ class GlobalLogger:
     async def create_trigger(self, interaction: Interaction, alias: str, trigger_type: trigger_types, data: str,
                              rate: int | None):
         self._console_log(
-            f'[TRIGGER_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
+            f'[TRIGGER_CREATE] {interaction.user.id} : {interaction.user.display_name} to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
             'edit_trigger')
         embed: Embed = Embed(
             title='[TRIGGER_CREATE]',
@@ -355,7 +355,7 @@ class GlobalLogger:
                         f'\tData: {data}\n'
                         f'\tRate: {rate}\n'
                         f'\n'
-                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -364,7 +364,7 @@ class GlobalLogger:
     async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str,
                            rate: int | None) -> None:
         self._console_log(
-            f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
+            f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
             'edit_trigger')
         embed: Embed = Embed(
             title='[REPLY_EDIT]',
@@ -378,7 +378,7 @@ class GlobalLogger:
                         f'\tData: {data}\n'
                         f'\tRate: {rate}\n'
                         f'\n'
-                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -386,7 +386,7 @@ class GlobalLogger:
 
     async def delete_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData):
         self._console_log(
-            f'[TRIGGER_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {alias} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
+            f'[TRIGGER_DELETE] {interaction.user.id} : {interaction.user.display_name} from Alias {alias} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
             'delete_trigger')
         embed: Embed = Embed(
             title='[TRIGGER_DELETE]',
@@ -396,7 +396,7 @@ class GlobalLogger:
                         f'\tData: {old.data}\n'
                         f'\tRate: {old.rate}\n'
                         f'\n'
-                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -407,7 +407,7 @@ class GlobalLogger:
     async def create_reply(self, interaction: Interaction, alias: str, reply_type: reply_types, data: str,
                            weight: int | None):
         self._console_log(
-            f'[REPLY_CREATE] {interaction.user.id} : {interaction.user.name} to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
+            f'[REPLY_CREATE] {interaction.user.id} : {interaction.user.display_name} to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
             'edit_reply')
         embed: Embed = Embed(
             title='[REPLY_CREATE]',
@@ -417,7 +417,7 @@ class GlobalLogger:
                         f'\tData: {data}\n'
                         f'\tWeight: {weight}\n'
                         f'\n'
-                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -426,7 +426,7 @@ class GlobalLogger:
     async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str,
                          weight: int | None):
         self._console_log(
-            f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.name} from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
+            f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
             'edit_reply')
         embed: Embed = Embed(
             title='[REPLY_EDIT]',
@@ -440,7 +440,7 @@ class GlobalLogger:
                         f'\tData: {data}\n'
                         f'\tWeight: {weight}\n'
                         f'\n'
-                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -448,7 +448,7 @@ class GlobalLogger:
 
     async def delete_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData):
         self._console_log(
-            f'[REPLY_DELETE] {interaction.user.id} : {interaction.user.name} from Alias {alias} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
+            f'[REPLY_DELETE] {interaction.user.id} : {interaction.user.display_name} from Alias {alias} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
             'delete_reply')
         embed: Embed = Embed(
             title='[REPLY_DELETE]',
@@ -458,7 +458,7 @@ class GlobalLogger:
                         f'\tData: {old.data}\n'
                         f'\tWeight: {old.weight}\n'
                         f'\n'
-                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -468,13 +468,13 @@ class GlobalLogger:
     # endregion
     # region saying
     async def create_saying(self, interaction: Interaction, text: str):
-        self._console_log(f'[SAYING_CREATE] {interaction.user.id} : {interaction.user.name} :: {text}', 'saying_create')
+        self._console_log(f'[SAYING_CREATE] {interaction.user.id} : {interaction.user.display_name} :: {text}', 'saying_create')
 
         embed: Embed = Embed(
             title='[SAYING_CREATE]',
             description=f'{text}\n'
                         f'\n'
-                        f'Created by: {interaction.user.name} ({interaction.user.id})',
+                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -482,7 +482,7 @@ class GlobalLogger:
 
     async def edit_saying(self, interaction: Interaction, old: SimpleSayingEditorData, text: str):
         self._console_log(
-            f'[SAYING_EDIT] {interaction.user.id} : {interaction.user.name} [{old.text}] :: {text}',
+            f'[SAYING_EDIT] {interaction.user.id} : {interaction.user.display_name} [{old.text}] :: {text}',
             'saying_edit')
 
         embed: Embed = Embed(
@@ -493,7 +493,7 @@ class GlobalLogger:
                         f'**New:**\n'
                         f'{text}\n'
                         f'\n'
-                        f'Edited by: {interaction.user.name} ({interaction.user.id})',
+                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -501,7 +501,7 @@ class GlobalLogger:
 
     async def delete_saying(self, interaction: Interaction, old: SimpleSayingEditorData):
         self._console_log(
-            f'[SAYING_DELETE] {interaction.user.id} : {interaction.user.name} :: {old.text}',
+            f'[SAYING_DELETE] {interaction.user.id} : {interaction.user.display_name} :: {old.text}',
             'saying_delete')
 
         embed: Embed = Embed(
@@ -509,7 +509,7 @@ class GlobalLogger:
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
-                        f'Removed by: {interaction.user.name} ({interaction.user.id})',
+                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
