@@ -130,8 +130,8 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         await self.logger.local_fact_edit(interaction.guild, interaction, old, text)
         await self.local_logger.fact_edit(interaction, interaction.guild, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
-                                        title='Success', desc=f'Fact edited successfully.'
-                                                              f'\n**Old:**\n{old.text}\n\n**New:**\n{text}')
+                                        title='Success', desc=f'Fact edited successfully.\n\n'
+                                                              f'**Old:**\n{old.text}\n\n**New:**\n{text}')
 
     @app_commands.command(name='delete', description='Delete a local fact.')
     @app_commands.describe(index='The index of the fact you\'re deleting.',
@@ -150,7 +150,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         await self.logger.local_fact_remove(guild=interaction.guild, interaction=interaction, old=old)
         await self.local_logger.fact_remove(interaction, interaction.guild, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
-                                        desc=f'Fact deleted successfully.\n'
+                                        desc=f'Fact deleted successfully.\n\n'
                                              f'**Old:**\n{old.text}')
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on P.I.S.S.!)')
@@ -168,13 +168,13 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             compiled: list[Instruction] = parse_variables(text)
             executor: DebugInstructionExecutor = DebugInstructionExecutor(self.client)
             await executor.run(compiled, interaction)
-            description = (f'# Taken input:\n'
+            description = (f'**Taken input:**\n'
                            f'{text}\n'
                            f'\n'
-                           f'# Chat output:\n'
+                           f'**Chat output:**\n'
                            f'{executor.output}\n'
                            f'\n'
-                           f'# Compiled and executed Instructions:\n'
+                           f'**Compiled and executed Instructions:**\n'
                            f'{'\n'.join(f'`{i}`'.replace('InstructionType.', '') for i in compiled)}')
         except CustomDiscordException as e:
             exception = e
