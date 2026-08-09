@@ -43,9 +43,6 @@ class AskPatrick(commands.Cog):
 
         # How to decide here?
         """
-
-
-        # todo: check if command is callable here by user. If not, back out.
         split_content = message.content.split()
         if len(split_content) < 3:
             return  # Ignore if no question asked.
@@ -71,7 +68,7 @@ class AskPatrick(commands.Cog):
             await ask_reply(message, "Ahem.")
             async with message.channel.typing():
                 await asyncio.sleep(3)
-                await ask_reply(message,  # todo: can be compacted into Instructions
+                await ask_reply(message,
                                 "# **One day you will have to answer for your actions. And god.. may not be so merciful..**",
                                 send_in_channel=True)
         # Yes 450%%

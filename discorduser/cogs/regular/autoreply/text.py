@@ -57,7 +57,7 @@ class MessageContentAutoreplyCog(commands.Cog):
             reply: SimpleReplyData | None = self.repl.get_reply(alias.name)  # Can throw an error on bad Alias name.
             # However, if that happens, we wanna pass it through.
         if not reply:
-            return  # todo: log that the given message triggered a bunch of aliases, but did not get a reply. Maybe even log which aliases it were and the trigger it hit.
+            return
             # also do not be a dumbo and put a cooldown on that log pretty please.
 
         if reply.type == 'text':
@@ -68,6 +68,5 @@ class MessageContentAutoreplyCog(commands.Cog):
             reactions: list[str] = reply.data.split(';')
             for reaction in reactions:
                 await message.add_reaction(reaction)
-            # todo test on 'non-existent' emotes. That, or enforce that the emote is not server-bound when selected for generality purposes.
         else:
             raise TypeError(f'Reply of invalid type **{reply.type}**')
