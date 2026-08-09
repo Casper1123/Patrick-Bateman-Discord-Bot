@@ -104,7 +104,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
         if alias == 'reaction':
             return SimpleReplyData('reaction', data='🐑;🙃', weight=1)
         elif alias == 'text':
-            return SimpleReplyData('text', data='Autoreply in <#{channel} !', weight=1)
+            return SimpleReplyData('text', data='Autoreply in <#{channel.id}> !', weight=1)
         elif alias == 'error_test':
             raise RuntimeError('Listener error test')
         else:
