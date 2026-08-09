@@ -36,7 +36,9 @@ class MessageContentAutoreplyCog(commands.Cog):
         for alias, triggers in a_data.items():
             for trigger in triggers:
                 # Calculate if the trigger would be accepted
-                if _r.randint(1, 256) <= (trigger.rate if trigger.rate else alias.rate):
+                num: int = _r.randint(1, 256)
+                rate: int = (trigger.rate if trigger.rate else alias.rate)
+                if num > rate:
                     continue
 
                 # For each trigger type, try to match. Raising exception if not to enforce compatibility of types.
