@@ -47,7 +47,8 @@ class UserPreferenceCog(commands.Cog):
         self.pref.toggle_user_autoreply_feature(interaction.user.id, feat)
 
         desc = desc.removesuffix('\n')
-        await self.client.user_feedback(interaction,
-                                        title='User preferences updated',
-                                        desc=desc,
-                                        )
+        await self.client.user_feedback(
+            interaction,
+            title='User preferences updated',
+            desc=desc,
+        )
