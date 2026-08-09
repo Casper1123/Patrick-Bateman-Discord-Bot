@@ -158,7 +158,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.checks.cooldown(1, CFG.PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if ephemeral:
-            await interaction.response.send_message( # noqa
+            await interaction.response.send_message(  # noqa
                 ephemeral=ephemeral,
                 embed=discord.Embed(description='Performing PISS test.')
             )
@@ -204,7 +204,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not other:
             other = 'no body content'
 
-        await interaction.response.send_message( # noqa
+        await interaction.response.send_message(  # noqa
             ephemeral=ephemeral,
             embed=discord.Embed(title=title, description=other)
         )
@@ -225,11 +225,11 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             out: list[dict] = [v.as_json() for v in local_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(
-                    fp=text_stream, # noqa
+                    fp=text_stream,  # noqa
                     filename=f"local_fact_data_{interaction.guild.id}.json"
                 )
 
-                await interaction.response.send_message( # noqa
+                await interaction.response.send_message(  # noqa
                     embed=discord.Embed(title='Local fact data', description='JSON data attached.'),
                     ephemeral=True,
                     file=file)
@@ -246,10 +246,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
             file = discord.File(
-                fp=text_stream, # noqa
+                fp=text_stream,  # noqa
                 filename=f"local_fact_data_{interaction.guild.id}.txt"
             )
-            await interaction.response.send_message( # noqa
+            await interaction.response.send_message(  # noqa
                 ephemeral=ephemeral,
                 file=file,
                 embed=discord.Embed(title='Local fact data', description='See attached file for fact data.')
@@ -310,7 +310,9 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            channel='Channel ID to log in. Leave empty to remove.')
-    async def set_log_channel(self, interaction: Interaction, channel: Transform[int, ChannelIDTransformer] | None = None, ephemeral: bool = True) -> None:
+    async def set_log_channel(self, interaction: Interaction,
+                              channel: Transform[int, ChannelIDTransformer] | None = None,
+                              ephemeral: bool = True) -> None:
         if not channel:
             self.db.set_log_output(interaction.guild.id, None)
             await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
@@ -330,7 +332,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.command(name="pause",
                           description=f'Pause all application interactions in this channel for {CFG.CHANNEL_PAUSE_DURATION} seconds. Refreshable.', )
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-                                            # Hardcoded 75% duration done; so refreshable every 60s with default config.
+    # Hardcoded 75% duration done; so refreshable every 60s with default config.
     @app_commands.checks.cooldown(1, (CFG.CHANNEL_PAUSE_DURATION // 4) * 3, key=lambda i: (i.guild_id, i.channel_id))
     async def pause(self, interaction: Interaction, ephemeral: bool = False) -> None:
         self.pref.pause_all_in_channel(interaction.guild_id, interaction.channel_id, CFG.CHANNEL_PAUSE_DURATION)
