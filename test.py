@@ -34,7 +34,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Logger config
-    global_logger_config: GlobalLoggerConfig = TestGlobalLoggerConfig()
+    global_logger_config: GlobalLoggerConfig = TestGlobalLoggerConfig(output_channel_id=None)
     local_logger_config: LocalLoggerConfig = TestLocalLoggerConfig()
 
     # Token config

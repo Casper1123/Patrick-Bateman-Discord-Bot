@@ -6,12 +6,12 @@ from configuration.logger.local import loggable as local_loggable
 
 
 class TestGlobalLoggerConfig(GlobalLoggerConfig):
-    def __init__(self):
+    def __init__(self, output_channel_id: int | None):
         otc, al, tc, = {}, {}, {}
         for k in get_args(loggable):
             otc[k] = True
-            al[k] = False
-            tc[k] = 0 # Values are fine as al[k] being False means it never checks for the channel.
+            al[k] = True if output_channel_id else False
+            tc[k] = output_channel_id  # Values are fine as al[k] being False means it never checks for the channel.
             # Or at least, it should never.
             # Because if it does, it will crash. Good test, huh.
 
@@ -30,7 +30,7 @@ class TestLocalLoggerConfig(LocalLoggerConfig):
     def __init__(self):
         al = {}
         for k in get_args(local_loggable):
-            al[k] = False
+            al[k] = True
 
         super().__init__(
             actively_logging=al,
