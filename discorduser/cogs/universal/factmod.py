@@ -138,9 +138,9 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         if not current:
             current = 0
         facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
-        lower, upper = selection_window(len(facts), current, 4, favour='higher')
+        lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice(name=f'{offset}: {fact[:80]}', value=offset)
+            Choice(name=f'{offset}: {fact.text[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
@@ -247,9 +247,9 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
         if not current:
             current = 0
-        lower, upper = selection_window(len(facts), current, 4, favour='higher')
+        lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice(name=f'{offset}: {fact[:80]}', value=offset)
+            Choice(name=f'{offset}: {fact.text[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 

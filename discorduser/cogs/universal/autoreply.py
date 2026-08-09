@@ -262,12 +262,14 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
         alias = interaction.namespace.alias
         if not alias:
             return [Choice(name='Bad alias.', value=-1)]
-        # Try and find the current alias.
-        if not self.repl.alias_exists(alias):
+
+        try:
+            triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
+        except IndexError:
             return [Choice(name='Bad alias.', value=-1)]
-        triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
+
         # Time to compress this stuff.
-        lower, upper = selection_window(len(triggers), current, 4, favour='higher')
+        lower, upper = selection_window(len(triggers), current, 5, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
             Choice(name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
@@ -408,12 +410,13 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
         alias = interaction.namespace.alias
         if not alias:
             return [Choice(name='Bad alias.', value=-1)]
-        # Try and find the current alias.
-        if not self.repl.alias_exists(alias):
+
+        try:
+            replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
+        except IndexError:
             return [Choice(name='Bad alias.', value=-1)]
-        replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
         # Time to compress this stuff.
-        lower, upper = selection_window(len(replies), current, 4, favour='higher')
+        lower, upper = selection_window(len(replies), current, 5, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
             Choice(name=f'{offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)

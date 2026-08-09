@@ -349,7 +349,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             current = 0
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice(name=f'{offset}: {fact[:80]}', value=offset)
+            Choice(name=f'{offset}: {fact.text[:80]}', value=offset)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
