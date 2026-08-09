@@ -37,7 +37,7 @@ class LetterAutoreplyCog(commands.Cog):
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'letter'):
             return
 
-        letter: str = _letterdict[message.content]
+        letter: str = _letterdict[message.content.lower()]
         if message.content.isupper():
             letter = letter.upper()
 
