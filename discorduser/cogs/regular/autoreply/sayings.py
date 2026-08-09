@@ -23,7 +23,7 @@ class RandomAutoreplyCog(commands.Cog):
         if message.author.bot:
             return
 
-        if _r.randint(1, CFG.SAYING_PROBABILIY) != 1:
+        if _r.randint(1, CFG.SAYING_PROBABILITY) != 1:
             return
 
         if self.pref.is_paused_channel(message.guild.id, message.channel.id):

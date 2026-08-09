@@ -70,7 +70,7 @@ class _GlobalConfig(AbstractJSONConfig):
         self.CHANNEL_PAUSE_DURATION: int = channel_pause_duration
 
         self.FACT_COOLDOWN: float = fact_cd
-        self.SAYING_PROBABILIY: int = saying_probability
+        self.SAYING_PROBABILITY: int = saying_probability
 
         # Git synced permanent.
         self.DEBUGGER_OUTPUT_WIKI_URL = _DEBUGGER_OUTPUT_WIKI_URL
@@ -95,7 +95,7 @@ class _GlobalConfig(AbstractJSONConfig):
             'CHANNEL_PAUSE_DURATION': self.CHANNEL_PAUSE_DURATION,
 
             'FACT_COOLDOWN': self.FACT_COOLDOWN,
-            'SAYING_PROBABILIY': self.SAYING_PROBABILIY,
+            'SAYING_PROBABILITY': self.SAYING_PROBABILITY,
         }
 
     @staticmethod
@@ -116,7 +116,7 @@ class _GlobalConfig(AbstractJSONConfig):
             'CHANNEL_PAUSE_DURATION': 60,
 
             'FACT_COOLDOWN': 1.0,
-            'SAYING_PROBABILIY': 300,  # 1 / probability listed here, per message.
+            'SAYING_PROBABILITY': 300,  # 1 / probability listed here, per message.
         }
         write_json(path, defaults, sort_keys=False, indent=4)
 
@@ -135,10 +135,10 @@ class _GlobalConfig(AbstractJSONConfig):
         ADD_CD = cfg['ADD_COOLDOWN_SECONDS']
         CHANNEL_PAUSE_DURATION = cfg['CHANNEL_PAUSE_DURATION']
         FACT_COOLDOWN = cfg['FACT_COOLDOWN']
-        SAYING_PROBABILIY = cfg['SAYING_PROBABILIY']
+        SAYING_PROBABILITY = cfg['SAYING_PROBABILITY']
 
         return _GlobalConfig(path, GAD_SID, REPL_W_UP, FACT_COUNT_MAX, FACT_CHAR_LIMIT, PREVIEW_CD, DELETE_CD, EDIT_CD,
-                             ADD_CD, CHANNEL_PAUSE_DURATION, FACT_COOLDOWN, SAYING_PROBABILIY)
+                             ADD_CD, CHANNEL_PAUSE_DURATION, FACT_COOLDOWN, SAYING_PROBABILITY)
 
 
 import os as _os
