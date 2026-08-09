@@ -33,9 +33,13 @@ class TestFactDatabase(GlobalAdminFactInterface):
         pass
 
     def edit_fact(self, guild_id: int, index: int, new_fact: str, editor_id: int) -> SimpleFactEditorData:
+        if index < 1:
+            raise IndexError()
         return SimpleFactEditorData(f'Edited local fact at index {index}', guild_id, 0)
 
     def delete_fact(self, guild_id: int, index: int) -> SimpleFactEditorData:
+        if index < 1:
+            raise IndexError()
         return SimpleFactEditorData(f'Deleted local fact at index {index}', guild_id, 0)
 
     def get_local_facts(self, guild_id: int) -> list[SimpleFactEditorData]:
