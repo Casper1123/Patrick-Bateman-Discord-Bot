@@ -132,24 +132,6 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             title=f'{'Global' if not local else 'Total'} fact data',
             description='JSON data attached' if json else f'See attached file{'s' if len(files) > 0 else ''} for fact data.'
         ))
-
-    # region autocomplete
-    async def _gfact_index_autocomplete_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
-        if not current:
-            current = 0
-        facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
-        lower, upper = selection_window(len(facts), current, 11, favour='higher')
-        return [
-            Choice(name=f'{offset}: {fact.text[:80]}', value=offset)
-            for offset, fact in enumerate(facts[lower:upper])
-        ]
-
-    @edit.autocomplete('index')
-    @delete.autocomplete('index')
-    async def _gfact_index_autocomplete_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
-        return await self.autocomplete_guard(_, current, self._gfact_index_autocomplete_impl, 'index')
-
-    # endregion
     # endregion
 
     # region factmod
@@ -237,6 +219,21 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         ))
 
     # region autocomplete
+    async def _gfact_index_autocomplete_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
+        if not current:
+            current = 0
+        facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
+        lower, upper = selection_window(len(facts), current, 11, favour='higher')
+        return [
+            Choice(name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
+            for offset, fact in enumerate(facts[lower:upper])
+        ]
+
+    @edit.autocomplete('index')
+    @delete.autocomplete('index')
+    async def _gfact_index_autocomplete_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
+        return await self.autocomplete_guard(_, current, self._gfact_index_autocomplete_impl, 'index')
+
     async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         guild_id: int = interaction.namespace.guild_id
         if not guild_id:
@@ -249,7 +246,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             current = 0
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice(name=f'{offset}: {fact.text[:80]}', value=offset)
+            Choice(name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 

@@ -103,7 +103,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         sayings: list[SimpleSayingEditorData] = self.saying.get_sayings()
         lower, upper = selection_window(len(sayings), current, 4, favour='higher')
         return [
-            Choice(name=f'{offset}: {saying.text[:80]}', value=offset)
+            Choice(name=f'{offset + 1}: {saying.text[:80]}', value=offset + 1)
             for offset, saying in enumerate(sayings[lower:upper])
         ]
 
