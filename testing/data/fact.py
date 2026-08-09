@@ -17,14 +17,14 @@ class TestFactDatabase(GlobalAdminFactInterface):
 
     def get_global_facts(self) -> list[SimpleFactEditorData]:
         return [
-            SimpleFactEditorData(f'Global fact at index {i}', None, 0) for i in range(10)
+            SimpleFactEditorData(f'Global fact at index {i + 1}', None, 0) for i in range(10)
         ]
 
     def get_all_local_facts(self) -> dict[int, list[SimpleFactEditorData]]:
         return {
             g:
                 [
-                    SimpleFactEditorData(f'Local fact at index {i}', g, 0) for i in range(10)
+                    SimpleFactEditorData(f'Local fact at index {i + 1}', g, 0) for i in range(10)
                 ]
             for g in range(5)
         }
@@ -40,11 +40,11 @@ class TestFactDatabase(GlobalAdminFactInterface):
     def delete_fact(self, guild_id: int, index: int) -> SimpleFactEditorData:
         if index < 1:
             raise IndexError()
-        return SimpleFactEditorData(f'Deleted local fact at index {index}', guild_id, 0)
+        return SimpleFactEditorData(f'Deleted local fact at index {index + 1}', guild_id, 0)
 
     def get_local_facts(self, guild_id: int) -> list[SimpleFactEditorData]:
         return [
-            SimpleFactEditorData(f'Local fact at index {i}', guild_id, 0) for i in range(10)
+            SimpleFactEditorData(f'Local fact at index {i + 1}', guild_id, 0) for i in range(10)
         ]
 
     def get_fact(self, guild_id: int | None, index: int | None) -> str:
