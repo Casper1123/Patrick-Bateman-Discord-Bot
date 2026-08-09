@@ -131,7 +131,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         await self.local_logger.fact_edit(interaction, interaction.guild, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                         title='Success', desc=f'Fact edited successfully.'
-                                                              f'\n# Old:\n{old.text}\n\n# New:\n{text}')
+                                                              f'\n**Old:**\n{old.text}\n\n**New:**\n{text}')
 
     @app_commands.command(name='delete', description='Delete a local fact.')
     @app_commands.describe(index='The index of the fact you\'re deleting.',
@@ -151,7 +151,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         await self.local_logger.fact_remove(interaction, interaction.guild, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc=f'Fact deleted successfully.\n'
-                                             f'# Old:\n{old.text}')
+                                             f'**Old:**\n{old.text}')
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on P.I.S.S.!)')
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
