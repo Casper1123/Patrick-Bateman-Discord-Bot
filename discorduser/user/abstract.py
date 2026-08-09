@@ -59,7 +59,6 @@ class BotClient(commands.Bot):
                     params='[]'
                 )
             )
-            await super().on_error(event, *args, **kwargs) # Maintain original functionality
 
         self.on_error = on_error
 
