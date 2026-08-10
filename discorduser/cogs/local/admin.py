@@ -9,7 +9,7 @@ from configuration.global_config import CFG
 from data.interfaces.fact import LocalAdminFactInterface, SimpleFactEditorData
 from data.interfaces.moderation import LocalAdminModerationInterface
 from data.interfaces.other import LocalAdminDataInterface
-from data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface
+from data.interfaces.pref import GuildChannelPreferenceData, PreferencesInterface, supported_autoreply_features
 from discorduser.logger import GlobalLogger
 from discorduser.logger.local import LocalLogger
 from discorduser.user.abstract import BotClient
@@ -278,24 +278,32 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                                                  f'**Saying:** {'Off' if not pref.saying else 'On'}\n')
             return
 
-        feat: set[_supp_autr_features] = set()  # noqa because empty set
+        # noinspection PyTypeChecker
+        feat: set[supported_autoreply_features] = set()
         if numbers:
             feat.add('number')
-            desc += f'**Number:** {not pref.number}\n'
+            pref.number = not pref.number
+            desc += f'**Number:** {pref.number}\n'
         if letters:
             feat.add('letter')
-            desc += f'**Letter:** {not pref.letter}\n'
+            pref.letter = not pref.letter
+            desc += f'**Letter:** {pref.letter}\n'
         if text:
             feat.add('text')
-            desc += f'**Text:** {not pref.text}\n'
+            pref.text = not pref.text
+            desc += f'**Text:** {pref.text}\n'
         if saying:
             feat.add('saying')
-            desc += f'**Saying:** {not pref.saying}\n'
+            pref.saying = not pref.saying
+            desc += f'**Saying:** {pref.saying}\n'
 
         if not feat.__sizeof__() > 0:
             raise RuntimeError('Set of selected features is 0 even though some feature was selected.')
 
+        # todo: return updated data and then use that to save a DB call.
         self.pref.toggle_autoreply_feature(guild_id, channel_id, feat)
+
+        await self.local_logger.set_channel_preferences(interaction, interaction.channel if here else None, pref)
 
         desc = desc.removesuffix('\n')
         await self.client.user_feedback(interaction,

@@ -37,6 +37,7 @@ class CustomDiscordException(Exception):
 
     def as_embed(self) -> Embed:
         cause = ''
+        # todo: remake. Keep in mind it's user-feedback only.
         if self.cause:
             cause = (f'\n\n**Caused by:** {type(self.cause).__name__}\n'
                      f'{self.cause}')
@@ -51,11 +52,8 @@ class CustomDiscordException(Exception):
         )
         return embed
 
-    def __str__(self) -> str:
-        return f'{self.error_type}: {self.message}{f"\n**Caused by:**\n{self.cause}" if self.cause else ''}'.replace(
-            '*', '')
 
-
+# todo: make Literal TypeAlias?
 class UseRestriction(Enum):
     NONE = 0,
     GUILD = 1,
@@ -66,16 +64,17 @@ class UseRestriction(Enum):
 
 
 reasons: dict[UseRestriction, str] = {
-    UseRestriction.NONE: 'An unlisted external reason has prevented you from performing this action. Seeing this usually means you\'re an outlier or something went wrong on our side.',
+    UseRestriction.NONE: 'An unlisted internal reason has prevented you from performing this action. Seeing this usually means you\'re an outlier or something went wrong on our side.',
     UseRestriction.GUILD: 'This guild has been restricted from using this feature.',
     UseRestriction.USER: 'You cannot use this feature.',
 
-    UseRestriction.FACT_LIMIT: 'This guild has hit the maximum number of Facts. Remove some to make space.',
-    UseRestriction.CHAR_LIMIT: 'Your input was too long.'
+    UseRestriction.FACT_LIMIT: f'This guild has hit the maximum number of Facts. Remove some to make space, as you may only have {CFG.FACT_COUNT_MAXIMUM}.',
+    UseRestriction.CHAR_LIMIT: f'Your input was too long. It was longer than {CFG.FACT_CHAR_LIMIT} characters.',
 }
 
 
 class RestrictedUseException(CustomDiscordException):
+    # todo: remake
     def __init__(self, restriction: UseRestriction):
         super().__init__(message=f'Your action has been interrupted; ' + reasons[restriction],
                          tooltip=ErrorTooltip.NONE)  # todo: write on the wiki what's going on when you see this

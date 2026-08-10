@@ -4,6 +4,7 @@ from discord import Interaction, TextChannel, Guild, Embed, Colour
 from configuration.logger.local import LocalLoggerConfig, loggable
 from data.interfaces.fact import SimpleFactEditorData
 from data.interfaces.other import LocalAdminDataInterface
+from data.interfaces.pref import GuildChannelPreferenceData, supported_autoreply_features
 
 
 class LocalLogger:
@@ -91,3 +92,7 @@ class LocalLogger:
         )
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='set_log_channel')
+
+    async def set_channel_preferences(self, interaction: Interaction, channel: TextChannel | None, new: GuildChannelPreferenceData) -> None:
+        # todo: implement!
+        pass

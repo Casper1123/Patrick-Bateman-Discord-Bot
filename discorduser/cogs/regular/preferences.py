@@ -44,6 +44,7 @@ class UserPreferenceCog(commands.Cog):
         if not feat.__sizeof__() > 0:
             raise RuntimeError('Set of selected features is 0 even though some feature was selected.')
 
+        # todo: return updated data and then use that to save a DB call.
         self.pref.toggle_user_autoreply_feature(interaction.user.id, feat)
 
         desc = desc.removesuffix('\n')
