@@ -157,11 +157,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, CFG.PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
-        if ephemeral:
-            await interaction.response.send_message(  # noqa
-                ephemeral=ephemeral,
-                embed=discord.Embed(description='Performing PISS test.')
-            )
+        await interaction.response.defer(ephemeral=ephemeral, thinking=True) # noqa
+        await interaction.edit_original_response(
+            embed=discord.Embed(description='Performing PISS test.')
+        )
         exception: CustomDiscordException | None = None
         description: str = 'If you see this, something went so wrong it executed neither the test nor the exception handler.'
         try:
