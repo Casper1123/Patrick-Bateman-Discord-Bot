@@ -333,9 +333,9 @@ class GlobalLogger:
         embed: Embed = Embed(
             title='[ALIAS_EDIT]',
             description=f'**Old:**\n'
-                        f'\t{old_name}\n'
+                        f'\t{old_name}\n' # todo: fix this information properly.
                         f'\n'
-                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
         )
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
@@ -367,7 +367,7 @@ class GlobalLogger:
             title='[TRIGGER_CREATE]',
             description=f'**Alias:** {alias}\n'
                         f'**New:**\n'
-                        f'\tType: {trigger_type}'
+                        f'\tType: {trigger_type}\n'
                         f'\tData: {data}\n'
                         f'\tRate: {rate}\n'
                         f'\n'

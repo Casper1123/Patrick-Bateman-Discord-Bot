@@ -1,9 +1,10 @@
 import re
 
-from discord import Interaction
+from discord import Interaction, TextChannel
 from discord.app_commands import Transformer, Choice
 
 _NROF_AUTOCOMPLETES: int = 10 # Max 25, gives up TO this number.
+_SUPP_CHANNELS: list[type] = [TextChannel]
 
 _CHANNEL_MENTION_RE = re.compile(r"^<#(?P<id>\d{18,20})>$")
 _CHANNEL_ID_RE = re.compile(r"^(?P<id>\d{18,20})$")
@@ -34,7 +35,7 @@ class ChannelIDTransformer(Transformer):
         channels = [
             channel
             for channel in interaction.guild.channels
-            if value in channel.name.lower()
+            if value in channel.name.lower() and type(channel) in _SUPP_CHANNELS
         ]
 
         return [

@@ -309,6 +309,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            channel='Channel ID to log in. Leave empty to remove.')
+    # todo: support for local logging!
     async def set_log_channel(self, interaction: Interaction,
                               channel: Transform[int, ChannelIDTransformer] | None = None,
                               ephemeral: bool = True) -> None:

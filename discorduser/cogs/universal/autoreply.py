@@ -108,6 +108,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
             out: list[dict] = []
             for a in aliases:
                 val = a.as_json()
+                out.append(val)
                 if include_components:
                     val['triggers'] = [t.as_json() for t in self.repl.get_triggers_for_alias(a.name)]
                     val['replies'] = [r.as_json() for r in self.repl.get_replies_by_alias(a.name)]
@@ -140,9 +141,15 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                     fp=text_stream, # noqa
                     filename=f"alias_data{'' if not include_components else '_complete'}.txt"
                 )
-        await interaction.response.send_message(file=file, ephemeral=ephemeral, embed=Embed(title='Alias Data',  # noqa
-                                                                                            description=f'See attached file for{' ' if not include_components else 'complete '}Alias data.',
-                                                                                            colour=Colour.blue()))
+        await interaction.response.send_message(
+            file=file,
+            ephemeral=ephemeral,
+            embed=Embed(
+                title='Alias Data',  # noqa
+                description=f'See attached file for{' ' if not include_components else 'complete '}Alias data.',
+                colour=Colour.blue()
+            )
+        )
 
     # endregion
 
