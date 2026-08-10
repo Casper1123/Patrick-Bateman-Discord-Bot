@@ -1,3 +1,7 @@
+# PISS
+Procedural Instruction Sequence String
+It's a string that gets procedurally processed into a sequence of instructions. Henceforth PISS.
+
 # Variables Parser
 Contains files on the uuuh.. variables parser.<BR>
 The old version used an in-string replacer. This time, the goal is to make a minor sandboxed environment for more options (like allowing sending multiple messages).
