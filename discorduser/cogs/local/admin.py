@@ -230,7 +230,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
                 await interaction.response.send_message(  # noqa
                     embed=discord.Embed(title='Local fact data', description='JSON data attached.'),
-                    ephemeral=True,
+                    ephemeral=ephemeral,
                     file=file)
                 return
 
