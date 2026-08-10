@@ -447,6 +447,8 @@ class Instruction:
             raise InstructionParseError(subsection, f'Instruction not recognized, or Memory Fetch target unavailable.')
         # endregion
 
+        # todo: if scope is not closed properly, close compilation. '{{} bad compile'.. well.. compiles.
+
         return instructions
 
 
