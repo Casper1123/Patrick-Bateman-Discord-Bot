@@ -1,6 +1,6 @@
 from enum import Enum
 
-from discord import Embed, Colour, VoiceChannel, StageChannel, ForumChannel, TextChannel, CategoryChannel, DMChannel, \
+from discord import Embed, Colour, ForumChannel, CategoryChannel, DMChannel, \
     GroupChannel, PartialMessageable
 
 from configuration.global_config import CFG

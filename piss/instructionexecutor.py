@@ -4,8 +4,8 @@ import random as _r
 from typing import Any
 
 import discord
-from discord import AllowedMentions, Message, Interaction, Member, VoiceChannel, StageChannel, Thread, DMChannel, \
-    PartialMessageable, GroupChannel, TextChannel
+from discord import AllowedMentions, Message, Interaction, Member, VoiceChannel, StageChannel, Thread, TextChannel, \
+    Guild
 from discord.abc import Messageable
 
 from discorduser.user.abstract import BotClient
@@ -30,7 +30,7 @@ class InstructionExecutor:
 
     def __init__(self, client: BotClient):
         self.client = client
-        self.shuffled_memberlist: list[Member] | None = None
+        self.shuffled_memberlist: list[Member] = []
         self.fresh: bool = True
         self.guild_id = None
 
@@ -242,13 +242,16 @@ class InstructionExecutor:
         return {key: mem[key] if key in memkeys else None for key in keys}
 
     def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> str:
-        if self.guild_id and self.guild_id != interaction.guild.id:
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
+
+        if self.guild_id and self.guild_id != guild.id:
             raise PermissionError(
                 f'Cannot run RANDOMUSER Instruction, as Executor instance holds data from a different guild.\n'
                 f'To prevent data leakage, aborting execution.')
         if not self.guild_id or not self.shuffled_memberlist:
-            self.guild_id = interaction.guild.id
-            self.shuffled_memberlist = [i for i in interaction.guild.members]
+            self.guild_id = guild.id
+            self.shuffled_memberlist = [i for i in guild.members if i is not None]
             _r.shuffle(self.shuffled_memberlist)
         index = num % len(self.shuffled_memberlist)
         member = self.shuffled_memberlist[index]
