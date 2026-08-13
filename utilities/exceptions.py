@@ -22,10 +22,6 @@ _tooltips: dict[ErrorTooltip, str] = {
 
 
 class CustomDiscordException(Exception):
-    """
-    Template exception which includes simple visualisation for user-feedback.
-    """
-
     def __init__(self, message: str | None = None, cause: BaseException | None = None, error_type: str | None = None,
                  tooltip: ErrorTooltip = ErrorTooltip.ISSUE) -> None:
         self.error_type: str = error_type if error_type else type(
@@ -37,17 +33,24 @@ class CustomDiscordException(Exception):
         super().__init__(self.message)
 
     def as_embed(self) -> Embed:
+        """
+        Returns an embed for user-feedback purposes.
+        """
         cause = ''
         # todo: remake. Keep in mind it's user-feedback only.
         if self.cause:
-            cause = (f'\n\n**Caused by:** {type(self.cause).__name__}\n'
+            cause = (f'\n'
+                     f'\n'
+                     f'**Caused by:** {type(self.cause).__name__}\n'
                      f'{self.cause}')
 
         embed = Embed(
             title=self.error_type,
             description=f"**An error has occurred.**\n"
                         f"{_tooltips[self.tooltip]}"
-                        f"{f'\n**Error:**\n{self.message}' if self.message else ''}"
+                        f"{f'\n'
+                           f'**Error:**\n'
+                           f'{self.message}' if self.message else ''}"
                         f"{cause}",
             colour=Colour.red()
         )
@@ -75,7 +78,6 @@ reasons: dict[UseRestriction, str] = {
 
 
 class RestrictedUseException(CustomDiscordException):
-    # todo: remake
     def __init__(self, restriction: UseRestriction):
         super().__init__(message=f'Your action has been interrupted; ' + reasons[restriction],
                          tooltip=ErrorTooltip.NONE)  # todo: write on the wiki what's going on when you see this
@@ -87,9 +89,9 @@ class RestrictedUseException(CustomDiscordException):
 
 class IncompatibleTargetChannel(CustomDiscordException):
     def __init__(self, target_channel: ForumChannel | CategoryChannel | DMChannel | GroupChannel | PartialMessageable |None, target: str):
-        super().__init__(message=f'Channel id {target_channel.id if target_channel is not None else 'NONE'} with type {type(target_channel)} is not {target}.')
+        super().__init__(message=f'Channel id {target_channel.id if target_channel is not None else 'NONE'} with type {type(target_channel)} is not {target}.',
+                         tooltip=ErrorTooltip.ISSUE) # Should only be raised in weird edge cases.
 
     def as_embed(self) -> Embed:
         embed = super().as_embed()
-        embed.title = 'Incompatible target channel'
         return embed
