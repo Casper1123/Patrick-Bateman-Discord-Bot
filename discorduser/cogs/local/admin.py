@@ -2,7 +2,8 @@ import io as _io
 import json as _json
 
 import discord
-from discord import app_commands, Interaction
+from discord import app_commands, Interaction, Guild
+from discord.abc import Messageable
 from discord.app_commands import Choice, Transform
 
 from configuration.global_config import CFG
@@ -18,7 +19,8 @@ from discorduser.user.transformers.channel import ChannelIDTransformer
 from piss import parse_variables, Instruction
 from piss.instructionexecutor import DebugInstructionExecutor
 from piss.testing import test_raw_input as input_test
-from utilities.exceptions import CustomDiscordException, ErrorTooltip, UseRestriction, RestrictedUseException
+from utilities.exceptions import CustomDiscordException, ErrorTooltip, UseRestriction, RestrictedUseException, \
+    IncompatibleTargetChannel
 from utilities.selection_window import selection_window
 
 
@@ -89,18 +91,22 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, CFG.ADD_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
         if not await self.kill_switch_check(interaction):
             return
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
 
-        self.user_authorize_check(interaction.guild.id, interaction.user.id)
-        self.fact_limit_check(interaction.guild.id, text)
+        self.user_authorize_check(guild.id, interaction.user.id)
+        self.fact_limit_check(guild.id, text)
 
         if not await input_test(self.client, interaction, text, ephemeral):
             return
-        self.fact.create_fact(interaction.guild.id, interaction.user.id, text)
-        await self.logger.local_fact_create(interaction.guild, interaction, text)
+        self.fact.create_fact(guild.id, interaction.user.id, text)
+
+        await self.logger.local_fact_create(guild, interaction, text)
         await self.local_logger.fact_create(interaction, text)
         await self.client.user_feedback(interaction, title='Success', desc=f'Fact created successfully.',
                                         ephemeral=ephemeral)
@@ -113,22 +119,25 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = True) -> None:
         if not await self.kill_switch_check(interaction):
             return
-
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
-        self.user_authorize_check(interaction.guild.id, interaction.user.id)
-        self.fact_limit_check(interaction.guild.id, text, edit=True)
+
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
+        self.user_authorize_check(guild.id, interaction.user.id)
+        self.fact_limit_check(guild.id, text, edit=True)
 
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         try:
-            old: SimpleFactEditorData = self.fact.edit_fact(interaction.guild_id, index, text, interaction.user.id)
+            old: SimpleFactEditorData = self.fact.edit_fact(guild.id, index, text, interaction.user.id)
         except IndexError:
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
 
-        await self.logger.local_fact_edit(interaction.guild, interaction, old, text)
-        await self.local_logger.fact_edit(interaction, interaction.guild, old, text)
+        await self.logger.local_fact_edit(guild, interaction, old, text)
+        await self.local_logger.fact_edit(interaction, guild, old, text)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                         title='Success', desc=f'Fact edited successfully.\n\n'
                                                               f'**Old:**\n{old.text}\n\n**New:**\n{text}')
@@ -141,13 +150,16 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not await self.kill_switch_check(interaction):
             return
 
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
         try:
-            old: SimpleFactEditorData = self.fact.delete_fact(interaction.guild_id, index)
+            old: SimpleFactEditorData = self.fact.delete_fact(guild.id, index)
         except IndexError:
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
 
-        await self.logger.local_fact_remove(guild=interaction.guild, interaction=interaction, old=old)
+        await self.logger.local_fact_remove(guild=guild, interaction=interaction, old=old)
         await self.local_logger.fact_remove(interaction, interaction.guild, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc=f'Fact deleted successfully.\n\n'
@@ -214,7 +226,11 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if interaction.user.bot:
             raise RestrictedUseException(UseRestriction.USER)
 
-        local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(interaction.guild.id)
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
+
+        local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild.id)
         if not local_facts:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Local Facts',
                                             desc='There are no local facts. Go add some!')
@@ -223,9 +239,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if json:
             out: list[dict] = [v.as_json() for v in local_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
+                # noinspection bad-argument-type
                 file = discord.File(
                     fp=text_stream,
-                    filename=f"local_fact_data_{interaction.guild.id}.json"
+                    filename=f"local_fact_data_{guild.id}.json"
                 )
 
                 await interaction.response.send_message(
@@ -236,7 +253,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
         out: list[str] = []
         for i, fact in enumerate(local_facts):
-            author = interaction.guild.get_member(fact.author_id)
+            author = guild.get_member(fact.author_id)
             if author:
                 author = f'{author.name} ({author.id})'
             else:
@@ -244,9 +261,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             out.append(f'{i + 1} {author}: {fact.text}')
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
+            # noinspection bad-argument-type
             file = discord.File(
                 fp=text_stream,
-                filename=f"local_fact_data_{interaction.guild.id}.txt"
+                filename=f"local_fact_data_{guild.id}.txt"
             )
             await interaction.response.send_message(
                 ephemeral=ephemeral,
@@ -266,7 +284,18 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                                       letters: bool = False, text: bool = False, saying: bool = False,
                                       ephemeral: bool = True) -> None:
         await interaction.response.defer(ephemeral=ephemeral, thinking=True)
+
+        if not here:
+            channel = None
+        elif not isinstance(interaction.channel, Messageable):
+            raise IncompatibleTargetChannel(interaction.channel, Messageable.__name__)
+        else:
+            channel = interaction.channel
+
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
         guild_id: int = interaction.guild_id
+
         channel_id: int | None = interaction.channel_id if here else None
         pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)
         desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
@@ -278,7 +307,6 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                                                  f'**Saying:** {'Off' if not pref.saying else 'On'}\n')
             return
 
-        # noinspection PyTypeChecker
         feat: set[supported_autoreply_features] = set()
         if numbers:
             feat.add('number')
@@ -302,14 +330,14 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
         # todo: return updated data and then use that to save a DB call.
         self.pref.toggle_autoreply_feature(guild_id, channel_id, feat)
-
-        await self.local_logger.set_channel_preferences(interaction, interaction.channel if here else None, pref)
+        await self.local_logger.set_channel_preferences(interaction, channel, pref)
 
         desc = desc.removesuffix('\n')
-        await self.client.user_feedback(interaction,
-                                        title='Guild autoreply preferences updated',
-                                        desc=desc,
-                                        )
+        await self.client.user_feedback(
+            interaction,
+            title='Guild autoreply preferences updated',
+            desc=desc,
+        )
 
     # endregion
 
@@ -321,18 +349,24 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     async def set_log_channel(self, interaction: Interaction,
                               channel: Transform[int, ChannelIDTransformer] | None = None,
                               ephemeral: bool = True) -> None:
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
+
         if not channel:
-            self.db.set_log_output(interaction.guild.id, None)
+            self.db.set_log_output(guild.id, None)
             await self.client.user_feedback(interaction, ephemeral=ephemeral, desc='Logging output removed')
             return
 
-        log_channel = interaction.guild.get_channel(channel)
+        log_channel = guild.get_channel(channel)
         if not log_channel:
             await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                             desc=f'Input channel ID **{channel}** is invalid or not found.')
+        if not isinstance(log_channel, Messageable):
+            raise IncompatibleTargetChannel(log_channel, Messageable.__name__)
 
-        self.db.set_log_output(interaction.guild.id, log_channel.id)
-        await self.logger.local_set_log_channel(interaction.guild, interaction, log_channel)
+        self.db.set_log_output(guild.id, log_channel.id)
+        await self.logger.local_set_log_channel(guild, interaction, log_channel)
         await self.local_logger.set_log_channel(interaction, log_channel)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                         desc=f'Log output channel set to <#{log_channel.id}>')

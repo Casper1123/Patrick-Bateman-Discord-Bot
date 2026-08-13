@@ -1,6 +1,7 @@
 from enum import Enum
 
-from discord import Embed, Colour, VoiceChannel, StageChannel, ForumChannel, TextChannel, CategoryChannel
+from discord import Embed, Colour, VoiceChannel, StageChannel, ForumChannel, TextChannel, CategoryChannel, DMChannel, \
+    GroupChannel
 
 from configuration.global_config import CFG
 
@@ -82,4 +83,13 @@ class RestrictedUseException(CustomDiscordException):
     def as_embed(self) -> Embed:
         embed = super().as_embed()
         embed.title = 'Access denied'
+        return embed
+
+class IncompatibleTargetChannel(CustomDiscordException):
+    def __init__(self, target_channel: ForumChannel | CategoryChannel | DMChannel | GroupChannel | None, target: str):
+        super().__init__(message=f'Channel id {target_channel.id if target_channel is not None else 'NONE'} with type {type(target_channel)} is not {target}.')
+
+    def as_embed(self) -> Embed:
+        embed = super().as_embed()
+        embed.title = 'Incompatible target channel'
         return embed

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import get_args
 
-from discord import Interaction, Embed, Guild, TextChannel, User, Colour, VoiceChannel
+from discord import Interaction, Embed, Guild, TextChannel, User, Colour, VoiceChannel, StageChannel, Thread
 from discord.abc import Messageable
 from discord.ext import commands
 
@@ -24,7 +24,7 @@ class GlobalLogger:
         self.config = config
         self.target_channels: dict[loggable, Messageable | None] = {i: None for i in get_args(loggable)}
 
-    def update_output_channel(self, act: loggable, target: TextChannel):
+    def update_output_channel(self, act: loggable, target: TextChannel | VoiceChannel | StageChannel | Thread):
         self.target_channels[act] = target
         self.config.update_target_channel(act, target.id)
 
@@ -42,26 +42,25 @@ class GlobalLogger:
         if not self.config.actively_logging[act]:
             return
 
-        # Get channel if found, otherwise default to something.
         if self.target_channels[act] is not None:
-            channel = self.target_channels[act]
+            # See if-statement above.
+            # noinspection bad-assignment
+            channel: Messageable = self.target_channels[act]
+
         else:
             try:
                 channel = self.client.get_channel(self.config.target_channels[act])
-                if channel is not None and not isinstance(channel, Messageable):
-                    channel = None
             except KeyError:
                 channel = None
 
-            if not channel:
+            if channel is None or not isinstance(channel, Messageable):
                 await self.client.close()  # This is harsh. But it's easily the most secure way; if cannot log information, crash application.
-                print(
-                    f'Closing application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
+                import sys
+                sys.exit(f'Closing application as logging channel for action type {act} could not be retrieved. Leftover information:\n'
                     f'{embed.title}\n'
                     f'{embed.description}')
-                import sys
-                sys.exit(1)
             else:
+                channel: Messageable
                 # update cache
                 self.target_channels[act] = channel
 
@@ -79,10 +78,7 @@ class GlobalLogger:
 
         # WARNING: IF NOT ENABLED ALL CAUGHT EXCEPTION TYPES WILL FIZZLE
         self._console_log(error_context.as_console(), 'error')
-        try:
-            await self._channel_log(error_context.as_embed(), 'error')
-        except Exception as e:  # noqa
-            raise e
+        await self._channel_log(error_context.as_embed(), 'error')
 
     # region local-action
     # region fact
@@ -158,7 +154,7 @@ class GlobalLogger:
 
     # endregion
     # region other local
-    async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: Messageable) -> None:
+    async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel | VoiceChannel | StageChannel | Thread) -> None:
         self._console_log(
             f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.display_name} : {interaction.user.id}',
             'local_log_channel_modify')
@@ -170,7 +166,14 @@ class GlobalLogger:
                         f'Set by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.blue()
         )
-        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        try:
+            # Handled.
+            # noinspection unresolved-references
+            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        except AttributeError:
+            embed.set_footer(text=guild.name)
+
+        await self._channel_log(embed, 'local_log_channel_modify')
 
     # endregion
     # endregion
@@ -292,7 +295,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed, 'ban_guild')
 
-    async def set_log_channel(self, interaction: Interaction, action: loggable, target: TextChannel):
+    async def set_log_channel(self, interaction: Interaction, action: loggable, target: TextChannel | VoiceChannel | StageChannel | Thread):
         """
         Call BEFORE moving channel!
         """

@@ -363,7 +363,11 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
     @app_commands.command(name='set_log',
                           description='Sets a log channel in global config.')
     async def set_log_channel(self, interaction: Interaction, action: loggable, channel: Transform[int, ChannelIDTransformer], ephemeral: bool = False):
-        channel = interaction.guild.get_channel(channel)
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
+
+        channel = guild.get_channel(channel)
         if not isinstance(channel, Messageable):
             raise CustomDiscordException(
                 f'Channel id {interaction.channel_id} with type {type(interaction.channel)} is not discord.abc.Messageable.')

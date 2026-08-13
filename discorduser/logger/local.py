@@ -1,4 +1,5 @@
-from discord import Interaction, TextChannel, Guild, Embed, Colour
+from discord import Interaction, TextChannel, Guild, Embed, Colour, VoiceChannel, StageChannel, Thread
+from discord.abc import Messageable
 from discord.ext import commands
 
 from configuration.logger.local import LocalLoggerConfig, loggable
@@ -13,14 +14,14 @@ class LocalLogger:
         self.config = config
         self.db = db
 
-    def _get_log_channel(self, guild: Guild) -> TextChannel | None:
+    def _get_log_channel(self, guild: Guild) -> Messageable | None:
         if not guild:
             return None
         res = self.db.get_log_channel(guild.id)
         if res is None:
             return None
         channel = guild.get_channel(res)
-        if channel is None:
+        if not isinstance(channel, Messageable):
             self.db.set_log_output(guild.id,
                                    None)  # Do this to prevent the call of get_channel getting used for no reason.
             return None
@@ -28,9 +29,12 @@ class LocalLogger:
 
     # region log out
     # todo: buffer messages for x seconds and then send one thing with multiple embeds in one go to prevent ratelimiting?
-    async def _channel_log(self, guild: Guild, embed: Embed, act: loggable) -> None:
+    async def _channel_log(self, guild: Guild | None, embed: Embed, act: loggable) -> None:
+        if not guild:
+            return
+
         if self.config.actively_logging[act]:
-            channel: TextChannel = self._get_log_channel(guild)
+            channel: Messageable | None = self._get_log_channel(guild)
             if channel:
                 await channel.send(embed=embed)
 
@@ -46,43 +50,50 @@ class LocalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='fact_create')
 
-    async def fact_edit(self, interaction: Interaction, guild: Guild, old: SimpleFactEditorData, text: str, externally_modified: bool = False) -> None:
+    async def fact_edit(self, interaction: Interaction, guild: Guild | None, old: SimpleFactEditorData, text: str, externally_modified: bool = False) -> None:
         embed: Embed = Embed(
             title='[FACT_EDIT]',
-            description=f'**Old:**\n'
-                        f'{old.text}\n'
-                        f'\n'
-                        f'**New:**\n'
-                        f'{text}',
             colour=Colour.yellow()
         )
 
+        description: str = (f'**Old:**\n'
+                            f'{old.text}\n'
+                            f'\n'
+                            f'**New:**\n'
+                            f'{text}')
+
         if not externally_modified:
-            embed.description += f'\nEdited by: {interaction.user.name} ({interaction.user.id})'
+            description += f'\nEdited by: {interaction.user.name} ({interaction.user.id})'
             embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         else:
-            embed.description += f'\nExternally modified by a Global staff member.'
+            description += f'\nExternally modified by a Global staff member.'
+            # noinspection unresolved-references
             embed.set_author(name=self.client.user.name, icon_url=self.client.user.id)
+
+        embed.description = description
         await self._channel_log(guild, embed=embed, act='fact_edit')
 
-    async def fact_remove(self, interaction: Interaction, guild: Guild, old: SimpleFactEditorData, externally_modified: bool = False) -> None:
+    async def fact_remove(self, interaction: Interaction, guild: Guild | None, old: SimpleFactEditorData, externally_modified: bool = False) -> None:
         embed: Embed = Embed(
             title='[FACT_REMOVE]',
-            description=f'**Old:**\n'
-                        f'{old.text}\n',
             colour=Colour.red()
         )
 
+        description: str = (f'**Old:**\n'
+                            f'{old.text}\n')
+
         if not externally_modified:
-            embed.description += f'\n\nRemoved by: {interaction.user.name} ({interaction.user.id})'
+            description += f'\n\nRemoved by: {interaction.user.name} ({interaction.user.id})'
             embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         else:
-            embed.description += f'\n\nExternally modified by a Global staff member.'
+            description += f'\n\nExternally modified by a Global staff member.'
+            # noinspection unresolved-references
             embed.set_author(name=self.client.user.name, icon_url=self.client.user.id)
 
+        embed.description = description
         await self._channel_log(guild, embed=embed, act='fact_delete')
 
-    async def set_log_channel(self, interaction: Interaction, channel: TextChannel) -> None:
+    async def set_log_channel(self, interaction: Interaction, channel: TextChannel | VoiceChannel | StageChannel | Thread) -> None:
         embed: Embed = Embed(
             title='[LOG_CHANNEL_MOVE]',
             description=f'**New channel:**:\n'
@@ -93,6 +104,6 @@ class LocalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='set_log_channel')
 
-    async def set_channel_preferences(self, interaction: Interaction, channel: TextChannel | None, new: GuildChannelPreferenceData) -> None:
+    async def set_channel_preferences(self, interaction: Interaction, channel: TextChannel | VoiceChannel | StageChannel | Thread | None, new: GuildChannelPreferenceData) -> None:
         # todo: implement!
         pass
