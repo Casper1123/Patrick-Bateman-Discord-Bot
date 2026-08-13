@@ -1,5 +1,6 @@
 # File contains a bunch of universally used datapoints.
 # Leaving this here, implemented this way, until I find a better solution.
+from typing import Any
 
 # Local
     # Url to where information on PISS-debugger output can be found.
@@ -101,7 +102,7 @@ class _GlobalConfig(AbstractJSONConfig):
     @staticmethod
     def build_config(path: str):
         from utilities import write_json
-        defaults: dict[str, ...] = {
+        defaults: dict[str, Any] = {
             'GLOBAL_ADMIN_SERVER_ID': None,  # Mandate manually setting this value.
             'REPLY_WEIGHT_UPPER_BOUND': 1024,
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from configuration.abstract import AbstractJSONConfig
 from utilities import write_json, load_json
 
@@ -19,7 +21,7 @@ class TokenConfig(AbstractJSONConfig):
 
     @staticmethod
     def build_config(filepath: str):
-        defaults: dict[str, ...] = {
+        defaults: dict[str, Any] = {
             'token': None,
         }
         write_json(filepath, defaults, sort_keys=False, indent=4)

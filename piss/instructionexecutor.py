@@ -1,6 +1,7 @@
 import asyncio as _asyncio
 import datetime as _datetime
 import random as _r
+from typing import Any
 
 import discord
 from discord import AllowedMentions, Message, Interaction, Member
@@ -32,7 +33,7 @@ class InstructionExecutor:
         self.guild_id = None
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None,
-                  build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
+                  build: str = None, push_final_build: bool = True, memstack: list[dict[str, Any]] = None) -> str:
         # todo : Repeatedly replies to Message input, only not-replies on first input. Rename 'fresh' to 'first-reply' and then invert logic on sending.
         """
         Execute the given instructions within the context of a message or interaction.
@@ -53,7 +54,7 @@ class InstructionExecutor:
 
         i: int = 0
         build: str = build if build else ''
-        mem: dict[str, ...] = {} if memstack else self.init_memory(interaction)
+        mem: dict[str, Any] = {} if memstack else self.init_memory(interaction)
         memstack = memstack if memstack else []  # outer scope memory. Initialize here for now.
         local_scope = memstack + [mem]
         while i < len(instructions):
@@ -99,7 +100,7 @@ class InstructionExecutor:
         else:
             return build
 
-    def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
+    def init_memory(self, interaction: Interaction | Message) -> dict[str, Any]:
         guild: discord.Guild = interaction.guild
         if not guild:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
@@ -180,7 +181,7 @@ class InstructionExecutor:
             raise CustomDiscordException(message='Initial Instruction Memory failed to build.', cause=e,
                                          error_type='InstructionMemoryError')
 
-    def check_init_memory(self, mem: dict[str, ...]) -> None:  # noqa intentional non-static
+    def check_init_memory(self, mem: dict[str, Any]) -> None:  # noqa intentional static defined as non-static
         """
         Throws an exception if the memory is not safely initialized.
         :param mem: Initial memory.
@@ -211,7 +212,7 @@ class InstructionExecutor:
                                                      f'This is probably an implementation error. Please raise this issue to the developers **if not reported already**.\n'
                                                      f'Aborting execution to preserve memory safety.')
 
-    def mem_fetch(self, memdict: list[dict[str, ...]], keys: list[str]) -> dict[str, ...]:  # noqa intentional
+    def mem_fetch(self, memdict: list[dict[str, Any]], keys: list[str]) -> dict[str, Any]:  # noqa intentional
         """
         Gets the given variables from memory.
         :param memdict: The given variable stack.
@@ -219,7 +220,7 @@ class InstructionExecutor:
         :return: A { key: value } dictionary for each key in keys. None if no value found.
         """
         # merge memdict into a single dict:
-        mem: dict[str, ...] = {}
+        mem: dict[str, Any] = {}
         for frame in reversed(memdict):  # reversed so, if somehow duplicates exist, the top-framed one takes precedence
             for k, v in frame.items():
                 mem[
@@ -239,7 +240,7 @@ class InstructionExecutor:
             _r.shuffle(self.shuffled_memberlist)
         index = num % len(self.shuffled_memberlist)
         member = self.shuffled_memberlist[index]
-        options_dict: dict[UserAttributeOptions, ...] = {
+        options_dict: dict[UserAttributeOptions, Any] = {
             UserAttributeOptions.ID: member.id,
             UserAttributeOptions.NAME: member.display_name,
             UserAttributeOptions.CREATED_AT: member.created_at,
@@ -273,7 +274,7 @@ class InstructionExecutor:
                 await interaction.reply(content=out, allowed_mentions=allowed_mentions)
         elif isinstance(interaction, Interaction):
             if self.fresh:
-                await interaction.response.send_message(content=out, allowed_mentions=allowed_mentions)  # noqa
+                await interaction.response.send_message(content=out, allowed_mentions=allowed_mentions)
             else:
                 await interaction.followup.send(content=out, allowed_mentions=allowed_mentions)
         else:
@@ -283,19 +284,19 @@ class InstructionExecutor:
     async def sleep(self, time: int | float):
         await _asyncio.sleep(time)
 
-    def basic_replace(self, memdict: list[dict[str, ...]], key: str) -> str:
+    def basic_replace(self, memdict: list[dict[str, Any]], key: str) -> str:
         result = self.mem_fetch(memdict, [key])[key]
         if not result:
             raise MemoryError(f'Cannot access memory entry \'{key}\'.')
         return str(result)
 
     async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int,
-                         build: str, memstack: list[dict[str, ...]]) -> str:
+                         build: str, memstack: list[dict[str, Any]]) -> str:
         async with interaction.channel.typing():
             return await self.run(instructions, interaction, depth, build, False, memstack)
 
     async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str,
-                     memstack: list[dict[str, ...]]) -> str:
+                     memstack: list[dict[str, Any]]) -> str:
         chosen: list[Instruction] = _r.choice(options)
         return await self.run(chosen, interaction, depth, build, False, memstack)
 
@@ -314,7 +315,7 @@ class DebugInstructionExecutor(InstructionExecutor):
             self.output += '{' + itype + ';' + (extra if extra else '') + '}'
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None,
-                  build: str = None, push_final_build: bool = True, memstack: list[dict[str, ...]] = None) -> str:
+                  build: str = None, push_final_build: bool = True, memstack: list[dict[str, Any]] = None) -> str:
         # todo: determine if any initialization needs to be done here for memory evaluation.
         # todo: split class here to perform full depth search. Because like, right now you can hide an invalid choice option next to a valid one and it passes the test.
         temp: str = self.output
@@ -336,14 +337,14 @@ class DebugInstructionExecutor(InstructionExecutor):
         return '{BASIC_REPLACE;' + key + '}'
 
     async def is_writing(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int,
-                         build: str, memstack: list[dict[str, ...]]) -> str:
+                         build: str, memstack: list[dict[str, Any]]) -> str:
         self._instruction_log('WRITING', 'START')
         build = await self.run(instructions, interaction, depth, build, False, memstack)
         self._instruction_log('WRITING', 'END')
         return build
 
     async def choice(self, options: list[list[Instruction]], interaction: Interaction | Message, depth: int, build: str,
-                     memstack: list[dict[str, ...]]) -> str:
+                     memstack: list[dict[str, Any]]) -> str:
         index: int = _r.randint(0, len(options) - 1)
         chosen: list[Instruction] = options[index]
         build += '{CHOICE[' + str(index) + '] START; { ' if not self.pure_output else ''  # todo: test properly
@@ -351,7 +352,7 @@ class DebugInstructionExecutor(InstructionExecutor):
         out += ' } CHOICE[' + str(index) + '] END}' if not self.pure_output else ''
         return out
 
-    def init_memory(self, interaction: Interaction | Message) -> dict[str, ...]:
+    def init_memory(self, interaction: Interaction | Message) -> dict[str, Any]:
         now: _datetime.datetime = _datetime.datetime.now()
         out = {
             '\\n': '\n',
@@ -406,7 +407,7 @@ class DebugInstructionExecutor(InstructionExecutor):
         return 0
 
     def random_user(self, num: int, attribute: UserAttributeOptions, interaction: Interaction | Message) -> str:
-        options_dict: dict[UserAttributeOptions, ...] = {
+        options_dict: dict[UserAttributeOptions, Any] = {
             UserAttributeOptions.ID: f'ID',
             UserAttributeOptions.NAME: f'NAME',
             UserAttributeOptions.CREATED_AT: f'CREATED_AT',

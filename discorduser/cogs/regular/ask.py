@@ -1,8 +1,7 @@
 import asyncio
 import random
 
-from discord import app_commands, Interaction, Message, HTTPException, NotFound
-from discord.app_commands import GuildAppCommandPermissions, AppCommand
+from discord import app_commands, Interaction, Message
 from discord.ext import commands
 
 from data.interfaces.saying import SayingInterface
@@ -38,7 +37,7 @@ class AskPatrick(commands.Cog):
             )
             if not command: return
             permissions: GuildAppCommandPermissions = await command.fetch_permissions(message.guild)
-        except (HTTPException, NotFound): # noqa
+        except (HTTPException, NotFound):
             return
 
         # How to decide here?
@@ -56,7 +55,7 @@ class AskPatrick(commands.Cog):
                 return
 
             if isinstance(replyable, Interaction):
-                await replyable.response.send_message(content=content)  # noqa
+                await replyable.response.send_message(content=content)
             else:
                 await replyable.reply(mention_author=False, content=content)
 

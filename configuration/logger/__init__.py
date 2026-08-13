@@ -1,4 +1,4 @@
-from typing import get_args
+from typing import get_args, Any
 
 from utilities import write_json, load_json
 from .local import LocalLoggerConfig, loggable as local_loggable
@@ -12,7 +12,7 @@ def build_config(filepath: str):
     """
     otc: dict[loggable, bool] = {i: True for i in get_args(loggable)}
     al: dict[loggable, bool] = {i: True for i in get_args(loggable)}
-    tc: dict[loggable, int] = {i: None for i in get_args(loggable)}  # noqa intentional
+    tc: dict[loggable, int] = {i: None for i in get_args(loggable)}
     # local
     lal: dict[local_loggable, bool] = {i: True for i in get_args(local_loggable)}
 
@@ -37,7 +37,7 @@ def from_json(filepath: str) -> tuple[GlobalLoggerConfig, LocalLoggerConfig]:
     lal = cfg['local_active_logging']
 
     # Perform integrity test.
-    def integ(name: str, target_type: type, source: dict[str, ...], target: set[str]):
+    def integ(name: str, target_type: type, source: dict[str, Any], target: set[str]):
         temp = target.copy()
         for k, v in source.items():
             if not k in target:

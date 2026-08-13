@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import get_args
 
-from discord import Interaction, Embed, Guild, TextChannel, User, Colour
+from discord import Interaction, Embed, Guild, TextChannel, User, Colour, VoiceChannel
+from discord.abc import Messageable
 from discord.ext import commands
 
 from configuration.logger import loggable, GlobalLoggerConfig
@@ -21,7 +22,7 @@ class GlobalLogger:
         """
         self.client = client
         self.config = config
-        self.target_channels: dict[loggable, TextChannel | None] = {i: None for i in get_args(loggable)}
+        self.target_channels: dict[loggable, Messageable | None] = {i: None for i in get_args(loggable)}
 
     def update_output_channel(self, act: loggable, target: TextChannel):
         self.target_channels[act] = target
@@ -42,11 +43,13 @@ class GlobalLogger:
             return
 
         # Get channel if found, otherwise default to something.
-        if self.target_channels[act]:
+        if self.target_channels[act] is not None:
             channel = self.target_channels[act]
         else:
             try:
                 channel = self.client.get_channel(self.config.target_channels[act])
+                if channel is not None and not isinstance(channel, Messageable):
+                    channel = None
             except KeyError:
                 channel = None
 

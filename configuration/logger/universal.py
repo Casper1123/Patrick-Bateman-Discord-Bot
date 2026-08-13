@@ -1,4 +1,4 @@
-from typing import Literal, get_args, TypeAlias
+from typing import Literal, get_args, TypeAlias, Any
 
 from configuration.abstract import AbstractJSONConfig
 
@@ -56,7 +56,7 @@ class GlobalLoggerConfig(AbstractJSONConfig):
         self.target_channels[act] = target_id
         self.update_config_json()
 
-    def to_json(self) -> dict[str, dict[str, ...]]:
+    def to_json(self) -> dict[str, dict[str, Any]]:
         """
         Returns JSON-parsable version of this class instance.
         """

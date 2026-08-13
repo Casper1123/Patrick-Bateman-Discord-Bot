@@ -176,7 +176,7 @@ class AppCommandErrorContext(LoggableInteractionErrorContext):
         embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
                               f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
                               f'Given parameters: {self.params}')
-        if self.error.cause:  # noqa want flexibility
+        if self.error.cause:
             embed.description += (f'\n\n'
                                   f'Caused by: {type(self.error.cause).__name__}\n'
                                   f'{self.error.cause}')
@@ -210,7 +210,7 @@ class AutocompleteErrorContext(LoggableInteractionErrorContext):
             f'In: *{self._name}* (`{self._filename}:{self._lineno}`)\n'
             f'Target: {self.target} = {self.current}'
             f'Given parameters: {self.params}')
-        if self.error.cause:  # noqa dupe cuz want the flexibility
+        if self.error.cause:
             embed.description += (f'\n\n'
                                   f'Caused by: {type(self.error.cause).__name__}\n'
                                   f'{self.error.cause}')
@@ -231,7 +231,7 @@ class TransformerErrorContext(LoggableInteractionErrorContext):
                               f'At *{self._name}* (`{self._filename}:{self._lineno}`)\n'
                               f'Given value ({self._original_error.type}) {self._original_error.value}\n'
                               f'And params: {self.params}')
-        if self.error.cause:  # noqa want flexibility
+        if self.error.cause:
             embed.description += (f'\n\n'
                                   f'Caused by: {type(self.error.cause).__name__}\n'
                                   f'{self.error.cause}')

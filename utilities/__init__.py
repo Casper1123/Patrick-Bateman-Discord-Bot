@@ -9,4 +9,4 @@ def load_json(filepath: str) -> dict | list:
 def write_json(filepath: str, cj_dict: dict | list[str | float | int], sort_keys: bool = False,
                indent: int | None = None):
     with open(filepath, "w") as cj:
-        _json.dump(cj_dict, cj, sort_keys=sort_keys, indent=indent)  # noqa
+        _json.dump(cj_dict, cj, sort_keys=sort_keys, indent=indent)

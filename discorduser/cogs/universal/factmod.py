@@ -85,7 +85,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         if json:
             out: list[dict] = [v.as_json() for v in global_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json"))  # noqa
+                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json"))
         else:
             out: list[str] = []
             for i, fact in enumerate(global_facts):
@@ -98,14 +98,14 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             out: str = '\n'.join(out)
             with _io.StringIO(out) as text_stream:
                 files.append(
-                    discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt"))  # noqa
+                    discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt"))
 
         if local_facts and json:
             out: dict[int, list[dict[str, str | int]]] = {}
             for k, v in local_facts.items():
                 out[k] = [f.as_json() for f in v]
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json"))  # noqa
+                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json"))
         elif local_facts and not json:
             out: str = ''
             membercache: dict[int, str] = {}
@@ -126,9 +126,9 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 guild_facts += '\n\n\n'  # factnl, nl, #guild, space of 2 between last fact and new guild.
                 out += guild_facts
             with _io.StringIO(out) as text_stream:
-                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt'))  # noqa
+                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt'))
 
-        await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed(  # noqa
+        await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed(
             title=f'{'Global' if not local else 'Total'} fact data',
             description='JSON data attached' if json else f'See attached file{'s' if len(files) > 0 else ''} for fact data.'
         ))
@@ -165,7 +165,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         elif local_log and delete:
             await self.local_logger.fact_remove(interaction, guild, old, externally_modified=True)
 
-        await interaction.response.send_message( # noqa
+        await interaction.response.send_message(
             ephemeral=ephemeral,
             # todo: update to also display guild information
             embed=Embed(title='Success',
@@ -185,7 +185,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                           json: bool = False) -> None:
         local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
-            await interaction.response.send_message( # noqa
+            await interaction.response.send_message(
                 ephemeral=ephemeral,
                 embed=Embed(title='No local facts found.')
             )
@@ -195,7 +195,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 guild_id: [f.as_json() for f in local_facts]}
 
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")  # noqa
+                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")
         else:
             membercache: dict[int, str] = {}
             guild: Guild = self.client.get_guild(guild_id)
@@ -212,8 +212,8 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                     membercache[f.author_id] = member
                 guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
             with _io.StringIO(guild_facts) as text_stream:
-                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt')  # noqa
-        await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(  # noqa
+                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt')
+        await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(
             title=f'Local fact data',
             description='JSON data attached.' if json else f'See attached file for fact data.'
         ))
@@ -286,7 +286,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
             embed.set_author(name=user.name, icon_url=user.avatar.url)
         else:
             embed.set_author(name=f'{user_id}')
-        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)  # noqa
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
 
     @app_commands.command(name='guildban',
                           description='Ban a guild from using Local Fact administrative features. If already banned, unbans it.')
@@ -306,7 +306,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
             embed.set_author(name=guild.name, icon_url=guild.icon.url)
         else:
             embed.set_author(name=f'{guild}')
-        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)  # noqa
+        await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
 
     # region other
     @app_commands.command(name='db_killswitch',

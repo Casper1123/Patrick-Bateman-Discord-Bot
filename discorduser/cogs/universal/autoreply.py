@@ -114,7 +114,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                     val['replies'] = [r.as_json() for r in self.repl.get_replies_by_alias(a.name)]
             with io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(
-                    fp=text_stream, # noqa
+                    fp=text_stream,
                     filename=f"alias_data{'' if not include_components else '_complete'}.json"
                 )
 
@@ -138,14 +138,14 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
             out: str = out.removesuffix('\n')
             with io.StringIO(out) as text_stream:
                 file = discord.File(
-                    fp=text_stream, # noqa
+                    fp=text_stream,
                     filename=f"alias_data{'' if not include_components else '_complete'}.txt"
                 )
         await interaction.response.send_message(
             file=file,
             ephemeral=ephemeral,
             embed=Embed(
-                title='Alias Data',  # noqa
+                title='Alias Data',
                 description=f'See attached file for{' ' if not include_components else 'complete '}Alias data.',
                 colour=Colour.blue()
             )

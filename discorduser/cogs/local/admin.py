@@ -157,7 +157,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     @app_commands.checks.cooldown(1, CFG.PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
     async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
-        await interaction.response.defer(ephemeral=ephemeral, thinking=True) # noqa
+        await interaction.response.defer(ephemeral=ephemeral, thinking=True)
         await interaction.edit_original_response(
             embed=discord.Embed(description='Performing PISS test.')
         )
@@ -203,7 +203,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not other:
             other = 'no body content'
 
-        await interaction.response.send_message(  # noqa
+        await interaction.response.send_message(
             ephemeral=ephemeral,
             embed=discord.Embed(title=title, description=other)
         )
@@ -224,11 +224,11 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             out: list[dict] = [v.as_json() for v in local_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 file = discord.File(
-                    fp=text_stream,  # noqa
+                    fp=text_stream,
                     filename=f"local_fact_data_{interaction.guild.id}.json"
                 )
 
-                await interaction.response.send_message(  # noqa
+                await interaction.response.send_message(
                     embed=discord.Embed(title='Local fact data', description='JSON data attached.'),
                     ephemeral=ephemeral,
                     file=file)
@@ -245,10 +245,10 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         out: str = '\n'.join(out)
         with _io.StringIO(out) as text_stream:
             file = discord.File(
-                fp=text_stream,  # noqa
+                fp=text_stream,
                 filename=f"local_fact_data_{interaction.guild.id}.txt"
             )
-            await interaction.response.send_message(  # noqa
+            await interaction.response.send_message(
                 ephemeral=ephemeral,
                 file=file,
                 embed=discord.Embed(title='Local fact data', description='See attached file for fact data.')
@@ -265,7 +265,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     async def guild_toggle_preference(self, interaction: Interaction, here: bool, numbers: bool = False,
                                       letters: bool = False, text: bool = False, saying: bool = False,
                                       ephemeral: bool = True) -> None:
-        await interaction.response.defer(ephemeral=ephemeral, thinking=True)  # noqa
+        await interaction.response.defer(ephemeral=ephemeral, thinking=True)
         guild_id: int = interaction.guild_id
         channel_id: int | None = interaction.channel_id if here else None
         pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)

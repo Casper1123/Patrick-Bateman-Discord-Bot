@@ -74,7 +74,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             sayings: list[dict] = [i.as_json() for i in sayings]
             with io.StringIO(_json.dumps(sayings, indent=4)) as text_stream:
                 file = discord.File(
-                    fp=text_stream, # noqa
+                    fp=text_stream,
                     filename=f"sayings.json"
                 )
         else:
@@ -83,10 +83,10 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             sayings: str = '\n'.join(sayings)
             with io.StringIO(sayings) as text_stream:
                 file = discord.File(
-                    fp=text_stream, # noqa
+                    fp=text_stream,
                     filename=f"sayings.txt"
                 )
-        await interaction.response.send_message( # noqa
+        await interaction.response.send_message(
             file=file,
             ephemeral=ephemeral,
             embed=Embed(

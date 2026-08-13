@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as _datetime
 import re as _re
 from enum import Enum
+from typing import Any
 
 from utilities.exceptions import CustomDiscordException, ErrorTooltip
 
@@ -216,7 +217,7 @@ class Instruction:
         local_scope = memstack[-1]
 
         def fetch(key: str) -> type | None:
-            _mem: dict[str, ...] = {}
+            _mem: dict[str, Any] = {}
             for frame in reversed(memstack):
                 for k, v in frame.items():
                     _mem[k] = v
@@ -452,7 +453,7 @@ class Instruction:
         return instructions
 
 
-def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, ...]] = None, writing: bool = False) -> \
+def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, Any]] = None, writing: bool = False) -> \
         list[Instruction]:
     """
     Decomposes input string into text and command blocks by turning them into Instructions.

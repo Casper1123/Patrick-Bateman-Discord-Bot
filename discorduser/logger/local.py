@@ -1,10 +1,10 @@
-from discord.ext import commands
 from discord import Interaction, TextChannel, Guild, Embed, Colour
+from discord.ext import commands
 
 from configuration.logger.local import LocalLoggerConfig, loggable
 from data.interfaces.fact import SimpleFactEditorData
 from data.interfaces.other import LocalAdminDataInterface
-from data.interfaces.pref import GuildChannelPreferenceData, supported_autoreply_features
+from data.interfaces.pref import GuildChannelPreferenceData
 
 
 class LocalLogger:
@@ -57,7 +57,7 @@ class LocalLogger:
             colour=Colour.yellow()
         )
 
-        if not externally_modified: # noqa
+        if not externally_modified:
             embed.description += f'\nEdited by: {interaction.user.name} ({interaction.user.id})'
             embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         else:
@@ -73,7 +73,7 @@ class LocalLogger:
             colour=Colour.red()
         )
 
-        if not externally_modified: # noqa
+        if not externally_modified:
             embed.description += f'\n\nRemoved by: {interaction.user.name} ({interaction.user.id})'
             embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         else:

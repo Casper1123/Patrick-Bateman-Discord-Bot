@@ -69,7 +69,7 @@ class BotClient(commands.Bot):
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: Interaction, error: AppCommandError):
             try:
-                await interaction.response.defer(ephemeral=True, thinking=False)  # noqa
+                await interaction.response.defer(ephemeral=True, thinking=False)
             except Exception:  # noqa Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
             # handle exceptions
@@ -112,7 +112,7 @@ class BotClient(commands.Bot):
 
         asyncio.create_task(
             self.handle_exception(
-                TaskErrorContext(error, task) # noqa good enough
+                TaskErrorContext(error, task) # noqa todo: make work with BaseException instead.
             )
         )
     # endregion
@@ -129,7 +129,7 @@ class BotClient(commands.Bot):
         e = discord.Embed(title=title, description=desc, colour=Colour.blue())
         if isinstance(interaction, Interaction):
             try:
-                await interaction.response.send_message(embed=e, ephemeral=ephemeral)  # noqa
+                await interaction.response.send_message(embed=e, ephemeral=ephemeral)
             except discord.InteractionResponded:
                 await interaction.edit_original_response(embed=e)  # ephemeral not supported.
         else:
