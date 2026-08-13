@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, Any
 
 from data.interfaces.utilities import AbstractDTO
 
@@ -30,7 +30,7 @@ class SimpleAliasData(AbstractDTO):
     def __hash__(self):
         return hash(self.name)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, str):
             return other == self.name
         if not isinstance(other, SimpleAliasData):
@@ -66,7 +66,7 @@ class AliasData(SimpleAliasData):
 
 class SimpleTriggerData(AbstractDTO):
     def as_json(self) -> dict[str, int | float | None | str | bool | dict | list]:
-        val = {
+        val: dict[str, int | float | None | str | bool | dict | list] = {
             'type': self.type,
             'data': self.data,
         }

@@ -377,7 +377,11 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     # Hardcoded 75% duration done; so refreshable every 60s with default config.
     @app_commands.checks.cooldown(1, (CFG.CHANNEL_PAUSE_DURATION // 4) * 3, key=lambda i: (i.guild_id, i.channel_id))
     async def pause(self, interaction: Interaction, ephemeral: bool = False) -> None:
-        self.pref.pause_all_in_channel(interaction.guild_id, interaction.channel_id, CFG.CHANNEL_PAUSE_DURATION)
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
+
+        self.pref.pause_all_in_channel(guild.id, interaction.channel_id, CFG.CHANNEL_PAUSE_DURATION)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Features paused',
                                         desc=f'Features put on pause for another {CFG.CHANNEL_PAUSE_DURATION} seconds.')
 
@@ -385,15 +389,19 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
     # region autocomplete
     async def _local_fact_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        facts: list[SimpleFactEditorData] = self.fact.get_local_facts(interaction.guild_id)
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        guild: Guild = interaction.guild
+
+        facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild.id)
         if not facts:
-            return [Choice(name='No local facts', value=-1)]
+            return [Choice[int](name='No local facts', value=-1)]
 
         if not current:
             current = 0
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice(name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 

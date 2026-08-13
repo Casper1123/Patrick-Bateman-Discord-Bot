@@ -51,7 +51,7 @@ def from_json(filepath: str) -> tuple[GlobalLoggerConfig, LocalLoggerConfig]:
             else:
                 # not none to force some setting value. Might need to change in the future
                 if not (isinstance(v, target_type) and v is not None):
-                    raise TypeError(f'Key {k} of {name} has value of type {type(v)}, expected {target_type}')
+                    raise TypeError(f'Key {k} of {name} has value of type {type(v)}, expected {target_type.__name__}')
                 temp.remove(k)
         if not temp.__len__() == 0:
             raise KeyError(f'{name} config missing keys {temp}')

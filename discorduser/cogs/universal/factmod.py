@@ -82,6 +82,9 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                     ephemeral: bool = True, ) -> None:
         global_facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         local_facts: dict[int, list[SimpleFactEditorData]] = {} if not local else self.fact.get_all_local_facts()
+        # Always instance available as this is a guild_only command.
+        # noinspection bad-assignment
+        iguild: Guild = interaction.guild
 
         files: list[discord.File] = []
         if json:
@@ -97,7 +100,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         else:
             out: list[str] = []
             for i, fact in enumerate(global_facts):
-                author = interaction.guild.get_member(fact.author_id)
+                author = self.client.get_user(fact.author_id)
                 if author:
                     author = f'{author.name} ({author.id})'
                 else:
@@ -109,7 +112,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 files.append(
                     discord.File(
                         fp=text_stream,
-                        filename=f"global_fact_data_{interaction.guild.id}.txt"
+                        filename=f"global_fact_data_{iguild.id}.txt"
                     )
                 )
 
@@ -139,8 +142,10 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                     elif not guild:
                         member = None
                     else:
-                        member = guild.get_member(f.author_id).name
-                        membercache[f.author_id] = member
+                        member = guild.get_member(f.author_id)
+                        if member is not None:
+                            member = member.name
+                            membercache[f.author_id] = member
                     guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
                 guild_facts += '\n\n\n'  # factnl, nl, #guild, space of 2 between last fact and new guild.
                 out += guild_facts
@@ -239,8 +244,10 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 elif not guild:
                     member = None
                 else:
-                    member = guild.get_member(f.author_id).name
-                    membercache[f.author_id] = member
+                    member = guild.get_member(f.author_id)
+                    if member is not None:
+                        member = member.name
+                        membercache[f.author_id] = member
                 guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
             with _io.StringIO(guild_facts) as text_stream:
                 # noinspection bad-argument-type
@@ -319,7 +326,12 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
         embed = Embed(title=f'User {'un' if not state else ''}banned')
 
         if user:
-            embed.set_author(name=user.name, icon_url=user.avatar.url)
+            try:
+                # noinspection unresolved-references
+                embed.set_author(name=f'{user.name} ({user_id})', icon_url=user.avatar.url)
+            except AttributeError:
+                embed.set_author(name=f'{user.name} ({user_id})')
+
         else:
             embed.set_author(name=f'{user_id}')
         await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
@@ -339,7 +351,12 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
         embed = Embed(title=f'Guild {'un' if not state else ''}banned')
 
         if guild:
-            embed.set_author(name=guild.name, icon_url=guild.icon.url)
+            try:
+                # noinspection unresolved-references
+                embed.set_author(name=f'{guild.name} ({guild_id})', icon_url=guild.icon.url)
+            except AttributeError:
+                embed.set_author(name=f'{guild.name} ({guild_id})')
+
         else:
             embed.set_author(name=f'{guild}')
         await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
@@ -351,13 +368,20 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
     async def killswitch(self, interaction: Interaction, ephemeral: bool = False):
         state: bool = self.fact.toggle_local_fact_killswitch()
         await self.client.user_feedback(interaction, desc=f'Killswitch state set to {state}', ephemeral=ephemeral)
-        await self.logger.log_general(
-            console=f'[[ KILLSWITCH TOGGLE ]] :: Set to {state} by {interaction.user.name} : {interaction.user.id}',
-            channel=Embed(
+        embed: Embed = Embed(
                 title='[[ KILLSWITCH TOGGLE ]]',
                 description=f'Set to **{state}**',
                 colour=Colour.red()
-            ).set_author(name=interaction.user.name, icon_url=interaction.user.avatar.url)
+            )
+        try:
+            # noinspection unresolved-references
+            embed.set_author(name=f'{interaction.user.name} ({interaction.user.id})', icon_url=interaction.user.avatar.url)
+        except AttributeError:
+            embed.set_author(name=f'{interaction.user.name} ({interaction.user.id})')
+
+        await self.logger.log_general(
+            console=f'[[ KILLSWITCH TOGGLE ]] :: Set to {state} by {interaction.user.name} : {interaction.user.id}',
+            channel=embed
         )
 
     @app_commands.command(name='set_log',

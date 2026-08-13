@@ -2,7 +2,7 @@ from asyncio import Task
 import traceback
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, Any
 
 from discord import Embed, Interaction, Colour
 from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
@@ -120,7 +120,7 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
             self.params = f'[]'
 
     def as_console(self) -> str:
-        return super().as_console() + f'/{self.interaction.command.qualified_name} with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id}) '
+        return super().as_console() + f'/{self.interaction.command.qualified_name if self.interaction.command else '[???]'} with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id}) '
 
 
 class ListenerErrorContext(LoggableErrorContext):
@@ -173,7 +173,7 @@ class AppCommandErrorContext(LoggableInteractionErrorContext):
     def as_embed(self) -> Embed:
         # todo: check
         embed: Embed = super().as_embed()
-        embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
+        embed.description += (f'Raised by `/{self.interaction.command.qualified_name if self.interaction.command else '[???]'}`\n'
                               f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
                               f'Given parameters: {self.params}')
         if self.error.cause:
@@ -190,7 +190,7 @@ class AppCommandErrorContext(LoggableInteractionErrorContext):
 
 
 class AutocompleteErrorContext(LoggableInteractionErrorContext):
-    def __init__(self, error: Exception, target: str, current: ..., interaction: Interaction):
+    def __init__(self, error: Exception, target: str, current: Any, interaction: Interaction):
         """
         :param target: Target parameter name
         :param current: Target parameter value.
@@ -206,7 +206,7 @@ class AutocompleteErrorContext(LoggableInteractionErrorContext):
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
         embed.description += (
-            f'Raised by `/{self.interaction.command.qualified_name}`\n'
+            f'Raised by `/{self.interaction.command.qualified_name if self.interaction.command else '[???]'}`\n'
             f'In: *{self._name}* (`{self._filename}:{self._lineno}`)\n'
             f'Target: {self.target} = {self.current}'
             f'Given parameters: {self.params}')
@@ -227,7 +227,7 @@ class TransformerErrorContext(LoggableInteractionErrorContext):
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
         embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
-                              f'In the Transformer {type(self._original_error.transformer)}\n'
+                              f'In the Transformer {type(self._original_error.transformer).__name__}\n'
                               f'At *{self._name}* (`{self._filename}:{self._lineno}`)\n'
                               f'Given value ({self._original_error.type}) {self._original_error.value}\n'
                               f'And params: {self.params}')
@@ -241,7 +241,7 @@ class TransformerErrorContext(LoggableInteractionErrorContext):
         return embed
 
     def as_console(self) -> str:
-        return super().as_console() + f'for Transformer {type(self._original_error.transformer)} given the value ({self._original_error.type}) {self._original_error.value}'
+        return super().as_console() + f'for Transformer {type(self._original_error.transformer).__name__} given the value ({self._original_error.type}) {self._original_error.value}'
 
     def __init__(self, error: TransformerError, interaction: Interaction):
         super().__init__('transformer', error, interaction)

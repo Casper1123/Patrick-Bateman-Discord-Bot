@@ -42,25 +42,25 @@ async def embedify(bot: _commands.Bot, message: _discord.Message, reply: bool = 
 
 
 def _is_auto_embedded(message: str):
-    URL_REGEX = _re.compile(r"^(https?://\S+)$")
-    AUTO_EMBED_DOMAINS = {
+    url_regex = _re.compile(r"^(https?://\S+)$")
+    auto_embed_domains = {
         "tenor.com", "giphy.com", "media.discordapp.net", "cdn.discordapp.com"
     }
-    IMAGE_VIDEO_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4", ".webm", ".mov"}
+    image_video_extensions = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4", ".webm", ".mov"}
 
     markdown_link_regex = _re.compile(r"\[.*?]\((https?://[^\s)]+)\)")
     match = markdown_link_regex.search(message)
     if match:
         message = match.group(1)
 
-    if not URL_REGEX.match(message):
+    if not url_regex.match(message):
         return False  # Not a single-link message
 
     parsed_url = _urlparse(message)
     domain = parsed_url.netloc
     path = parsed_url.path
 
-    if domain in AUTO_EMBED_DOMAINS and any(path.endswith(ext) for ext in IMAGE_VIDEO_EXTENSIONS):
+    if domain in auto_embed_domains and any(path.endswith(ext) for ext in image_video_extensions):
         return True  # Matches an auto-embed domain with a valid media file extension
 
     return False

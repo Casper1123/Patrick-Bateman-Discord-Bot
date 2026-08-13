@@ -26,7 +26,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
     @app_commands.command(name='create', description='Create a new saying')
     @app_commands.describe(saying='PISS-compatible saying.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def saying_create(self, interaction: Interaction, saying: str, ephemeral: bool = False) -> None:
-        if not input_test(self.client, interaction, saying, ephemeral):
+        if not await input_test(self.client, interaction, saying, ephemeral):
             return
 
         self.saying.create_saying(saying)

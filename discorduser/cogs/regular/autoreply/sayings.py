@@ -1,6 +1,7 @@
 import random as _r
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from configuration.global_config import CFG
@@ -10,7 +11,7 @@ from discorduser.user.abstract import BotClient
 from piss import Instruction, parse_variables
 from piss.instructionexecutor import InstructionExecutor
 
-
+@app_commands.guild_only()
 class RandomAutoreplyCog(commands.Cog):
     def __init__(self, client: BotClient, say: SayingInterface, pref: PreferencesInterface) -> None:
         self.client = client
@@ -20,6 +21,9 @@ class RandomAutoreplyCog(commands.Cog):
     @commands.Cog.listener("on_message")
     async def random_saying_replies(self,
                                     message: discord.Message):  # todo: rename 'saying', like what the fuck is this dude.
+        if not message.guild:
+            return
+
         if message.author.bot:
             return
 

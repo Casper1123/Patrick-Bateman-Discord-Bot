@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from data.interfaces.pref import PreferencesInterface
@@ -14,7 +15,7 @@ _letterdict = {"a": "b", "b": "c", "c": "d",
                "v": "w", "w": "x", "x": "y",
                "y": "z", "z": "a"}
 
-
+@app_commands.guild_only()
 class LetterAutoreplyCog(commands.Cog):
     def __init__(self, client: BotClient, pref: PreferencesInterface) -> None:
         self.client = client
@@ -22,6 +23,9 @@ class LetterAutoreplyCog(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def letter_only_replies(self, message: discord.Message):
+        if not message.guild:
+            return
+
         if message.author.bot:
             return
 
@@ -30,10 +34,12 @@ class LetterAutoreplyCog(commands.Cog):
 
         if message.content.lower() not in _letterdict.keys():
             return
+
         if self.pref.is_paused_channel(message.guild.id, message.channel.id):
             return
         if not self.pref.is_user_autoreply_enabled(message.author.id, 'letter'):
             return
+
         if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'letter'):
             return
 

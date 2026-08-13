@@ -4,10 +4,12 @@ import random as _r
 from typing import Any
 
 import discord
-from discord import AllowedMentions, Message, Interaction, Member
+from discord import AllowedMentions, Message, Interaction, Member, VoiceChannel, StageChannel, Thread, DMChannel, \
+    PartialMessageable, GroupChannel, TextChannel
+from discord.abc import Messageable
 
 from discorduser.user.abstract import BotClient
-from utilities.exceptions import CustomDiscordException, ErrorTooltip
+from utilities.exceptions import CustomDiscordException, ErrorTooltip, IncompatibleTargetChannel
 from . import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES, UserAttributeOptions
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
@@ -101,22 +103,30 @@ class InstructionExecutor:
             return build
 
     def init_memory(self, interaction: Interaction | Message) -> dict[str, Any]:
+
+        # noinspection bad-assignment
         guild: discord.Guild = interaction.guild
         if not guild:
             raise PermissionError('Cannot execute instructions outside of Guild context.')
 
         # todo : pretty sure this don't work on messages.
         if isinstance(interaction, Interaction):
-            user: discord.User = interaction.user
-            member: discord.Member = interaction.guild.get_member(interaction.user.id)
+            user: discord.User | discord.Member = interaction.user
+            member: discord.Member | None = guild.get_member(interaction.user.id)
         else:
-            user: discord.User = interaction.author
-            member: discord.Member = interaction.guild.get_member(interaction.author.id)
+            user: discord.User | discord.Member = interaction.author
+            member: discord.Member | None = guild.get_member(interaction.author.id)
 
-        me: discord.ClientUser = self.client.user
-        me_member: discord.Member = interaction.guild.get_member(me.id)
+        me: discord.ClientUser | None = self.client.user
+        if not me:
+            raise ValueError('Cannot prepare memory data, missing required data to construct initial memory.')
 
-        channel: discord.TextChannel = interaction.channel
+        me_member: discord.Member | None = guild.get_member(me.id)
+        if not isinstance(interaction.channel, (TextChannel, VoiceChannel, StageChannel, Thread)):
+            raise IncompatibleTargetChannel(interaction.channel, Messageable.__name__)
+        channel: TextChannel | VoiceChannel | StageChannel | Thread = interaction.channel
+        # noinspection bad-assignment
+        # always exists.
         owner: discord.Member = guild.owner  # guild owner
 
         local_facts: int = self.client.fact.get_fact_count(guild.id)
@@ -126,6 +136,8 @@ class InstructionExecutor:
         if None in [member, me, me_member] or not isinstance(me, discord.abc.User):
             raise ValueError('Cannot prepare memory data, missing required data to construct initial memory.')
         try:
+            # noinspection unresolved-references
+            # Any Nones should be excluded by the statements above.
             out = {
                 '\\n': '\n',
 
@@ -196,7 +208,7 @@ class InstructionExecutor:
             expected = INITIAL_MEMORY_TYPES[key]
             if type(val) != expected:
                 raise CustomDiscordException(error_type='InstructionMemoryError',
-                                             message=f'Initial Instruction Memory has a typing mismatch from parser specification at **{key}** (expected **{expected}**, given **{type(val)} ({val})**).\n'
+                                             message=f'Initial Instruction Memory has a typing mismatch from parser specification at **{key}** (expected **{expected.__name__}**, given **{type(val)} ({val})**).\n'
                                                      f'This is *probably* an implementation error and probably has to be fixed by developers manually.\n'
                                                      f'Aborting execution to preserve memory safety.')
         for key in mem.keys():
@@ -208,7 +220,7 @@ class InstructionExecutor:
             if type(mem[key]) != INITIAL_MEMORY_TYPES[key]:
                 val = mem[key]
                 raise CustomDiscordException(error_type='InstructionMemoryError',
-                                             message=f'Initial Instruction Memory has a typing mismatch from parser specification at **{key}:{val} ({type(val)}** *(expected {INITIAL_MEMORY_TYPES[key]})*.\n'
+                                             message=f'Initial Instruction Memory has a typing mismatch from parser specification at **{key}:{val} ({type(val).__name__}** *(expected {INITIAL_MEMORY_TYPES[key].__name__})*.\n'
                                                      f'This is probably an implementation error. Please raise this issue to the developers **if not reported already**.\n'
                                                      f'Aborting execution to preserve memory safety.')
 
@@ -263,7 +275,7 @@ class InstructionExecutor:
         """
         if not isinstance(out, str):
             raise TypeError(
-                f'Instruction of type PUSH received an output object of type {type(out)}, which is not supported.')
+                f'Instruction of type PUSH received an output object of type {type(out).__name__}, which is not supported.')
         allowed_mentions = AllowedMentions.all() if mention.ALL else (
             AllowedMentions(everyone=False, roles=False, users=False,
                             replied_user=True) if mention.AUTHOR else AllowedMentions.none())
@@ -310,9 +322,12 @@ class DebugInstructionExecutor(InstructionExecutor):
         self.pure_output: bool = pure_output
         super().__init__(client)
 
-    def _instruction_log(self, itype: str, extra: str = None):
+    def _instruction_log(self, itype: str, extra: str | None = None):
         if not self.pure_output:
-            self.output += '{' + itype + ';' + (extra if extra else '') + '}'
+            self.output += '{' + itype + ';'
+            if extra:
+                self.output += extra
+            self.output += '}'
 
     async def run(self, instructions: list[Instruction], interaction: Interaction | Message, depth: int = None,
                   build: str = None, push_final_build: bool = True, memstack: list[dict[str, Any]] = None) -> str:
@@ -332,7 +347,7 @@ class DebugInstructionExecutor(InstructionExecutor):
     async def sleep(self, time: int | float):
         self._instruction_log('SLEEP', f'time={time}')
 
-    def basic_replace(self, interaction: Interaction | Message, key: str) -> str:
+    def basic_replace(self, memdict: list[dict[str, Any]], key: str) -> str:
         # todo: check if basic replace key exists during testing, for the sake of memory safety.
         return '{BASIC_REPLACE;' + key + '}'
 

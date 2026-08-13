@@ -1,3 +1,5 @@
+from typing import Any
+
 from discord import Interaction, TextChannel, Guild, Embed, Colour, VoiceChannel, StageChannel, Thread
 from discord.abc import Messageable
 from discord.ext import commands
@@ -104,6 +106,7 @@ class LocalLogger:
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(interaction.guild, embed=embed, act='set_log_channel')
 
-    async def set_channel_preferences(self, interaction: Interaction, channel: TextChannel | VoiceChannel | StageChannel | Thread | None, new: GuildChannelPreferenceData) -> None:
+    async def set_channel_preferences(self, interaction: Interaction, channel: Any, new: GuildChannelPreferenceData) -> None:
         # todo: implement!
+        # Do not forget to figure out what kinds of channels require this; Probably just messageable channels? (See above)
         pass

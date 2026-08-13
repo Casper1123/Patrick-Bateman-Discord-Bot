@@ -2,6 +2,7 @@ import random as _r
 import re as _re
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from data.interfaces.autoreplies import TextAutoreplyInterface, SimpleAliasData, SimpleReplyData
@@ -10,7 +11,7 @@ from discorduser.user.abstract import BotClient
 from piss import Instruction, parse_variables
 from piss.instructionexecutor import InstructionExecutor
 
-
+@app_commands.guild_only()
 class MessageContentAutoreplyCog(commands.Cog):
     def __init__(self, client: BotClient, pref: PreferencesInterface, replies: TextAutoreplyInterface) -> None:
         self.client = client
@@ -19,6 +20,9 @@ class MessageContentAutoreplyCog(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def message_content_replies(self, message: discord.Message):
+        if not message.guild:
+            return
+
         if message.author.bot:
             return
 

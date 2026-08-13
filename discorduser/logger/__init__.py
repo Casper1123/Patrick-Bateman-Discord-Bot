@@ -111,7 +111,12 @@ class GlobalLogger:
                         f'In: {guild.name} ({guild.id})',
             colour=Colour.green()
         )
-        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        try:
+            # noinspection unresolved-references
+            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        except AttributeError:
+            embed.set_footer(text=guild.name)
+
         await self._channel_log(embed=embed, act='local_fact_create')
 
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData,
@@ -132,7 +137,12 @@ class GlobalLogger:
                         f'In: {guild.name} ({guild.id})',
             colour=Colour.yellow()
         )
-        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        try:
+            # noinspection unresolved-references
+            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        except AttributeError:
+            embed.set_footer(text=guild.name)
+
         await self._channel_log(embed=embed, act='local_fact_edit')
 
     async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData) -> None:
@@ -149,7 +159,12 @@ class GlobalLogger:
                         f'In: {guild.name} ({guild.id})',
             colour=Colour.red()
         )
-        embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        try:
+            # noinspection unresolved-references
+            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+        except AttributeError:
+            embed.set_footer(text=guild.name)
+
         await self._channel_log(embed=embed, act='local_fact_delete')
 
     # endregion
@@ -237,7 +252,7 @@ class GlobalLogger:
 
         try:
             guild = await self.client.fetch_guild(guild_id)
-        except:
+        except: # todo: figure out what I wanna do here
             guild = None
 
         embed: Embed = Embed(
@@ -383,7 +398,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_trigger')
 
-    async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str,
+    async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str | None,
                            rate: int | None) -> None:
         self._console_log(
             f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
@@ -397,8 +412,8 @@ class GlobalLogger:
                         f'\tRate: {old.rate}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'\tData: {data}\n'
-                        f'\tRate: {rate}\n'
+                        f'\tData: {data if data is not None else '[ Not changed ]'}\n'
+                        f'\tRate: {rate if rate is not None else '[ Not changed ]'}\n'
                         f'\n'
                         f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.yellow()
@@ -436,8 +451,8 @@ class GlobalLogger:
             description=f'**Alias:** {alias}\n'
                         f'**New:**\n'
                         f'\tType: {reply_type}'
-                        f'\tData: {data}\n'
-                        f'\tWeight: {weight}\n'
+                        f'\tData: {data if data is not None else '[ Not changed ]'}\n'
+                        f'\tWeight: {weight if weight is not None else '[ Not changed ]'}\n'
                         f'\n'
                         f'Created by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.green()
@@ -445,7 +460,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_reply')
 
-    async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str,
+    async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str | None,
                          weight: int | None):
         self._console_log(
             f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',

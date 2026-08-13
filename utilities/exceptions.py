@@ -1,7 +1,7 @@
 from enum import Enum
 
 from discord import Embed, Colour, VoiceChannel, StageChannel, ForumChannel, TextChannel, CategoryChannel, DMChannel, \
-    GroupChannel
+    GroupChannel, PartialMessageable
 
 from configuration.global_config import CFG
 
@@ -86,7 +86,7 @@ class RestrictedUseException(CustomDiscordException):
         return embed
 
 class IncompatibleTargetChannel(CustomDiscordException):
-    def __init__(self, target_channel: ForumChannel | CategoryChannel | DMChannel | GroupChannel | None, target: str):
+    def __init__(self, target_channel: ForumChannel | CategoryChannel | DMChannel | GroupChannel | PartialMessageable |None, target: str):
         super().__init__(message=f'Channel id {target_channel.id if target_channel is not None else 'NONE'} with type {type(target_channel)} is not {target}.')
 
     def as_embed(self) -> Embed:

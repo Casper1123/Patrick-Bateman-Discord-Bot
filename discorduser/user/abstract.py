@@ -38,9 +38,16 @@ class BotClient(commands.Bot):
         self.pref: PreferencesInterface = pref
         self.saying: GlobalAdminSayingInterface = saying
 
-        intents = discord.Intents.default()
+        intents: discord.Intents = discord.Intents.default()
+        # IDK why PyCharm decided this does not exist, as it does.
+        # Anyhows, this will unfortunately have to do.
+
+        # noinspection dunder-slots,unresolved-references
         intents.message_content = True  # Required for autoreplies
-        intents.members = True
+
+        # noinspection dunder-slots,unresolved-references
+        intents.members = True # Required for random users in PISS
+
         super().__init__(command_prefix="?dev", intents=intents, help_command=None)
 
         async def on_error(event, *args, **kwargs):
@@ -112,11 +119,12 @@ class BotClient(commands.Bot):
 
         asyncio.create_task(
             self.handle_exception(
-                TaskErrorContext(error, task) # noqa todo: make work with BaseException instead.
+                TaskErrorContext(error, task)
             )
         )
     # endregion
 
+    # noinspection method-may-be-static
     async def user_feedback(self, interaction: Interaction | discord.Message, title: str | None = None, desc: str | None = None,
                             ephemeral: bool = False) -> None:
         """

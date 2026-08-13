@@ -30,7 +30,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
     @app_commands.describe(name='The name of the new alias. Cannot be duplicate.',
                            rate='The standard activation rate of this alias, ranging in between 1-256. Default: 256 (100%)',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def create_alias(self, interaction: Interaction, name: str, rate: int = None,
+    async def create_alias(self, interaction: Interaction, name: str, rate: int | None = None,
                            ephemeral: bool = False) -> None:
         if rate is not None and not (1 <= rate <= 256):
             # Rate not in domain and passed in.
@@ -79,7 +79,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
     @app_commands.command(name='delete', description='Delete an existing Alias, as well as all of its contents.')
     @app_commands.describe(alias='The Alias you wish to delete.', confirm='YOU REMOVE ALL TRIGGERS AND REPLIES TOO.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def delete_alias(self, interaction: Interaction, alias: str, confirm: bool = None,
+    async def delete_alias(self, interaction: Interaction, alias: str, confirm: bool | None = None,
                            ephemeral: bool = False) -> None:
         if not confirm:
             await self.client.user_feedback(interaction, title='Alias removal failed', desc='Confirm your decision.\n'
@@ -113,6 +113,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                     val['triggers'] = [t.as_json() for t in self.repl.get_triggers_for_alias(a.name)]
                     val['replies'] = [r.as_json() for r in self.repl.get_replies_by_alias(a.name)]
             with io.StringIO(_json.dumps(out, indent=4)) as text_stream:
+                # noinspection bad-argument-type
                 file = discord.File(
                     fp=text_stream,
                     filename=f"alias_data{'' if not include_components else '_complete'}.json"
@@ -137,6 +138,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                     out += '\n'
             out: str = out.removesuffix('\n')
             with io.StringIO(out) as text_stream:
+                # noinspection bad-argument-type
                 file = discord.File(
                     fp=text_stream,
                     filename=f"alias_data{'' if not include_components else '_complete'}.txt"
@@ -158,7 +160,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
         target = current.lower()  # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
-        return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+        return [Choice[str](name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
 
     @edit_alias.autocomplete('alias')
     @delete_alias.autocomplete('alias')
@@ -181,7 +183,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
     @app_commands.describe(alias='The Alias this Trigger belongs to.', text='Trigger RegEx to match to.',
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def create_trigger(self, interaction: Interaction, alias: str, text: str, rate: int = None,
+    async def create_trigger(self, interaction: Interaction, alias: str, text: str, rate: int | None = None,
                              ephemeral: bool = False):
         if rate is not None and not (1 <= rate <= 256):
             await self.client.user_feedback(interaction, title='Trigger creation failed',
@@ -204,7 +206,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
                            text='Trigger RegEx to match to.',
                            rate='The relative rate this Trigger will proc to, overriding the Alias rate if given. Range 1-256',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def edit_trigger(self, interaction: Interaction, alias: str, index: int, text: str = None, rate: int = None,
+    async def edit_trigger(self, interaction: Interaction, alias: str, index: int, text: str | None = None, rate: int | None = None,
                            ephemeral: bool = False):
         if text is None and rate is None:
             await self.client.user_feedback(interaction, title='Trigger edit failed',
@@ -257,7 +259,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
         target = current.lower()  # Prevent repeat transformation
         aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
         aliases.sort(key=lambda x: x.name)
-        return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+        return [Choice[str](name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
 
     @create_trigger.autocomplete('alias')
     @edit_trigger.autocomplete('alias')
@@ -268,18 +270,18 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
     async def _index_options_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         alias = interaction.namespace.alias
         if not alias:
-            return [Choice(name='Bad alias.', value=-1)]
+            return [Choice[int](name='Bad alias.', value=-1)]
 
         try:
             triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
         except IndexError:
-            return [Choice(name='Bad alias.', value=-1)]
+            return [Choice[int](name='Bad alias.', value=-1)]
 
         # Time to compress this stuff.
         lower, upper = selection_window(len(triggers), current, 5, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
-            Choice(name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
+            Choice[int](name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
             for offset, trigger in enumerate(triggers[lower:upper])
         ]
 
@@ -339,7 +341,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
     @app_commands.describe(alias='The alias the reply belongs to.',
                            index='The index of the Reply (autocomplete requires the Alias first!)',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def edit_reply(self, interaction: Interaction, alias: str, index: int, text: str = None, weight: int = None,
+    async def edit_reply(self, interaction: Interaction, alias: str, index: int, text: str | None = None, weight: int | None = None,
                          ephemeral: bool = False):
         if text is None and weight is None:
             await self.client.user_feedback(interaction, title='Reply edit failed',
@@ -355,7 +357,9 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
             old: SimpleReplyData = self.repl.get_reply_by_index(alias, index)
             # Test new input data
             if old.type == 'text':
-                if not await input_test(self.client, interaction, text, ephemeral):
+                if text is None:
+                    pass
+                elif not await input_test(self.client, interaction, text, ephemeral):
                     return
             elif old.type == 'reaction':
                 await self.client.user_feedback(interaction, title='Reply edit failed',
@@ -416,17 +420,17 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
     async def _index_options_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         alias = interaction.namespace.alias
         if not alias:
-            return [Choice(name='Bad alias.', value=-1)]
+            return [Choice[int](name='Bad alias.', value=-1)]
 
         try:
             replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
         except IndexError:
-            return [Choice(name='Bad alias.', value=-1)]
+            return [Choice[int](name='Bad alias.', value=-1)]
         # Time to compress this stuff.
         lower, upper = selection_window(len(replies), current, 5, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
-            Choice(name=f'{offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)
+            Choice[int](name=f'{offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)
             for offset, reply in enumerate(replies[lower:upper])
         ]
     # endregion

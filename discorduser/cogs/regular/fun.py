@@ -32,9 +32,15 @@ class MainCommandsCog(commands.Cog):
         await interaction.response.send_message("Yeah, no.")
         # todo: update
 
+    # noinspection unresolved-references
+    # purely for interaction.channel.history ngl.
     @app_commands.command(name="throwback", description="Replies to a random message in this channel's history.")
     @app_commands.describe(ephemeral="Hide the response; sneaky private throwback")
     async def throwback_command(self, interaction: Interaction, ephemeral: bool = False):
+        if isinstance(interaction.channel, discord.ForumChannel):
+            await interaction.response.send_message(content='Forum Channels are not supported.', ephemeral=True)
+            return
+
         await interaction.response.send_message(
             content="Finding random message in channel history. This might take some time.",
             ephemeral=ephemeral
@@ -68,6 +74,8 @@ class MainCommandsCog(commands.Cog):
         if attempts >= 100:
             await interaction.edit_original_response(content="Could not find a message within a reasonable timeframe.")
             return
+
+        random_message: discord.Message # One has been found now.
 
         embeds: list[discord.Embed] = await embedify(self.client, random_message, reply=True, message_jump_link=True)
         await interaction.edit_original_response(embeds=embeds)

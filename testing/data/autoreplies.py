@@ -6,7 +6,9 @@ from data.interfaces.autoreplies import GlobalTextAutoreplyInterface, reply_type
 
 class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
     def get_replies_by_alias(self, alias: str) -> list[SimpleReplyData]:
-        return [self.get_reply(alias)]  # only works because there's one singular reply in there.
+        # noinspection bad-return
+        reply: SimpleReplyData | None = self.get_reply(alias)
+        return [reply] if reply else []  # only works because there's one singular reply in there.
 
     def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
         # Small enough custom sample to do it this shoddy way.
@@ -28,7 +30,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
     def edit_alias(self, old_name: str, new_name: str | None, rate: int | None = None) -> None:
         if not self.alias_exists(old_name):
             raise ValueError('invalid alias name')
-        if self.alias_exists(new_name):
+        if new_name is not None and self.alias_exists(new_name):
             raise ValueError('duplicate alias')
         if rate is not None and not (1 <= rate <= 256):
             raise Exception('rate out of bounds')

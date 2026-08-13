@@ -126,20 +126,20 @@ class _GlobalConfig(AbstractJSONConfig):
         from utilities import load_json
         cfg = load_json(path)
 
-        GAD_SID = cfg['GLOBAL_ADMIN_SERVER_ID']
-        REPL_W_UP = cfg['REPLY_WEIGHT_UPPER_BOUND']
-        FACT_COUNT_MAX = cfg['FACT_COUNT_MAXIMUM']
-        FACT_CHAR_LIMIT = cfg['FACT_CHAR_LIMIT']
-        PREVIEW_CD = cfg['PREVIEW_COOLDOWN_SECONDS']
-        DELETE_CD = cfg['DELETE_COOLDOWN_SECONDS']
-        EDIT_CD = cfg['EDIT_COOLDOWN_SECONDS']
-        ADD_CD = cfg['ADD_COOLDOWN_SECONDS']
-        CHANNEL_PAUSE_DURATION = cfg['CHANNEL_PAUSE_DURATION']
-        FACT_COOLDOWN = cfg['FACT_COOLDOWN']
-        SAYING_PROBABILITY = cfg['SAYING_PROBABILITY']
+        gad_sid = cfg['GLOBAL_ADMIN_SERVER_ID']
+        repl_w_up = cfg['REPLY_WEIGHT_UPPER_BOUND']
+        fact_count_max = cfg['FACT_COUNT_MAXIMUM']
+        fact_char_limit = cfg['FACT_CHAR_LIMIT']
+        preview_cd = cfg['PREVIEW_COOLDOWN_SECONDS']
+        delete_cd = cfg['DELETE_COOLDOWN_SECONDS']
+        edit_cd = cfg['EDIT_COOLDOWN_SECONDS']
+        add_cd = cfg['ADD_COOLDOWN_SECONDS']
+        channel_pause_duration = cfg['CHANNEL_PAUSE_DURATION']
+        fact_cooldown = cfg['FACT_COOLDOWN']
+        saying_probability = cfg['SAYING_PROBABILITY']
 
-        return _GlobalConfig(path, GAD_SID, REPL_W_UP, FACT_COUNT_MAX, FACT_CHAR_LIMIT, PREVIEW_CD, DELETE_CD, EDIT_CD,
-                             ADD_CD, CHANNEL_PAUSE_DURATION, FACT_COOLDOWN, SAYING_PROBABILITY)
+        return _GlobalConfig(path, gad_sid, repl_w_up, fact_count_max, fact_char_limit, preview_cd, delete_cd, edit_cd,
+                             add_cd, channel_pause_duration, fact_cooldown, saying_probability)
 
 
 import os as _os

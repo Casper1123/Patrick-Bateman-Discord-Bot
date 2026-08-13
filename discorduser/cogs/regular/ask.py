@@ -1,7 +1,7 @@
 import asyncio
 import random
 
-from discord import app_commands, Interaction, Message
+from discord import app_commands, Interaction, Message, InteractionResponded
 from discord.ext import commands
 
 from data.interfaces.saying import SayingInterface
@@ -24,6 +24,8 @@ class AskPatrick(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def ask_patrick_listener(self, message: Message):
+        # noinspection unresolved-references
+        # Id is available at this moment in runtime.
         if not message.content.lower().startswith(f"ask <@{self.client.user.id}>"):
             return
         """
@@ -51,11 +53,16 @@ class AskPatrick(commands.Cog):
         async def ask_reply(replyable: Message | Interaction, content: str,
                             send_in_channel: bool = False) -> None:
             if send_in_channel:
+                # todo: fix typing in file.
                 await replyable.channel.send(content=content)
                 return
 
             if isinstance(replyable, Interaction):
-                await replyable.response.send_message(content=content)
+                try:
+                    await replyable.response.send_message(content=content)
+                except InteractionResponded:
+                     # Fallback
+                    await replyable.channel.send_message(content=content)
             else:
                 await replyable.reply(mention_author=False, content=content)
 
