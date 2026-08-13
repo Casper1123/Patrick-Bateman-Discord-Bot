@@ -9,6 +9,7 @@ class LocalLoggerConfig(AbstractJSONConfig):
     def __init__(self, actively_logging: dict[loggable, bool], update_filepath: str):
         super().__init__(update_filepath)
         validation: set[loggable] = set(get_args(loggable))
+        # noinspection bad-assignment
         set_keys: set[loggable] = set(actively_logging.keys())
         if not set_keys == validation:
             raise ValueError(

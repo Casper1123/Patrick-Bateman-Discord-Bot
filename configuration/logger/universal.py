@@ -31,16 +31,20 @@ class GlobalLoggerConfig(AbstractJSONConfig):
 
         # Validation of input
         validation: set[loggable] = set(get_args(loggable))
+        # set[str] assignment is on purpose, will be correct after validation.
+        # noinspection bad-assignment
         output_to_console_keys_set: set[loggable] = set(output_to_console.keys())
         if not output_to_console_keys_set == validation:
             raise ValueError(
                 f'output_to_console must contain only and all loggables, currently missing {validation - output_to_console_keys_set} and includes unneeded {output_to_console_keys_set - validation}')
 
+        # noinspection bad-assignment
         actively_logging_keys_set: set[loggable] = set(actively_logging.keys())
         if not actively_logging_keys_set == validation:
             raise ValueError(
                 f'actively_logging must contain only and all loggables, currently missing {validation - actively_logging_keys_set} and includes unneeded {actively_logging_keys_set - validation}')
 
+        # noinspection bad-assignment
         target_channels_keys_set: set[loggable] = set(target_channels.keys())
         if not target_channels_keys_set == validation:
             raise ValueError(

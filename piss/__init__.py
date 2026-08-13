@@ -64,9 +64,9 @@ SLEEP_TIMER_LOWER_BOUND: float = 0.25
 
 
 class InstructionParseError(CustomDiscordException):
-    def __init__(self, bad_var: str, reason: str = None, tooltip: ErrorTooltip = ErrorTooltip.WIKI):
+    def __init__(self, bad_var: str, reason: str | None = None, tooltip: ErrorTooltip = ErrorTooltip.WIKI):
         self.bad_var: str = bad_var
-        self.reason: str = reason
+        self.reason: str | None = reason
         super().__init__(message=f'Could not parse **{bad_var}**{f"\n**Reason:**\n{reason}" if reason else ""}',
                          tooltip=tooltip)
 
@@ -129,7 +129,7 @@ class Instruction:
         return str(self)
 
     @staticmethod
-    def from_string(build: str, depth: int = 0, memstack: list[dict[str, type]] = None, writing=False) -> list[
+    def from_string(build: str, memstack: list[dict[str, type]], depth: int = 0, writing=False) -> list[
         Instruction]:
         """
         Determines instruction type(s) and creates instructions using their parameters.
@@ -275,7 +275,7 @@ class Instruction:
                     raise InstructionParseError(subsection,
                                                 f'WRITING Instruction cannot be used inside of a WRITING instruction')
                 content = WRITING.group('instr')
-                content_instr: list[Instruction] = Instruction.from_string(content, depth + 1, memstack, writing=True)
+                content_instr: list[Instruction] = Instruction.from_string(content, memstack, depth + 1, writing=True)
                 if not content_instr:
                     raise InstructionParseError(subsection,
                                                 f'WRITING instruction did not receive any instructions (received **{content}**).')
@@ -353,7 +353,7 @@ class Instruction:
                 jumping: int = 0  # 0: in string, 1: right after, 2: spaces optional
                 while i < len(options):
                     char = options[i]
-                    # We are outside of a variable
+                    # We are outside a variable
                     if jumping != 0:
                         if jumping == 1 and char == ',':
                             jumping = 2
@@ -453,7 +453,7 @@ class Instruction:
         return instructions
 
 
-def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, Any]] = None, writing: bool = False) -> \
+def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, Any]] | None = None, writing: bool = False) -> \
         list[Instruction]:
     """
     Decomposes input string into text and command blocks by turning them into Instructions.

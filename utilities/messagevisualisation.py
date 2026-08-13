@@ -13,7 +13,7 @@ async def embedify(bot: _commands.Bot, message: _discord.Message, reply: bool = 
         name=f"{message.author.name if message.author.name else message.author.global_name} in {message.channel.name}",
         icon_url=message.author.avatar.url if message.author.avatar else message.author.default_avatar.url)
 
-    attachment: _discord.Attachment = _has_media_attachment(message)
+    attachment: _discord.Attachment | None = _has_media_attachment(message)
     embed.description = ""
     if _is_auto_embedded(message.content):
         embed.set_image(url=_extract_embedded_url(message.content))
@@ -26,6 +26,7 @@ async def embedify(bot: _commands.Bot, message: _discord.Message, reply: bool = 
     if message_jump_link:
         embed.description = embed.description + (f"\n\n[Jump to message]({message.jump_url})" if reply else "")
 
+    # todo: what the fuck? Fix this crap asap.
     # If this message is a reply, make an embed for that too.
     embeds: list[_discord.Embed] = [embed]
     if message.type == _discord.MessageType.reply and reply:

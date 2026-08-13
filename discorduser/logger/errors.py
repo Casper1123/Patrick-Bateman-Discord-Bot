@@ -19,7 +19,7 @@ UNLOGGED_EXCEPTION_TYPES: list[type] = [
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer']  # just putting
 
 
-def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool]:
+def _normalize_exception(error: BaseException) -> tuple[CustomDiscordException, bool]:
     """
     Normalize given Exception into a CustomDiscordException and tells if should be logged or not.
     :return: tuple[normalized exception, should log]
@@ -50,12 +50,12 @@ def _normalize_exception(error: Exception) -> tuple[CustomDiscordException, bool
 
 
 class LoggableErrorContext(ABC):
-    def __init__(self, source: ErrorSource, error: Exception):
+    def __init__(self, source: ErrorSource, error: BaseException):
         self.source = source  # So can be decided on this as opposed to isinstance(something, something)
 
+        self.error, self.log = _normalize_exception(error)
         self.error: CustomDiscordException
         self.log: bool
-        self.error, self.log = _normalize_exception(error)
 
         self._filename: str = '(Error not raised yet?)'
         self._lineno: int | None = 0
@@ -151,7 +151,7 @@ class ListenerErrorContext(LoggableErrorContext):
 
 
 class TaskErrorContext(LoggableErrorContext):
-    def __init__(self, error: Exception, task: Task):
+    def __init__(self, error: BaseException, task: Task):
         super().__init__('task', error)
         self.task: Task = task
 

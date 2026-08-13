@@ -158,7 +158,7 @@ class GlobalLogger:
 
     # endregion
     # region other local
-    async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel) -> None:
+    async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: Messageable) -> None:
         self._console_log(
             f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.display_name} : {interaction.user.id}',
             'local_log_channel_modify')
@@ -227,7 +227,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='fact_delete')
 
-    async def fact_modify(self, interaction: Interaction, guild_id: int, old: SimpleFactEditorData, text: str) -> None:
+    async def fact_modify(self, interaction: Interaction, guild_id: int, old: SimpleFactEditorData, text: str | None) -> None:
         self._console_log(
             f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.display_name} in GuildID {guild_id}, from {old.text} by {old.author_id} :: {text if text else 'Deleted'}',
             'fact_modify')

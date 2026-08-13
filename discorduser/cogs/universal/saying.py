@@ -39,7 +39,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
                            saying='The replacement saying.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def saying_edit(self, interaction: Interaction, index: int, saying: str, ephemeral: bool = False) -> None:
-        if not input_test(self.client, interaction, saying, ephemeral):
+        if not await input_test(self.client, interaction, saying, ephemeral):
             return
 
         try:
@@ -73,6 +73,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         if json:
             sayings: list[dict] = [i.as_json() for i in sayings]
             with io.StringIO(_json.dumps(sayings, indent=4)) as text_stream:
+                # noinspection bad-argument-type
                 file = discord.File(
                     fp=text_stream,
                     filename=f"sayings.json"
@@ -82,6 +83,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
                                   enumerate(sayings)]
             sayings: str = '\n'.join(sayings)
             with io.StringIO(sayings) as text_stream:
+                # noinspection bad-argument-type
                 file = discord.File(
                     fp=text_stream,
                     filename=f"sayings.txt"
@@ -97,18 +99,19 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         )
 
     # region autocomplete
-    async def _index_autocomplete_callback_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
+    async def _index_autocomplete_callback_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
         if not current:
             current = 0
         sayings: list[SimpleSayingEditorData] = self.saying.get_sayings()
         lower, upper = selection_window(len(sayings), current, 4, favour='higher')
+
         return [
-            Choice(name=f'{offset + 1}: {saying.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{offset + 1}: {saying.text[:80]}', value=offset + 1)
             for offset, saying in enumerate(sayings[lower:upper])
         ]
 
     @saying_edit.autocomplete('index')
     @saying_delete.autocomplete('index')
-    async def _index_autocomplete_callback_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
+    async def _index_autocomplete_callback_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
         return await self.autocomplete_guard(_, current, self._index_autocomplete_callback_impl, 'index')
     # endregion

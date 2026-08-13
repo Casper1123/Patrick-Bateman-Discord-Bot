@@ -1,6 +1,6 @@
 from enum import Enum
 
-from discord import Embed, Colour
+from discord import Embed, Colour, VoiceChannel, StageChannel, ForumChannel, TextChannel, CategoryChannel
 
 from configuration.global_config import CFG
 
@@ -25,12 +25,12 @@ class CustomDiscordException(Exception):
     Template exception which includes simple visualisation for user-feedback.
     """
 
-    def __init__(self, message: str = None, cause: Exception | None = None, error_type: str | None = None,
+    def __init__(self, message: str | None = None, cause: BaseException | None = None, error_type: str | None = None,
                  tooltip: ErrorTooltip = ErrorTooltip.ISSUE) -> None:
         self.error_type: str = error_type if error_type else type(
             self).__name__  # Should work through inheritance, right?
         self.message: str | None = message
-        self.cause: Exception | None = cause
+        self.cause: BaseException | None = cause
         self.tooltip: ErrorTooltip = tooltip
 
         super().__init__(self.message)

@@ -53,7 +53,7 @@ class MainCommandsCog(commands.Cog):
         random_message: discord.Message | None = None
         total_seconds = int((newest - oldest).total_seconds())
         attempts: int = 0
-        while random_message is None and attempts < 100:
+        while random_message is None and attempts < 100: # todo: move magic number to config
             # Create a new date in between based on random seconds in between.
             random_seconds = _r.randint(0, total_seconds)
             random_date = oldest + datetime.timedelta(seconds=random_seconds)

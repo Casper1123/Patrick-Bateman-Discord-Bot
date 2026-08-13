@@ -17,7 +17,7 @@ class FactsCog(commands.Cog):
     @app_commands.command(name="fact", description="Gives a fact.")
     @app_commands.describe(index="The index of the fact you would like to request.")
     @app_commands.checks.cooldown(1, CFG.FACT_COOLDOWN, key=lambda i: (i.guild_id, i.user.id))
-    async def fact_give(self, interaction: Interaction, index: int = None):
+    async def fact_give(self, interaction: Interaction, index: int | None = None):
         try:
             fact_raw: str = self.fact.get_fact(interaction.guild_id if not self.fact.is_killswitch() else None, index)
         except IndexError:

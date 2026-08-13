@@ -12,7 +12,11 @@ def build_config(filepath: str):
     """
     otc: dict[loggable, bool] = {i: True for i in get_args(loggable)}
     al: dict[loggable, bool] = {i: True for i in get_args(loggable)}
+
+    # On purpose.
+    # noinspection bad-assignment
     tc: dict[loggable, int] = {i: None for i in get_args(loggable)}
+
     # local
     lal: dict[local_loggable, bool] = {i: True for i in get_args(local_loggable)}
 

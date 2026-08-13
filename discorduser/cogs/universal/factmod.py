@@ -4,6 +4,7 @@ import json as _json
 
 import discord
 from discord import app_commands, Interaction, Embed, Guild, Colour
+from discord.abc import Messageable
 from discord.app_commands import Choice, Transform
 
 from configuration.global_config import CFG
@@ -17,6 +18,7 @@ from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
 from discorduser.user.transformers.channel import ChannelIDTransformer
 from piss.testing import test_raw_input as input_test
+from utilities.exceptions import CustomDiscordException, ErrorTooltip
 from utilities.selection_window import selection_window
 
 
@@ -85,7 +87,13 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         if json:
             out: list[dict] = [v.as_json() for v in global_facts]
             with _io.StringIO(_json.dumps(out, indent=4)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"global_fact_data.json"))
+                # noinspection bad-argument-type
+                files.append(
+                    discord.File(
+                        fp=text_stream,
+                        filename=f"global_fact_data.json"
+                    )
+                )
         else:
             out: list[str] = []
             for i, fact in enumerate(global_facts):
@@ -97,20 +105,31 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 out.append(f'{i + 1} {author}: {fact.text}')
             out: str = '\n'.join(out)
             with _io.StringIO(out) as text_stream:
+                # noinspection bad-argument-type
                 files.append(
-                    discord.File(fp=text_stream, filename=f"global_fact_data_{interaction.guild.id}.txt"))
+                    discord.File(
+                        fp=text_stream,
+                        filename=f"global_fact_data_{interaction.guild.id}.txt"
+                    )
+                )
 
         if local_facts and json:
-            out: dict[int, list[dict[str, str | int]]] = {}
+            out: dict[int, list[dict[str, int | float | None | str | bool | dict | list]]] = {}
             for k, v in local_facts.items():
                 out[k] = [f.as_json() for f in v]
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                files.append(discord.File(fp=text_stream, filename=f"local_fact_data.json"))
+                # noinspection bad-argument-type
+                files.append(
+                    discord.File(
+                        fp=text_stream,
+                        filename=f"local_fact_data.json"
+                    )
+                )
         elif local_facts and not json:
             out: str = ''
             membercache: dict[int, str] = {}
             for k, v in local_facts.items():
-                guild: Guild = self.client.get_guild(k)
+                guild: Guild | None = self.client.get_guild(k)
                 guild_facts: str = f'# - {k} {f': {guild.name}' if guild else ''}'
                 for i, f in enumerate(v):
                     # member -> either in cache or require guild.
@@ -126,7 +145,13 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 guild_facts += '\n\n\n'  # factnl, nl, #guild, space of 2 between last fact and new guild.
                 out += guild_facts
             with _io.StringIO(out) as text_stream:
-                files.append(discord.File(fp=text_stream, filename='local_fact_data.txt'))
+                # noinspection bad-argument-type
+                files.append(
+                    discord.File(
+                        fp=text_stream,
+                        filename='local_fact_data.txt'
+                    )
+                )
 
         await interaction.response.send_message(ephemeral=ephemeral, files=files, embed=Embed(
             title=f'{'Global' if not local else 'Total'} fact data',
@@ -141,14 +166,16 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                            text='Replacement text. Leave empty to remove entirely.',
                            local_log='Log to the given server\'s local log channel. Author will be denoted as the bot.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str = None,
+    async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str | None = None,
                      local_log: bool = True, ephemeral: bool = False) -> None:
         delete: bool = text is None
         if not delete:
+            text: str
             if not await input_test(self.client, interaction, text, ephemeral):
                 return
         try:
             if not delete:
+                text: str
                 old: SimpleFactEditorData = self.fact.edit_fact(guild_id, index, text, interaction.user.id)
             else:
                 old: SimpleFactEditorData = self.fact.delete_fact(guild_id, index)
@@ -158,9 +185,10 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             return
 
         await self.logger.fact_modify(interaction, guild_id, old, text)
-        guild: Guild = self.client.get_guild(guild_id) # used for getting the appropriate log channel.
+        guild: Guild | None = self.client.get_guild(guild_id) # used for getting the appropriate log channel.
         # If it is None it's fine
         if local_log and not delete:
+            text: str
             await self.local_logger.fact_edit(interaction, guild, old, text, externally_modified=True)
         elif local_log and delete:
             await self.local_logger.fact_remove(interaction, guild, old, externally_modified=True)
@@ -191,14 +219,17 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             )
             return
         if json:
-            out: dict[int, list[dict[str, str | int]]] = {
-                guild_id: [f.as_json() for f in local_facts]}
+            out: list[dict[str, int | float | None | str | bool | dict | list]]= [f.as_json() for f in local_facts]
 
             with _io.StringIO(_json.dumps(out, indent=4, sort_keys=True)) as text_stream:
-                file = discord.File(fp=text_stream, filename=f"local_fact_data_{guild_id}.json")
+                # noinspection bad-argument-type
+                file = discord.File(
+                    fp=text_stream,
+                    filename=f"local_fact_data_{guild_id}.json"
+                )
         else:
             membercache: dict[int, str] = {}
-            guild: Guild = self.client.get_guild(guild_id)
+            guild: Guild | None = self.client.get_guild(guild_id)
             guild_facts: str = f'# - {guild_id} {f': {guild.name}' if guild else ''}'
             for i, f in enumerate(local_facts):
                 # member -> either in cache or require guild.
@@ -212,7 +243,11 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                     membercache[f.author_id] = member
                 guild_facts += f'\n{i} ({f.author_id if not member else f'{member} ; {f.author_id}'}): {f.text}'
             with _io.StringIO(guild_facts) as text_stream:
-                file = discord.File(fp=text_stream, filename=f'local_fact_data_{guild_id}.txt')
+                # noinspection bad-argument-type
+                file = discord.File(
+                    fp=text_stream,
+                    filename=f'local_fact_data_{guild_id}.txt'
+                )
         await interaction.response.send_message(ephemeral=ephemeral, file=file, embed=Embed(
             title=f'Local fact data',
             description='JSON data attached.' if json else f'See attached file for fact data.'
@@ -224,8 +259,9 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             current = 0
         facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
+
         return [
-            Choice(name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
@@ -237,16 +273,16 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
         guild_id: int = interaction.namespace.guild_id
         if not guild_id:
-            return [Choice(name='Bad guild ID', value=-1)]
+            return [Choice[int](name='Bad guild ID', value=-1)]
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not facts:
-            return [Choice(name='No local facts', value=-1)]
+            return [Choice[int](name='No local facts', value=-1)]
 
         if not current:
             current = 0
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice(name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
@@ -273,7 +309,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                           description='Ban a user from using Local Fact administrative features. If already banned, unbans them.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION, user_id='The ID of the user you aim to (un)ban.',
                            reason='A reason, for logging purposes.')
-    async def ban_user(self, interaction: Interaction, user_id: int, reason: str = None,
+    async def ban_user(self, interaction: Interaction, user_id: int, reason: str | None = None,
                        ephemeral: bool = False) -> None:
         state: bool = self.mod.toggle_ban('user', user_id)
         user = self.client.get_user(user_id)
@@ -293,7 +329,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            guild_id='The ID of the guild you aim to (un)ban.',
                            reason='A reason, for logging purposes.')
-    async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str = None,
+    async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str | None = None,
                         ephemeral: bool = False) -> None:
         state: bool = self.mod.toggle_ban('guild', guild_id)
         guild = self.client.get_guild(guild_id)
@@ -328,6 +364,10 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                           description='Sets a log channel in global config.')
     async def set_log_channel(self, interaction: Interaction, action: loggable, channel: Transform[int, ChannelIDTransformer], ephemeral: bool = False):
         channel = interaction.guild.get_channel(channel)
+        if not isinstance(channel, Messageable):
+            raise CustomDiscordException(
+                f'Channel id {interaction.channel_id} with type {type(interaction.channel)} is not discord.abc.Messageable.')
+
         if channel:
             await self.logger.set_log_channel(interaction, action,
                                               channel)  # doing this first so it at least lands this type of information in the final channel :p

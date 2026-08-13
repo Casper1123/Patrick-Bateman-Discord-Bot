@@ -105,7 +105,7 @@ class BotClient(commands.Bot):
         if task.cancelled():
             return
 
-        error: BaseException = task.exception()
+        error: BaseException | None = task.exception()
 
         if error is None:
             return
@@ -117,7 +117,7 @@ class BotClient(commands.Bot):
         )
     # endregion
 
-    async def user_feedback(self, interaction: Interaction | discord.Message, title: str = None, desc: str = None,
+    async def user_feedback(self, interaction: Interaction | discord.Message, title: str | None = None, desc: str | None = None,
                             ephemeral: bool = False) -> None:
         """
         Sends the following title and (optional) description in a standardized embed to the user.
