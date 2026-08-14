@@ -122,6 +122,7 @@ class BotClient(commands.Bot):
                 TaskErrorContext(error, task)
             )
         )
+        # todo: terminate?
     # endregion
 
     # noinspection method-may-be-static

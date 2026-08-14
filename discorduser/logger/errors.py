@@ -8,12 +8,13 @@ from discord import Embed, Interaction, Colour
 from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
 
 from piss import InstructionParseError
-from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException
+from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException, IncompatibleTargetChannel
 
 UNLOGGED_EXCEPTION_TYPES: list[type] = [
     InstructionParseError,
     CommandOnCooldown,
     RestrictedUseException,
+    IncompatibleTargetChannel,
 ]
 
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer']  # just putting
