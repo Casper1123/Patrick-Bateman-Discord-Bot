@@ -45,7 +45,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias creation failed',
                                             desc='This alias already exists.')
             return
-        await self.logger.create_alias(interaction, name, rate if rate is not None else 256)
+        await self.logger.alias_create(interaction, name, rate if rate is not None else 256)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias created successfully')
 
     @app_commands.command(name='edit', description='Edit an existing Alias')
@@ -73,7 +73,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                                             desc='The given alias does not exist, or the new alias name is already taken.',
                                             ephemeral=ephemeral)
             return
-        await self.logger.edit_alias(interaction, alias, new_name if (new_name and new_name != alias) else None, rate)
+        await self.logger.alias_edit(interaction, alias, new_name if (new_name and new_name != alias) else None, rate)
         await self.client.user_feedback(interaction, title='Alias edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete an existing Alias, as well as all of its contents.')
@@ -93,7 +93,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
             await self.client.user_feedback(interaction, title='Alias removal failed',
                                             desc='Cannot delete a nonexistent Alias.', ephemeral=ephemeral)
             return
-        await self.logger.delete_alias(interaction, alias)
+        await self.logger.alias_delete(interaction, alias)
         await self.client.user_feedback(interaction, title='Alias deleted successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='index', description='Get all Alias data.')
@@ -196,7 +196,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
             await self.client.user_feedback(interaction, title='Trigger creation failed',
                                             desc=f'The given Alias {alias} does not exist.', ephemeral=ephemeral)
             return
-        await self.logger.create_trigger(interaction, alias, 'regex', text, rate)
+        await self.logger.trigger_create(interaction, alias, 'regex', text, rate)
         await self.client.user_feedback(interaction, title='Trigger created successfully',
                                         desc=f'Alias: {alias}\n*Type: Regex*\nContent: **{text}**', ephemeral=ephemeral)
 
@@ -230,7 +230,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
                                             desc='Trigger index out of bounds',
                                             ephemeral=ephemeral)
             return
-        await self.logger.edit_trigger(interaction, alias, old, text, rate)
+        await self.logger.trigger_edit(interaction, alias, old, text, rate)
         await self.client.user_feedback(interaction, title='Trigger edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete a Trigger')
@@ -249,7 +249,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
                                             desc='Trigger index out of bounds',
                                             ephemeral=ephemeral)
             return
-        await self.logger.delete_trigger(interaction, alias, old)
+        await self.logger.trigger_delete(interaction, alias, old)
         await self.client.user_feedback(interaction, title='Trigger deleted successfully', ephemeral=ephemeral)
 
     # endregion
@@ -334,7 +334,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
             await self.client.user_feedback(interaction, title='Reply creation failed',
                                             desc=f'Alias {alias} does not exist.', ephemeral=ephemeral)
             return
-        await self.logger.create_reply(interaction, alias, reply_type, text, weight)
+        await self.logger.reply_create(interaction, alias, reply_type, text, weight)
         await self.client.user_feedback(interaction, title='Reply created successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='edit', description='Edit a Reply; text and weight only!')
@@ -380,7 +380,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
                                             ephemeral=ephemeral)
             return
 
-        await self.logger.edit_reply(interaction, alias, old, text, weight)
+        await self.logger.reply_edit(interaction, alias, old, text, weight)
         await self.client.user_feedback(interaction, title='Reply edited successfully', ephemeral=ephemeral)
 
     @app_commands.command(name='delete', description='Delete a Reply.')
@@ -400,7 +400,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
                                             ephemeral=ephemeral)
             return
 
-        await self.logger.delete_reply(interaction, alias, old)
+        await self.logger.reply_delete(interaction, alias, old)
         await self.client.user_feedback(interaction, title='Reply deleted successfully', ephemeral=ephemeral)
 
     # endregion

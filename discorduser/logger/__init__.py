@@ -332,7 +332,7 @@ class GlobalLogger:
     # endregion
     # region autoreply
     # region alias
-    async def create_alias(self, interaction: Interaction, name: str, rate: int) -> None:
+    async def alias_create(self, interaction: Interaction, name: str, rate: int) -> None:
         self._console_log(
             f'[ALIAS_CREATE] {interaction.user.id} : {interaction.user.display_name} :: [Rate: {rate}; Name: {name}]',
             'create_alias')
@@ -347,7 +347,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_alias')
 
-    async def edit_alias(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
+    async def alias_edit(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
         self._console_log(
             f'[ALIAS_EDIT] {interaction.user.id} : {interaction.user.display_name} from [{old_name}] :: [Name: {new_name}; Rate: {rate}]',
             'edit_alias')
@@ -362,7 +362,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_alias')
 
-    async def delete_alias(self, interaction: Interaction, old_name: str):
+    async def alias_delete(self, interaction: Interaction, old_name: str):
         self._console_log(
             f'[ALIAS_DELETE] {interaction.user.id} : {interaction.user.display_name} :: [{old_name}]',
             'delete_alias')
@@ -379,7 +379,7 @@ class GlobalLogger:
 
     # endregion
     # region trigger
-    async def create_trigger(self, interaction: Interaction, alias: str, trigger_type: trigger_types, data: str,
+    async def trigger_create(self, interaction: Interaction, alias: str, trigger_type: trigger_types, data: str,
                              rate: int | None):
         self._console_log(
             f'[TRIGGER_CREATE] {interaction.user.id} : {interaction.user.display_name} to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
@@ -398,7 +398,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_trigger')
 
-    async def edit_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str | None,
+    async def trigger_edit(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str | None,
                            rate: int | None) -> None:
         self._console_log(
             f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
@@ -421,7 +421,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_trigger')
 
-    async def delete_trigger(self, interaction: Interaction, alias: str, old: SimpleTriggerData):
+    async def trigger_delete(self, interaction: Interaction, alias: str, old: SimpleTriggerData):
         self._console_log(
             f'[TRIGGER_DELETE] {interaction.user.id} : {interaction.user.display_name} from Alias {alias} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
             'delete_trigger')
@@ -441,7 +441,7 @@ class GlobalLogger:
 
     # endregion
     # region reply
-    async def create_reply(self, interaction: Interaction, alias: str, reply_type: reply_types, data: str,
+    async def reply_create(self, interaction: Interaction, alias: str, reply_type: reply_types, data: str,
                            weight: int | None):
         self._console_log(
             f'[REPLY_CREATE] {interaction.user.id} : {interaction.user.display_name} to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
@@ -460,7 +460,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='create_reply')
 
-    async def edit_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str | None,
+    async def reply_edit(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str | None,
                          weight: int | None):
         self._console_log(
             f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
@@ -483,7 +483,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='edit_reply')
 
-    async def delete_reply(self, interaction: Interaction, alias: str, old: SimpleReplyData):
+    async def reply_delete(self, interaction: Interaction, alias: str, old: SimpleReplyData):
         self._console_log(
             f'[REPLY_DELETE] {interaction.user.id} : {interaction.user.display_name} from Alias {alias} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
             'delete_reply')
@@ -504,7 +504,7 @@ class GlobalLogger:
     # endregion
     # endregion
     # region saying
-    async def create_saying(self, interaction: Interaction, text: str):
+    async def saying_create(self, interaction: Interaction, text: str):
         self._console_log(f'[SAYING_CREATE] {interaction.user.id} : {interaction.user.display_name} :: {text}', 'saying_create')
 
         embed: Embed = Embed(
@@ -517,7 +517,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='saying_create')
 
-    async def edit_saying(self, interaction: Interaction, old: SimpleSayingEditorData, text: str):
+    async def saying_edit(self, interaction: Interaction, old: SimpleSayingEditorData, text: str):
         self._console_log(
             f'[SAYING_EDIT] {interaction.user.id} : {interaction.user.display_name} [{old.text}] :: {text}',
             'saying_edit')
@@ -536,7 +536,7 @@ class GlobalLogger:
         embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
         await self._channel_log(embed=embed, act='saying_edit')
 
-    async def delete_saying(self, interaction: Interaction, old: SimpleSayingEditorData):
+    async def saying_delete(self, interaction: Interaction, old: SimpleSayingEditorData):
         self._console_log(
             f'[SAYING_DELETE] {interaction.user.id} : {interaction.user.display_name} :: {old.text}',
             'saying_delete')

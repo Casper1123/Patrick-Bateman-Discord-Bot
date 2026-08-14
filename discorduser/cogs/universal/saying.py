@@ -30,7 +30,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             return
 
         self.saying.create_saying(saying)
-        await self.logger.create_saying(interaction, saying)
+        await self.logger.saying_create(interaction, saying)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc='Saying created successfully')
 
@@ -48,7 +48,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
 
-        await self.logger.edit_saying(interaction, old, saying)
+        await self.logger.saying_edit(interaction, old, saying)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc=f'Fact edited successfully.')
 
@@ -62,7 +62,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
 
-        await self.logger.delete_saying(interaction, old)
+        await self.logger.saying_delete(interaction, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc=f'Saying deleted successfully.')
 
