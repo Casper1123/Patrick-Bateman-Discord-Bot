@@ -10,12 +10,12 @@ from discord.app_commands import CommandOnCooldown, CommandInvokeError, Transfor
 from piss import InstructionParseError
 from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException, IncompatibleTargetChannel
 
-UNLOGGED_EXCEPTION_TYPES: list[type] = [
+UNLOGGED_EXCEPTION_TYPES: tuple[type, ...] = (
     InstructionParseError,
     CommandOnCooldown,
     RestrictedUseException,
     IncompatibleTargetChannel,
-]
+)
 
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer']  # just putting
 
