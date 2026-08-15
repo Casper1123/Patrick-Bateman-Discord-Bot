@@ -1,6 +1,6 @@
 from asyncio import Task
 import traceback
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 from pathlib import Path
 from typing import Literal, TypeAlias, Any
 
@@ -51,7 +51,7 @@ def _normalize_exception(error: BaseException) -> tuple[CustomDiscordException, 
 
 
 class LoggableErrorContext(ABC):
-    def __init__(self, source: ErrorSource, error: BaseException):
+    def __init__(self, source: ErrorSource, error: BaseException,):
         self.source = source  # So can be decided on this as opposed to isinstance(something, something)
 
         self.error, self.log = _normalize_exception(error)
@@ -87,6 +87,11 @@ class LoggableErrorContext(ABC):
         self._lineno = tb.lineno
         self._name = tb.name
 
+    @abstractproperty
+    def context(self) -> str:
+        # self.context: str = 'for event with params / task name'
+        return '[NO ERROR CONTEXT GIVEN]'
+
     @abstractmethod  # Abstract to force thought about usage in each particular case.
     def as_embed(self) -> Embed:
         """
@@ -102,13 +107,11 @@ class LoggableErrorContext(ABC):
             embed.description += f'{self.error.message}\n\n'
         return embed
 
-    @abstractmethod
     def as_console(self) -> str:
         """
         Templated console logging string.
-        Ends with 'for {ErrorSource} '
         """
-        return f'[[ {self.source.upper()} ERROR ]] {self.error.error_type}{f' ({self.error.cause})' if isinstance(self.error.cause, Exception) else ''} from {self.source} at {self._filename}:{self._lineno} ({self._name}) for {self.source} '
+        return f'[[ {self.source.upper()} ERROR ]] {self.source.lower()} {self.context} raised {'an error' if not self.error.error_type == CustomDiscordException.__name__ else f'{self.error.error_type}'} at {self._filename}:{self._lineno} ({self._name}){f' ({self.error.message})' if self.error.message else ''}{'' if not self.error.cause else f' caused by {type(self.error.cause).__name__}{f': {self.error.cause}' if str(self.error.cause) else ''}'}'
 
 class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
     def __init__(self, source: ErrorSource, error: Exception, interaction: Interaction):
@@ -120,11 +123,16 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
         except TypeError:
             self.params = f'[]'
 
-    def as_console(self) -> str:
-        return super().as_console() + f'/{self.interaction.command.qualified_name if self.interaction.command else '[???]'} with parameters {self.params} by user {self.interaction.user.display_name} ({self.interaction.user.id}) '
+    @property
+    def _interaction_context_helper(self) -> str:
+        return f'{f'/{self.interaction.command.qualified_name}' if self.interaction.command else ''} with params {self.params}'
 
 
 class ListenerErrorContext(LoggableErrorContext):
+    @property
+    def context(self) -> str:
+        return f'{self.event} with params {self.params}'
+
     def __init__(self, error: Exception, event: str, params: str):
         """
         :param event: Event name
@@ -147,11 +155,12 @@ class ListenerErrorContext(LoggableErrorContext):
                                   f'{self.error.cause}')
         return embed
 
-    def as_console(self) -> str:
-        return super().as_console() + f'{self.event} with parameters {self.params}'
-
 
 class TaskErrorContext(LoggableErrorContext):
+    @property
+    def context(self) -> str:
+        return f'{self.task.get_name()}'
+
     def __init__(self, error: BaseException, task: Task):
         super().__init__('task', error)
         self.task: Task = task
@@ -166,11 +175,13 @@ class TaskErrorContext(LoggableErrorContext):
                                   f'{self.error.cause}')
         return embed
 
-    def as_console(self) -> str:
-        return super().as_console() + f'{self.task.get_name()}'
-
 
 class AppCommandErrorContext(LoggableInteractionErrorContext):
+    @property
+    def context(self) -> str:
+        # for app_command /blablabla
+        return self._interaction_context_helper
+
     def as_embed(self) -> Embed:
         # todo: check
         embed: Embed = super().as_embed()
@@ -191,6 +202,10 @@ class AppCommandErrorContext(LoggableInteractionErrorContext):
 
 
 class AutocompleteErrorContext(LoggableInteractionErrorContext):
+    @property
+    def context(self) -> str:
+        return f'for command {self._interaction_context_helper} with target parameter {self.target} ({self.current}) and params {self.params}'
+
     def __init__(self, error: Exception, target: str, current: Any, interaction: Interaction):
         """
         :param target: Target parameter name
@@ -220,11 +235,12 @@ class AutocompleteErrorContext(LoggableInteractionErrorContext):
         embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
         return embed
 
-    def as_console(self) -> str:
-        return super().as_console() + f'with target [{self.target}={self.current}]'
-
 
 class TransformerErrorContext(LoggableInteractionErrorContext):
+    @property
+    def context(self) -> str:
+        return f'{type(self._original_error.transformer).__name__} with input {self._original_error.value} for command {self._interaction_context_helper}'
+
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
         embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
@@ -240,9 +256,6 @@ class TransformerErrorContext(LoggableInteractionErrorContext):
                               f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
         embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
         return embed
-
-    def as_console(self) -> str:
-        return super().as_console() + f'for Transformer {type(self._original_error.transformer).__name__} given the value ({self._original_error.type}) {self._original_error.value}'
 
     def __init__(self, error: TransformerError, interaction: Interaction):
         super().__init__('transformer', error, interaction)
