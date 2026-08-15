@@ -2,7 +2,14 @@ from typing import Literal, get_args, TypeAlias
 
 from configuration.abstract import AbstractJSONConfig
 
-loggable: TypeAlias = Literal['fact_create', 'fact_edit', 'fact_delete', 'set_log_channel', 'set_channel_preferences']
+loggable: TypeAlias = Literal[
+    'fact_create',
+    'fact_edit',
+    'fact_delete',
+
+    'set_log_channel',
+    'set_channel_preferences'
+]
 
 
 class LocalLoggerConfig(AbstractJSONConfig):

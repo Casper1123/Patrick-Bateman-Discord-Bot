@@ -2,7 +2,7 @@ import io as _io
 import json as _json
 
 import discord
-from discord import app_commands, Interaction, Guild
+from discord import app_commands, Interaction, Guild, TextChannel, VoiceChannel, StageChannel, Thread
 from discord.abc import Messageable
 from discord.app_commands import Choice, Transform
 
@@ -286,11 +286,11 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         await interaction.response.defer(ephemeral=ephemeral, thinking=True)
 
         if not here:
-            channel = None
-        elif not isinstance(interaction.channel, Messageable):
-            raise IncompatibleTargetChannel(interaction.channel, Messageable.__name__)
+            channel: None = None
+        elif isinstance(interaction.channel, (TextChannel, VoiceChannel, StageChannel, Thread)):
+            channel: TextChannel | VoiceChannel | StageChannel | Thread = interaction.channel
         else:
-            channel = interaction.channel
+            raise IncompatibleTargetChannel(interaction.channel, Messageable.__name__)
 
         # Always instance available as this is a guild_only command.
         # noinspection bad-assignment
