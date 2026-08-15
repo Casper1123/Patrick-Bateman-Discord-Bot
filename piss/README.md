@@ -1,0 +1,36 @@
+# P.I.S.S.
+**P**rocedural<BR>
+**I**nstruction<BR>
+**S**equence<BR>
+**S**tring<BR>
+<BR>
+P.I.S.S. is a system that allows for embedding context information or other function calls into strings, 
+which are used to build Discord message(s) by **procedural**ly parsing the input **string** into a **sequence** of **Instruction**s.
+This follows the formatting style notated below and is usable in either Message or Instruction contexts (guild only as of writing).
+
+
+# Format
+Inside string input, Instruction blocks can be embedded. These can contain a number of Instructions (see Instructions chapter), delimited by `;`.
+These blocks can contribute to the string building by ending with an Instruction that returns a string-convertible piece of data.<BR>
+An example: `Test that will be built using {A; B; C; D} into a Discord message.` becomes, 
+            `Test that will be built using D into a Discord message.`
+(given that Instructions A, B and C perform other actions than returning data).
+You can recognize these data-only Instructions by their signature in the Instructions chapter,
+as well as direct calls to memory entries with types convertible to `str`.
+
+
+# Instructions
+The following instructions are listed in order of parsing.
+If any input matches multiple signatures, the one higher up the list is matched first.<BR>
+
+## Build
+> Signature: **None**
+
+Special Instruction created using text outside of Instruction block context.<BR>
+Appends given text to the currently built output.
+
+
+
+# Execution and Testing
+
+
