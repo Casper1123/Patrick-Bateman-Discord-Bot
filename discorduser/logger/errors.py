@@ -7,7 +7,7 @@ from typing import Literal, TypeAlias, Any
 from discord import Embed, Interaction, Colour
 from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
 
-from piss import InstructionParseError
+from piss.old import InstructionParseError
 from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException, IncompatibleTargetChannel
 
 UNLOGGED_EXCEPTION_TYPES: tuple[type, ...] = (

@@ -8,8 +8,8 @@ from discord.ext import commands
 from data.interfaces.autoreplies import TextAutoreplyInterface, SimpleAliasData, SimpleReplyData
 from data.interfaces.pref import PreferencesInterface
 from discorduser.user.abstract import BotClient
-from piss import Instruction, parse_variables
-from piss.instructionexecutor import InstructionExecutor
+from piss.old import Instruction, parse_variables
+from piss.old.instructionexecutor import InstructionExecutor
 
 @app_commands.guild_only()
 class MessageContentAutoreplyCog(commands.Cog):

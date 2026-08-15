@@ -6,8 +6,8 @@ from discord.ext import commands
 
 from data.interfaces.saying import SayingInterface
 from discorduser.user.abstract import BotClient
-from piss import Instruction, parse_variables
-from piss.instructionexecutor import InstructionExecutor
+from piss.old import Instruction, parse_variables
+from piss.old.instructionexecutor import InstructionExecutor
 
 _ask_command_name: str = 'ask'
 

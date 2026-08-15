@@ -8,8 +8,8 @@ from configuration.global_config import CFG
 from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import SayingInterface
 from discorduser.user.abstract import BotClient
-from piss import Instruction, parse_variables
-from piss.instructionexecutor import InstructionExecutor
+from piss.old import Instruction, parse_variables
+from piss.old.instructionexecutor import InstructionExecutor
 
 @app_commands.guild_only()
 class RandomAutoreplyCog(commands.Cog):

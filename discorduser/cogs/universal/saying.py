@@ -10,7 +10,7 @@ from data.interfaces.saying import GlobalAdminSayingInterface, SimpleSayingEdito
 from discorduser.logger import GlobalLogger
 from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
-from piss.testing import test_raw_input as input_test
+from piss.old.testing import test_raw_input as input_test
 from utilities.selection_window import selection_window
 
 

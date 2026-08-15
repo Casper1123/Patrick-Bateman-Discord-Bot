@@ -1,8 +1,8 @@
 from discord import Interaction, Message, Embed
 
 from discorduser.user.abstract import BotClient
-from piss import Instruction, parse_variables, InstructionParseError
-from piss.instructionexecutor import DebugInstructionExecutor, ParsedExecutionFailure
+from piss.old import Instruction, parse_variables, InstructionParseError
+from piss.old.instructionexecutor import DebugInstructionExecutor, ParsedExecutionFailure
 
 
 async def test_raw_input(client: BotClient, interaction: Interaction | Message, text: str, ephemeral: bool) -> bool:
