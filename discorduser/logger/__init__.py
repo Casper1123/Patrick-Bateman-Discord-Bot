@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import get_args
 
-from discord import Interaction, Embed, Guild, TextChannel, User, Colour, VoiceChannel, StageChannel, Thread
+from discord import Interaction, Embed, Guild, TextChannel, User, Colour, VoiceChannel, StageChannel, Thread, Member
 from discord.abc import Messageable
 from discord.ext import commands
 
@@ -68,9 +68,37 @@ class GlobalLogger:
 
     # endregion
 
-    async def log_general(self, console: str, channel: Embed) -> None:
-        self._console_log(console, 'general')
+    # region visualization-helpers
+    # noinspection method-may-be-static
+    def _performed_by(self, vis: Embed, interaction: Interaction) -> Embed:
+        """
+        Standard visualization for 'performed by this person'. It does this by setting the footer.
+        Returns object after mutation.
+        """
 
+        # noinspection DuplicatedCode
+        if isinstance(interaction.user, Member):
+            vis.set_footer(
+                text=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
+                icon_url=interaction.user.display_avatar.url
+            )
+        else:
+            vis.set_footer(
+                text=f'{interaction.user.display_name} ({interaction.user.id})',
+                icon_url=interaction.user.display_avatar.url
+            )
+
+        return vis
+
+    # endregion
+
+    async def log_general(self, console: str, channel: Embed) -> None:
+        """
+        Log given data to the 'general' channel.
+        :param console: Console printable string.
+        :param channel: Embed to be sent into the log channel
+        """
+        self._console_log(console, 'general')
         await self._channel_log(channel, 'general')
 
     async def error(self, error_context: LoggableErrorContext) -> None:
@@ -100,70 +128,77 @@ class GlobalLogger:
 
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
         self._console_log(
-            f'[LOCAL FACT_CREATE] {interaction.user.id} : {interaction.user.display_name} in {guild.id} : {guild.name} :: {text}',
-            'local_fact_create')
+            out=f'[ LOCAL FACT_CREATE ] in {guild.name} ({guild.id}) by {interaction.user.display_name} ({interaction.user.id}) :: {text}',
+            act='local_fact_create'
+        )
 
         embed: Embed = Embed(
-            title='[LOCAL_FACT_CREATE]',
-            description=f'{text}\n'
-                        f'\n'
-                        f'Created by: {interaction.user.display_name} ({interaction.user.id})\n'
-                        f'In: {guild.name} ({guild.id})',
+            title='Local fact created',
+            description=f'**New:**\n'
+                        f'{text}',
             colour=Colour.green()
         )
+
+        self._performed_by(embed, interaction)
+
         try:
             # noinspection unresolved-references
-            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+            embed.set_author(name=f'{guild.name} ({guild.id})', icon_url=guild.icon.url)
         except AttributeError:
-            embed.set_footer(text=guild.name)
+            embed.set_author(name=f'{guild.name} ({guild.id})')
 
         await self._channel_log(embed=embed, act='local_fact_create')
 
     async def local_fact_edit(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData,
                               text: str) -> None:
         self._console_log(
-            f'[LOCAL FACT_EDIT] {interaction.user.id} : {interaction.user.display_name} in {guild.id} : {guild.name} :: {text}',
-            'local_fact_edit')
+            out=f'[ LOCAL FACT EDIT ] in {guild.name} ({guild.id}) by {interaction.user.display_name} ({interaction.user.id}) :: {old.text} ::to:: {text}',
+            act='local_fact_edit'
+        )
 
         embed: Embed = Embed(
-            title='[LOCAL_FACT_EDIT]',
+            title='Local fact edited',
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'{text}\n'
-                        f'\n'
-                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})\n'
-                        f'In: {guild.name} ({guild.id})',
+                        f'{text}',
             colour=Colour.yellow()
         )
+
+        self._performed_by(embed, interaction)
+        
         try:
             # noinspection unresolved-references
-            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+            embed.set_author(name=f'{guild.name} ({guild.id})', icon_url=guild.icon.url)
         except AttributeError:
-            embed.set_footer(text=guild.name)
+            embed.set_author(name=f'{guild.name} ({guild.id})')
 
         await self._channel_log(embed=embed, act='local_fact_edit')
 
-    async def local_fact_remove(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData) -> None:
+    async def local_fact_delete(self, guild: Guild, interaction: Interaction, old: SimpleFactEditorData) -> None:
         self._console_log(
-            f'[LOCAL FACT_DELETE] {interaction.user.id} : {interaction.user.display_name} in {guild.id} : {guild.name} :: {old.text}',
-            'local_fact_delete')
+            out=f'[ LOCAL FACT DELETE ] in {guild.name} ({guild.id}) by {interaction.user.display_name} ({interaction.user.id}) ::old:: {old.text}',
+            act='local_fact_delete'
+        )
 
         embed: Embed = Embed(
-            title='[LOCAL_FACT_DELETE]',
+            title='Local fact deleted',
             description=f'**Old:**\n'
-                        f'{old.text}\n'
-                        f'\n'
-                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})\n'
-                        f'In: {guild.name} ({guild.id})',
+                        f'{old.text}',
             colour=Colour.red()
         )
+
+        embed.set_footer(
+            text=f'{interaction.user.display_name} ({interaction.user.id})',
+            icon_url=interaction.user.display_avatar.url
+        )
+
         try:
             # noinspection unresolved-references
-            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+            embed.set_author(name=f'{guild.name} ({guild.id})', icon_url=guild.icon.url)
         except AttributeError:
-            embed.set_footer(text=guild.name)
+            embed.set_author(name=f'{guild.name} ({guild.id})')
 
         await self._channel_log(embed=embed, act='local_fact_delete')
 
@@ -171,22 +206,22 @@ class GlobalLogger:
     # region other local
     async def local_set_log_channel(self, guild: Guild, interaction: Interaction, channel: TextChannel | VoiceChannel | StageChannel | Thread) -> None:
         self._console_log(
-            f'[LOCAL SET_LOG_CHANNEL] Set logging channel for {guild.name} : {guild.id} :: {channel.id} set by {interaction.user.display_name} : {interaction.user.id}',
+            f'[LOCAL SET LOG CHANNEL ] in {guild.name} ({guild.id}) by {interaction.user.display_name} ({interaction.user.id}) :: {channel.name} ({channel.id})',
             'local_log_channel_modify')
 
         embed: Embed = Embed(
-            title='[LOCAL_SET_LOG_CHANNEL]',
-            description=f'Set to: {channel.name} ({channel.id})\n'
-                        f'\n'
-                        f'Set by: {interaction.user.display_name} ({interaction.user.id})',
-            colour=Colour.blue()
+            title='Local log channel set',
+            description=f'Set to: {channel.name} ({channel.id})',
+            colour=Colour.default()
         )
+
+        self._performed_by(embed, interaction)
+
         try:
-            # Handled.
             # noinspection unresolved-references
-            embed.set_footer(text=guild.name, icon_url=guild.icon.url)
+            embed.set_author(name=f'{guild.name} ({guild.id})', icon_url=guild.icon.url)
         except AttributeError:
-            embed.set_footer(text=guild.name)
+            embed.set_author(name=f'{guild.name} ({guild.id})')
 
         await self._channel_log(embed, 'local_log_channel_modify')
 
@@ -197,117 +232,124 @@ class GlobalLogger:
     # region fact
     async def fact_create(self, interaction: Interaction, text: str) -> None:
         self._console_log(
-            f'[FACT_CREATE] {interaction.user.id} : {interaction.user.display_name} :: {text}',
-            'fact_create')
+            out=f'[ FACT CREATE ] by {interaction.user.display_name} ({interaction.user.id}) :: {text}',
+            act='fact_create'
+        )
 
         embed: Embed = Embed(
-            title='[FACT_CREATE]',
-            description=f'{text}\n'
-                        f'\n'
-                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
+            title='Fact created',
+            description=f'**New:**\n'
+                        f'{text}',
             colour=Colour.green()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='fact_create')
 
     async def fact_edit(self, interaction: Interaction, old: SimpleFactEditorData, text: str) -> None:
         self._console_log(
-            f'[FACT_EDIT] {interaction.user.id} : {interaction.user.display_name} :: {text}',
+            f'[ FACT EDIT ] by {interaction.user.display_name} ({interaction.user.id}) :: {old.text} ::to:: {text}',
             'fact_edit')
 
         embed: Embed = Embed(
-            title='[FACT_EDIT]',
+            title='Fact edited',
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'{text}\n'
-                        f'\n'
-                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'{text}\n',
             colour=Colour.yellow()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='fact_edit')
 
-    async def fact_remove(self, interaction: Interaction, old: SimpleFactEditorData):
+    async def fact_delete(self, interaction: Interaction, old: SimpleFactEditorData):
         self._console_log(
-            f'[FACT_DELETE] {interaction.user.id} : {interaction.user.display_name} :: {old.text}',
+            f'[FACT_DELETE] by {interaction.user.display_name} ({interaction.user.id}) :: {old.text}',
             'fact_delete')
 
         embed: Embed = Embed(
-            title='[FACT_DELETE]',
+            title='Fact deleted',
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
                         f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.red()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='fact_delete')
 
     async def fact_modify(self, interaction: Interaction, guild_id: int, old: SimpleFactEditorData, text: str | None) -> None:
+        guild = self.client.get_guild(guild_id) # todo: api call?
+
         self._console_log(
-            f'[FACT_MODIFY] {interaction.user.id} : {interaction.user.display_name} in GuildID {guild_id}, from {old.text} by {old.author_id} :: {text if text else 'Deleted'}',
+            f'[ FACT MODIFY ] by {interaction.user.display_name} ({interaction.user.id}) for guild {f'{guild.name} ({guild.id})' if guild else guild_id} :: {old.text} by {old.author_id} ::to:: {text if text else 'Deleted'}',
             'fact_modify')
 
-        try:
-            guild = await self.client.fetch_guild(guild_id)
-        except: # todo: figure out what I wanna do here
-            guild = None
-
         embed: Embed = Embed(
-            title='[FACT_MODIFY]',
+            title='Fact modified',
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
                         f'**New:**\n'
                         f'{text if text else 'Deleted'}\n'
                         f'\n'
-                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})'
                         f'For Guild **{guild.name if guild else '[fetch failed]'}** ({guild_id})',
-            colour=Colour.orange()
+            colour=Colour.purple() if text is not None else Colour.dark_purple()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='fact_modify')
 
     # endregion
     # region moderation
-    async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, new_state: bool,
+    async def ban_user(self, interaction: Interaction, user_id: int, user: User | None, banned: bool,
                        reason: str | None) -> None:
         self._console_log(
-            f'[BAN USER] {interaction.user.id} : {interaction.user.display_name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not user else user.display_name} : {user_id} {'' if not reason else f'({reason})'}',
+            f'[ BAN USER ] by {interaction.user.display_name} ({interaction.user.id}) {'banned' if banned else 'unbanned'} {f'{user.display_name} ({user.id})' if user else user_id} {'' if not reason else f'({reason})'}',
             'ban_user')
+
         # todo: api call for this information? Should be a rare command.
+
         embed: Embed = Embed(
-            title='[BAN USER]',
-            description=f'**{'UN' if not new_state else ''}BANNED**\n'
+            title=f'User {'banned' if banned else 'unbanned'}',
+            description=f'**{'Banned' if banned else 'Unbanned'}**\n'
+                        f'{f'{user.display_name} ({user.id})' if user else user_id}\n'
+                        f'<@{user_id}>\n'
                         f'\n'
-                        f'{'NO NAME AVAILABLE' if not user else user.display_name} : {user_id}\n'
-                        f'\n'
-                        f'Done by: {interaction.user.display_name} ({interaction.user.id})\n'
                         f'{'' if not reason else f'\nReason: *{reason}*'}',
-            colour=Colour.red()
+            colour=Colour.red() if banned else Colour.green()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed, 'ban_user')
 
-    async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, new_state: bool,
+    async def ban_guild(self, interaction: Interaction, guild_id: int, guild: Guild | None, banned: bool,
                         reason: str | None) -> None:
         self._console_log(
-            f'[BAN GUILD] {interaction.user.id} : {interaction.user.display_name} {'UN' if not new_state else ''}BANNED {'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id} {'' if not reason else f'({reason})'}',
+            f'[ BAN GUILD ] by {interaction.user.display_name} ({interaction.user.id}) {'banned' if banned else 'unbanned'} {f'{guild.name} ({guild.id})' if guild else guild_id} {'' if not reason else f'({reason})'}',
             'ban_guild')
+
         # todo: api call for this information? Should be a rare command.
+
         embed: Embed = Embed(
-            title='[BAN GUILD]',
-            description=f'**{'UN' if not new_state else ''}BANNED**\n'
+            title=f'Guild {'banned' if banned else 'unbanned'}',
+            description=f'**{'Banned' if banned else 'Unbanned'}**\n'
+                        f'{f'{guild.name} ({guild.id})' if guild else guild_id}\n'
                         f'\n'
-                        f'{'NO NAME AVAILABLE' if not guild else guild.name} : {guild_id}\n'
-                        f'\n'
-                        f'Done by: {interaction.user.display_name} ({interaction.user.id})\n'
                         f'{'' if not reason else f'\nReason: *{reason}*'}',
-            colour=Colour.red()
+            colour=Colour.red() if banned else Colour.green()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed, 'ban_guild')
 
     async def set_log_channel(self, interaction: Interaction, action: loggable, target: TextChannel | VoiceChannel | StageChannel | Thread):
@@ -315,17 +357,19 @@ class GlobalLogger:
         Call BEFORE moving channel!
         """
         self._console_log(
-            f'[SET LOG CHANNEL] {interaction.user.id} : {interaction.user.display_name} set {action} to {target.id} : {target.name}',
+            f'[ SET LOG CHANNEL ] by {interaction.user.display_name} ({interaction.user.id}) set {action} to {target.name} ({target.id})',
             'general')
 
         embed: Embed = Embed(
-            title='[SET_LOG_CHANNEL]',
+            title='Log channel set',
             description=f'Moving of {action} logging to <#{target.id}> ({target.name}; {target.id})\n'
                         f'\n'
                         f'Moved by: {interaction.user.display_name} ({interaction.user.id})',
             colour=Colour.blue()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act=action)  # logging to old output channel that it's been moved
         await self._channel_log(embed=embed, act='general')
 
@@ -334,47 +378,52 @@ class GlobalLogger:
     # region alias
     async def alias_create(self, interaction: Interaction, name: str, rate: int) -> None:
         self._console_log(
-            f'[ALIAS_CREATE] {interaction.user.id} : {interaction.user.display_name} :: [Rate: {rate}; Name: {name}]',
+            f'[ ALIAS CREATE ] by {interaction.user.display_name} ({interaction.user.id}) :: [Name: {name}; Rate: {rate}]',
             'create_alias')
         embed: Embed = Embed(
-            title='[ALIAS_CREATE]',
+            title='Alias created',
             description=f'Name: {name}\n'
-                        f'Rate: {rate}\n'
-                        f'\n'
-                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'Rate: {rate}',
             colour=Colour.green()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='create_alias')
 
     async def alias_edit(self, interaction: Interaction, old_name: str, new_name: str | None, rate: int | None) -> None:
         self._console_log(
-            f'[ALIAS_EDIT] {interaction.user.id} : {interaction.user.display_name} from [{old_name}] :: [Name: {new_name}; Rate: {rate}]',
+            f'[ ALIAS EDIT ] by {interaction.user.display_name} ({interaction.user.id}) from [{old_name}] :: [Name: {new_name}; Rate: {rate}]',
             'edit_alias')
         embed: Embed = Embed(
-            title='[ALIAS_EDIT]',
+            title='Alias edited',
             description=f'**Old:**\n'
-                        f'\t{old_name}\n' # todo: fix this information properly.
+                        f'Name: {old_name}\n' # todo: fix this information properly.
                         f'\n'
-                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'**New:**\n'
+                        f'Name: {new_name}\n'
+                        f'Rate: {rate}',
             colour=Colour.yellow()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='edit_alias')
 
     async def alias_delete(self, interaction: Interaction, old_name: str):
         self._console_log(
-            f'[ALIAS_DELETE] {interaction.user.id} : {interaction.user.display_name} :: [{old_name}]',
+            f'[ ALIAS DELETE ] by {interaction.user.display_name} ({interaction.user.id}) :: [{old_name}]',
             'delete_alias')
+
         embed: Embed = Embed(
-            title='[ALIAS_DELETE]',
+            title='Alias deleted',
             description=f'**Old:**\n'
-                        f'\t{old_name}\n'
-                        f'\n'
-                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'Name: {old_name}',
             colour=Colour.red()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='delete_alias')
 
     # endregion
@@ -382,61 +431,61 @@ class GlobalLogger:
     async def trigger_create(self, interaction: Interaction, alias: str, trigger_type: trigger_types, data: str,
                              rate: int | None):
         self._console_log(
-            f'[TRIGGER_CREATE] {interaction.user.id} : {interaction.user.display_name} to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
-            'edit_trigger')
+            f'[ TRIGGER CREATE ] by {interaction.user.display_name} ({interaction.user.id}) to Alias {alias} :: [Type: {trigger_type}; Rate: {rate}; Data: {data}]',
+            'create_trigger')
         embed: Embed = Embed(
-            title='[TRIGGER_CREATE]',
+            title='Trigger created',
             description=f'**Alias:** {alias}\n'
                         f'**New:**\n'
-                        f'\tType: {trigger_type}\n'
-                        f'\tData: {data}\n'
-                        f'\tRate: {rate}\n'
-                        f'\n'
-                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'Type: {trigger_type}\n'
+                        f'Rate: {rate}\n'
+                        f'Data: {data}',
             colour=Colour.green()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='create_trigger')
 
     async def trigger_edit(self, interaction: Interaction, alias: str, old: SimpleTriggerData, data: str | None,
                            rate: int | None) -> None:
         self._console_log(
-            f'[TRIGGER_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] :: [Rate: {rate}; Data: {data}]',
+            f'[ TRIGGER EDIT]  by {interaction.user.display_name} ({interaction.user.id}) from Alias {alias}, Old: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}] ::to:: [Rate: {rate}; Data: {data}]',
             'edit_trigger')
         embed: Embed = Embed(
-            title='[REPLY_EDIT]',
+            title='Trigger edited',
             description=f'**Alias:** {alias}\n'
                         f'**Old:**\n'
-                        f'\tType: {old.type}\n'
-                        f'\tData: {old.data}\n'
-                        f'\tRate: {old.rate}\n'
+                        f'Type: {old.type}\n'
+                        f'Data: {old.data}\n'
+                        f'Rate: {old.rate}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'\tData: {data if data is not None else '[ Not changed ]'}\n'
-                        f'\tRate: {rate if rate is not None else '[ Not changed ]'}\n'
-                        f'\n'
-                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'Data: {data if data is not None else '[ Not changed ]'}\n'
+                        f'Rate: {rate if rate is not None else '[ Not changed ]'}',
             colour=Colour.yellow()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='edit_trigger')
 
     async def trigger_delete(self, interaction: Interaction, alias: str, old: SimpleTriggerData):
         self._console_log(
-            f'[TRIGGER_DELETE] {interaction.user.id} : {interaction.user.display_name} from Alias {alias} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
+            f'[ TRIGGER DELETE ] by {interaction.user.display_name} ({interaction.user.id}) from Alias {alias} :: [Type: {old.type}; Rate: {old.rate}; Data: {old.data}]',
             'delete_trigger')
         embed: Embed = Embed(
-            title='[TRIGGER_DELETE]',
+            title='Trigger deleted',
             description=f'**Alias:** {alias}\n'
                         f'**Old:**\n'
-                        f'\tType: {old.type}\n'
-                        f'\tData: {old.data}\n'
-                        f'\tRate: {old.rate}\n'
-                        f'\n'
-                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'Type: {old.type}\n'
+                        f'Data: {old.data}\n'
+                        f'Rate: {old.rate}',
             colour=Colour.red()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='delete_trigger')
 
     # endregion
@@ -444,112 +493,117 @@ class GlobalLogger:
     async def reply_create(self, interaction: Interaction, alias: str, reply_type: reply_types, data: str,
                            weight: int | None):
         self._console_log(
-            f'[REPLY_CREATE] {interaction.user.id} : {interaction.user.display_name} to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
+            f'[ REPLY CREATE ] by {interaction.user.display_name} ({interaction.user.id}) to Alias {alias} :: [Type: {reply_type}; Weight: {weight}; Data: {data}]',
             'edit_reply')
         embed: Embed = Embed(
-            title='[REPLY_CREATE]',
+            title='Reply created',
             description=f'**Alias:** {alias}\n'
                         f'**New:**\n'
-                        f'\tType: {reply_type}'
-                        f'\tData: {data if data is not None else '[ Not changed ]'}\n'
-                        f'\tWeight: {weight if weight is not None else '[ Not changed ]'}\n'
-                        f'\n'
-                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
-            colour=Colour.green()
+                        f'Type: {reply_type}'
+                        f'Data: {data if data is not None else '[ Not changed ]'}\n'
+                        f'Weight: {weight if weight is not None else '[ Not changed ]'}',
+            colour=Colour.yellow()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='create_reply')
 
     async def reply_edit(self, interaction: Interaction, alias: str, old: SimpleReplyData, data: str | None,
                          weight: int | None):
         self._console_log(
-            f'[REPLY_EDIT] {interaction.user.id} : {interaction.user.display_name} from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] :: [Weight: {weight}; Data: {data}]',
+            f'[ REPLY EDIT ] by {interaction.user.display_name} ({interaction.user.id}) from Alias {alias}, Old: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}] ::to:: [Weight: {weight}; Data: {data}]',
             'edit_reply')
+
         embed: Embed = Embed(
-            title='[REPLY_EDIT]',
+            title='Reply edited',
             description=f'**Alias:** {alias}\n'
                         f'**Old:**\n'
-                        f'\tType: {old.type}\n'
-                        f'\tData: {old.data}\n'
-                        f'\tWeight: {old.weight}\n'
+                        f'Type: {old.type}\n'
+                        f'Data: {old.data}\n'
+                        f'Weight: {old.weight}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'\tData: {data}\n'
-                        f'\tWeight: {weight}\n'
-                        f'\n'
-                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'Data: {data}\n'
+                        f'Weight: {weight}',
             colour=Colour.yellow()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='edit_reply')
 
     async def reply_delete(self, interaction: Interaction, alias: str, old: SimpleReplyData):
         self._console_log(
-            f'[REPLY_DELETE] {interaction.user.id} : {interaction.user.display_name} from Alias {alias} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
+            f'[ REPLY DELETE ] by {interaction.user.display_name} ({interaction.user.id}) from Alias {alias} :: [Type: {old.type}; Weight: {old.weight}; Data: {old.data}]',
             'delete_reply')
         embed: Embed = Embed(
-            title='[REPLY_DELETE]',
+            title='Reply deleted',
             description=f'**Alias:** {alias}\n'
                         f'**Old:**\n'
                         f'\tType: {old.type}\n'
                         f'\tData: {old.data}\n'
-                        f'\tWeight: {old.weight}\n'
-                        f'\n'
-                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'\tWeight: {old.weight}',
             colour=Colour.red()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='delete_reply')
 
     # endregion
     # endregion
     # region saying
     async def saying_create(self, interaction: Interaction, text: str):
-        self._console_log(f'[SAYING_CREATE] {interaction.user.id} : {interaction.user.display_name} :: {text}', 'saying_create')
+        self._console_log(
+            f'[ SAYING CREATE ] by {interaction.user.display_name} ({interaction.user.id}) :: {text}',
+            'saying_create'
+        )
 
         embed: Embed = Embed(
-            title='[SAYING_CREATE]',
-            description=f'{text}\n'
-                        f'\n'
-                        f'Created by: {interaction.user.display_name} ({interaction.user.id})',
+            title='Saying created',
+            description=f'**New:**\n'
+                        f'{text}',
             colour=Colour.green()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='saying_create')
 
     async def saying_edit(self, interaction: Interaction, old: SimpleSayingEditorData, text: str):
         self._console_log(
-            f'[SAYING_EDIT] {interaction.user.id} : {interaction.user.display_name} [{old.text}] :: {text}',
+            f'[ SAYING EDIT ] by {interaction.user.display_name} ({interaction.user.id}) :: {old.text} ::to:: {text}',
             'saying_edit')
 
         embed: Embed = Embed(
-            title='[SAYING_EDIT]',
+            title='Saying edited',
             description=f'**Old:**\n'
                         f'{old.text}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'{text}\n'
-                        f'\n'
-                        f'Edited by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'{text}',
             colour=Colour.yellow()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='saying_edit')
 
     async def saying_delete(self, interaction: Interaction, old: SimpleSayingEditorData):
         self._console_log(
-            f'[SAYING_DELETE] {interaction.user.id} : {interaction.user.display_name} :: {old.text}',
+            f'[ SAYING DELETE ] by {interaction.user.display_name} ({interaction.user.id}) :: {old.text}',
             'saying_delete')
 
         embed: Embed = Embed(
-            title='[SAYING_DELETE]',
+            title='Saying deleted',
             description=f'**Old:**\n'
-                        f'{old.text}\n'
-                        f'\n'
-                        f'Removed by: {interaction.user.display_name} ({interaction.user.id})',
+                        f'{old.text}',
             colour=Colour.red()
         )
-        embed.set_footer(text=interaction.user.name, icon_url=interaction.user.display_avatar.url)
+
+        self._performed_by(embed, interaction)
+
         await self._channel_log(embed=embed, act='saying_delete')
     # endregion
     # endregion

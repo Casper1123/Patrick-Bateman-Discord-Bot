@@ -1,6 +1,4 @@
-from typing import Any
-
-from discord import Interaction, TextChannel, Guild, Embed, Colour, VoiceChannel, StageChannel, Thread, Member, User
+from discord import Interaction, TextChannel, Guild, Embed, Colour, VoiceChannel, StageChannel, Thread, Member
 from discord.abc import Messageable
 from discord.ext import commands
 
@@ -50,13 +48,13 @@ class LocalLogger:
             colour=Colour.green()
         )
         if isinstance(interaction.user, Member):
-            embed.set_author(
-                name=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
         else:
-            embed.set_author(
-                name=f'{interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
 
@@ -88,18 +86,18 @@ class LocalLogger:
 
             # noinspection unresolved-references
             # Avatar available at runtime.
-            embed.set_author(
-                name=f'Global Administrator',
+            embed.set_footer(
+                text=f'Global Administrator',
                 icon_url=self.client.user.display_avatar.url
             )
         elif isinstance(interaction.user, Member):
-            embed.set_author(
-                name=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
         else:
-            embed.set_author(
-                name=f'{interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
 
@@ -107,10 +105,10 @@ class LocalLogger:
 
     async def fact_remove(self, interaction: Interaction, guild: Guild | None, old: SimpleFactEditorData, externally_modified: bool = False) -> None:
         embed: Embed = Embed(
-            title='Fact edited',
+            title='Fact removed',
             description=f'**Old:**\n'
                         f'{old.text}',
-            colour=Colour.yellow()
+            colour=Colour.red()
         )
         if externally_modified:
             embed.add_field(
@@ -121,18 +119,18 @@ class LocalLogger:
 
             # noinspection unresolved-references
             # Avatar available at runtime.
-            embed.set_author(
-                name=f'Global Administrator',
+            embed.set_footer(
+                text=f'Global Administrator',
                 icon_url=self.client.user.display_avatar.url
             )
         elif isinstance(interaction.user, Member):
-            embed.set_author(
-                name=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
         else:
-            embed.set_author(
-                name=f'{interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
 
@@ -152,21 +150,21 @@ class LocalLogger:
         )
 
         if isinstance(interaction.user, Member):
-            embed1.set_author(
-                name=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
+            embed1.set_footer(
+                text=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
-            embed2.set_author(
-                name=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
+            embed2.set_footer(
+                text=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
         else:
-            embed1.set_author(
-                name=f'{interaction.user.display_name} ({interaction.user.id})',
+            embed1.set_footer(
+                text=f'{interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
-            embed2.set_author(
-                name=f'{interaction.user.display_name} ({interaction.user.id})',
+            embed2.set_footer(
+                text=f'{interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
 
@@ -188,13 +186,13 @@ class LocalLogger:
         )
 
         if isinstance(interaction.user, Member):
-            embed.set_author(
-                name=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.nick if interaction.user.nick else interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
         else:
-            embed.set_author(
-                name=f'{interaction.user.display_name} ({interaction.user.id})',
+            embed.set_footer(
+                text=f'{interaction.user.display_name} ({interaction.user.id})',
                 icon_url=interaction.user.display_avatar.url
             )
 

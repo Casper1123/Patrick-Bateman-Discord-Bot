@@ -70,7 +70,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
 
-        await self.logger.fact_remove(interaction, old)
+        await self.logger.fact_delete(interaction, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc=f'Fact deleted successfully.')
 

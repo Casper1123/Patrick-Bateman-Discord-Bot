@@ -159,7 +159,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return
 
-        await self.logger.local_fact_remove(guild=guild, interaction=interaction, old=old)
+        await self.logger.local_fact_delete(guild=guild, interaction=interaction, old=old)
         await self.local_logger.fact_remove(interaction, interaction.guild, old)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc=f'Fact deleted successfully.\n\n'
