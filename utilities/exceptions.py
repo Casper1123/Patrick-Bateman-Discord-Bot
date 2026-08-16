@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any
 
 from discord import Embed, Colour, ForumChannel, CategoryChannel, DMChannel, \
     GroupChannel, PartialMessageable
@@ -95,3 +96,8 @@ class IncompatibleTargetChannel(CustomDiscordException):
     def as_embed(self) -> Embed:
         embed = super().as_embed()
         return embed
+
+
+class BadTransformerInput(CustomDiscordException):
+    def __init__(self, to_from: tuple[type, type], curr: Any, cause: BaseException | None = None, tooltip: ErrorTooltip = ErrorTooltip.NONE):
+        super().__init__(message=f'Could not transform {to_from[0].__name__} to {to_from[1].__name__} with given input `{curr}`', cause=cause, tooltip=tooltip)

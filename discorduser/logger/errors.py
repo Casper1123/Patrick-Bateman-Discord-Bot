@@ -1,6 +1,6 @@
 from asyncio import Task
 import traceback
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Literal, TypeAlias, Any
 
@@ -8,13 +8,15 @@ from discord import Embed, Interaction, Colour, Member, User, Guild
 from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
 
 from piss.old import InstructionParseError
-from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException, IncompatibleTargetChannel
+from utilities.exceptions import CustomDiscordException, ErrorTooltip, RestrictedUseException, \
+    IncompatibleTargetChannel, BadTransformerInput
 
 UNLOGGED_EXCEPTION_TYPES: tuple[type, ...] = (
     InstructionParseError,
     CommandOnCooldown,
     RestrictedUseException,
     IncompatibleTargetChannel,
+    BadTransformerInput
 )
 
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer']  # just putting
@@ -30,7 +32,8 @@ def _normalize_exception(error: BaseException) -> tuple[CustomDiscordException, 
     if isinstance(error, CommandInvokeError):
         error: Exception = error.original
     elif isinstance(error, TransformerError) and error.__cause__:
-        error: Exception = error.__cause__  # noqa Documentation specifies to do so.
+        # noinspection bad-assignment
+        error: Exception = error.__cause__  # Documentation specifies to do so.
 
     # Todo: Go through and figure out which exceptions to the CDE-conversion are to be put here, just like CommandOnCooldown
     if isinstance(error, CommandOnCooldown):
@@ -86,14 +89,16 @@ class LoggableErrorContext(ABC):
         self._lineno = tb.lineno
         self._name = tb.name
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def cmd_context(self) -> str:
         """
         Console: [[ ERROR_SOURCE ERROR ]] error_source {context} raised ...
         """
         return '[NO ERROR CONTEXT GIVEN]'
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def embed_context(self) -> str:
         """
         Mostly the same as console context, but can omit parameters.

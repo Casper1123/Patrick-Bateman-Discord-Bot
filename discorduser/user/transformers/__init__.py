@@ -1,1 +1,0 @@
-# todo: BadTransformerInput exception and then block logging that.

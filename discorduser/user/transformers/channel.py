@@ -3,6 +3,8 @@ import re
 from discord import Interaction, TextChannel
 from discord.app_commands import Transformer, Choice
 
+from utilities.exceptions import BadTransformerInput
+
 _NROF_AUTOCOMPLETES: int = 10 # Max 25, gives up TO this number.
 _SUPP_CHANNELS: list[type] = [TextChannel]
 
@@ -24,7 +26,11 @@ class ChannelIDTransformer(Transformer):
         if match:
             return int(match.group("id"))
 
-        raise ValueError("Expected a channel mention or a valid channel ID.")
+        raise BadTransformerInput(
+            to_from=(str, int),
+            curr=value,
+            cause=ValueError("Input does not match (un)mentioned 18-20 digit integer.")
+        )
 
     async def autocomplete(self, interaction: Interaction, value: str | float | int,) -> list[Choice[str]]:
         if interaction.guild is None:
