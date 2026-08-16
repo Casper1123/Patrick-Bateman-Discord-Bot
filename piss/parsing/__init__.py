@@ -57,7 +57,7 @@ def parse_variables(parse_string: str, depth: int = 0, memstack: list[dict[str, 
         else:
             build += char
         i += 1
-    if build: instructions.append(Instruction(InstructionType.BUILD, content=build))
+    if build: instructions.append(BuildInstruction(text=build))
 
     return instructions
 
