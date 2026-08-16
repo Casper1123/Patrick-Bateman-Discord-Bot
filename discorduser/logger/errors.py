@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from pathlib import Path
 from typing import Literal, TypeAlias, Any
 
-from discord import Embed, Interaction, Colour
+from discord import Embed, Interaction, Colour, Member, User, Guild
 from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
 
 from piss.old import InstructionParseError
@@ -49,7 +49,6 @@ def _normalize_exception(error: BaseException) -> tuple[CustomDiscordException, 
             log = error.cause is None or type(error.cause) not in UNLOGGED_EXCEPTION_TYPES
     return error, log
 
-
 class LoggableErrorContext(ABC):
     def __init__(self, source: ErrorSource, error: BaseException,):
         self.source = source  # So can be decided on this as opposed to isinstance(something, something)
@@ -88,30 +87,53 @@ class LoggableErrorContext(ABC):
         self._name = tb.name
 
     @abstractproperty
-    def context(self) -> str:
-        # self.context: str = 'for event with params / task name'
+    def cmd_context(self) -> str:
+        """
+        Console: [[ ERROR_SOURCE ERROR ]] error_source {context} raised ...
+        """
         return '[NO ERROR CONTEXT GIVEN]'
 
-    @abstractmethod  # Abstract to force thought about usage in each particular case.
+    @abstractproperty
+    def embed_context(self) -> str:
+        """
+        Mostly the same as console context, but can omit parameters.
+        '[Task {taskname}] raised an error.\n
+        _fileline stuff'
+        """
+        return '[NO ERROR CONTEXT GIVEN]'
+
     def as_embed(self) -> Embed:
-        """
-        Templated error embed with some basic styling.
-        PURELY FOR LOGGING, FOR USER_FEEDBACK USE THE STANDARD CustomDiscordException.as_embed() !!!
-        """
         embed: Embed = Embed(
-            title=f'[[ ERROR ]] {self.error.error_type}',
-            description='',  # Left as emptystring on purpose.
+            title=f'[[ {self.source.upper()} ERROR ]]',
+            description=
+            f'{self.embed_context} raised an error.\n'
+            f'`{self._filename}`:*{self._lineno}* {self._name}',
             colour=Colour.red()
         )
+
         if self.error.message:
-            embed.description += f'{self.error.message}\n\n'
+            embed.add_field(
+                name=f'Error',
+                value=f'{f'**{self.error.error_type}**\n' if self.error.error_type != CustomDiscordException.__name__ else ''}'
+                      f'{self.error.message}',
+                inline=False
+            )
+
+        if self.error.cause:
+            embed.add_field(
+                name=f'Cause',
+                value=f'**{type(self.error.cause).__name__}**\n'
+                      f'{self.error.cause}',
+                inline=False
+            )
+
         return embed
 
     def as_console(self) -> str:
         """
         Templated console logging string.
         """
-        return f'[[ {self.source.upper()} ERROR ]] {self.source.lower()} {self.context} raised {'an error' if not self.error.error_type == CustomDiscordException.__name__ else f'{self.error.error_type}'} at {self._filename}:{self._lineno} ({self._name}){f' ({self.error.message})' if self.error.message else ''}{'' if not self.error.cause else f' caused by {type(self.error.cause).__name__}{f': {self.error.cause}' if str(self.error.cause) else ''}'}'
+        return f'[[ {self.source.upper()} ERROR ]] {self.source} {self.cmd_context} raised {'an error' if not self.error.error_type == CustomDiscordException.__name__ else f'{self.error.error_type}'} at {self._filename}:{self._lineno} ({self._name}){f' ({self.error.message})' if self.error.message else ''}{'' if not self.error.cause else f' caused by {type(self.error.cause).__name__}{f': {self.error.cause}' if str(self.error.cause) else ''}'}'
 
 class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
     def __init__(self, source: ErrorSource, error: Exception, interaction: Interaction):
@@ -119,83 +141,136 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
         self.interaction = interaction
 
         try:
-            self.params = f'[{'; '.join(f'{n} = {v}' for n, v in vars(self.interaction.namespace).items())}]'
+            self._raw_params: list[tuple[str, Any]] = [(n, v) for n, v in vars(self.interaction.namespace).items()]
         except TypeError:
-            self.params = f'[]'
+            self._raw_params = []
+
+        # todo: do some postprocessing s.t. things become parsable based on input seen.
+
+        self.params = f'[{'; '.join(f'{n} = {v}' for n, v in self._raw_params)}]'
+
+        self._include_params_field_in_embed: bool = True
 
     @property
-    def _interaction_context_helper(self) -> str:
-        return f'{f'/{self.interaction.command.qualified_name}' if self.interaction.command else ''} with params {self.params}'
+    def _interaction_cmd_context_helper(self) -> str:
+        return f'{f'/{self.interaction.command.qualified_name}' if self.interaction.command else '???'} with params {self.params}'
+
+    @property
+    def _interaction_embed_context_helper(self) -> str:
+        return f' /{self.interaction.command.qualified_name}' if self.interaction.command else ''
+
+    def as_embed(self) -> Embed:
+        embed: Embed = super().as_embed()
+
+        if isinstance(self.interaction.user, Member):
+            embed.set_footer(
+                text=f'{self.interaction.user.nick if self.interaction.user.nick else self.interaction.user.display_name} ({self.interaction.user.id})',
+                icon_url=self.interaction.user.display_avatar.url
+            )
+        else:
+            embed.set_footer(
+                text=f'{self.interaction.user.display_name} ({self.interaction.user.id})',
+                icon_url=self.interaction.user.display_avatar.url
+            )
+
+        if self._include_params_field_in_embed:
+            embed.add_field(
+                name='Parameters',
+                value='\n'.join(f'{n} = {v}' for n, v in self._raw_params),
+                inline=False
+            )
+
+        if self.interaction.guild is not None:
+            try:
+                # noinspection unresolved-references
+                embed.set_author(
+                    name=f'{self.interaction.guild.name} ({self.interaction.guild.id})',
+                    icon_url=self.interaction.guild.icon.url,
+                )
+            except AttributeError:
+                # noinspection unresolved-references
+                embed.set_author(
+                    name=f'{self.interaction.guild.name} ({self.interaction.guild.id})',
+                )
+
+        return embed
 
 
 class ListenerErrorContext(LoggableErrorContext):
     @property
-    def context(self) -> str:
-        return f'{self.event} with params {self.params}'
+    def embed_context(self) -> str:
+        return f'{self.event} listener'
 
-    def __init__(self, error: Exception, event: str, params: str):
+    @property
+    def cmd_context(self) -> str:
+        return f'{self.event} with params [{'; '.join(f'{n}={v}' for n, v in self.params)}]'
+
+    def __init__(self, error: Exception, event: str, params: tuple[tuple[str, str], ...], author: User | Member | None = None, guild: Guild | None = None):
         """
         :param event: Event name
-        :param params: String of parameter data to be logged, passed in with the format [PARAM = VALUE; PARAM = VALUE]
+        :param params: Tuple of (name, value) pairs.
+        :param author: User or Member object to optionally give extra info.
+        :param guild: Guild object to optionally give extra info.
         """
         super().__init__('listener', error)
         self.event = event
         self.params = params
 
+        self.author = author
+        self.guild = guild
+
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
-        if self.error.message:
-            embed.description += f'{self.error.message}\n\n'
-        embed.description += (f'Event type *{self.event}*\n'
-                              f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
-                              f'Parameters: {self.params}')
-        if self.error.cause:
-            embed.description += (f'\n\n'
-                                  f'Caused by: {type(self.error.cause).__name__}\n'
-                                  f'{self.error.cause}')
+
+        embed.add_field(
+            name='Parameters',
+            value='\n'.join(f'{n} = {v}' for n, v in self.params),
+            inline=False
+        )
+
+        if self.author is not None:
+            embed.set_footer(
+                text=f'{self.author.display_name} ({self.author.id})',
+                icon_url=self.author.display_avatar.url
+            )
+        if self.guild is not None:
+            try:
+                # noinspection unresolved-references
+                embed.set_author(
+                    name=f'{self.guild.name} ({self.guild.id})',
+                    icon_url=self.guild.icon.url
+                )
+            except AttributeError:
+                embed.set_author(
+                    name=f'{self.guild.name} ({self.guild.id})',
+                )
+
         return embed
 
 
 class TaskErrorContext(LoggableErrorContext):
     @property
-    def context(self) -> str:
+    def embed_context(self) -> str:
+        return f'Task {self.task.get_name()}'
+
+    @property
+    def cmd_context(self) -> str:
         return f'{self.task.get_name()}'
 
     def __init__(self, error: BaseException, task: Task):
         super().__init__('task', error)
         self.task: Task = task
 
-    def as_embed(self) -> Embed:
-        embed: Embed = super().as_embed()
-        embed.description += (f'In task {self.task.get_name()}'
-                              f'In: *{self._name}* (`{self._filename}:{self._lineno}`)')
-        if self.error.cause:
-            embed.description += (f'\n\n'
-                                  f'Caused by: {type(self.error.cause).__name__}\n'
-                                  f'{self.error.cause}')
-        return embed
-
 
 class AppCommandErrorContext(LoggableInteractionErrorContext):
     @property
-    def context(self) -> str:
-        # for app_command /blablabla
-        return self._interaction_context_helper
+    def embed_context(self) -> str:
+        return f'App Command{self._interaction_embed_context_helper}'
 
-    def as_embed(self) -> Embed:
-        # todo: check
-        embed: Embed = super().as_embed()
-        embed.description += (f'Raised by `/{self.interaction.command.qualified_name if self.interaction.command else '[???]'}`\n'
-                              f'In *{self._name}* (`{self._filename}:{self._lineno}`)\n'
-                              f'Given parameters: {self.params}')
-        if self.error.cause:
-            embed.description += (f'\n\n'
-                                  f'Caused by: {type(self.error.cause).__name__}\n'
-                                  f'{self.error.cause}')
-        embed.description += (f'\n\n'
-                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
-        embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
-        return embed
+    @property
+    def cmd_context(self) -> str:
+        # for app_command /blablabla
+        return self._interaction_cmd_context_helper
 
     def __init__(self, error: Exception, interaction: Interaction, ):
         super().__init__('app_command', error, interaction)
@@ -203,8 +278,12 @@ class AppCommandErrorContext(LoggableInteractionErrorContext):
 
 class AutocompleteErrorContext(LoggableInteractionErrorContext):
     @property
-    def context(self) -> str:
-        return f'for command {self._interaction_context_helper} with target parameter {self.target} ({self.current}) and params {self.params}'
+    def embed_context(self) -> str:
+        return f'Autocomplete{f' for command {self._interaction_embed_context_helper}' if self._interaction_embed_context_helper else ''}'
+
+    @property
+    def cmd_context(self) -> str:
+        return f'for command {self._interaction_cmd_context_helper} with target parameter {self.target} ({self.current}) and params {self.params}'
 
     def __init__(self, error: Exception, target: str, current: Any, interaction: Interaction):
         """
@@ -219,49 +298,55 @@ class AutocompleteErrorContext(LoggableInteractionErrorContext):
         except:  # noqa it's simple enough as is who gives a damn.
             self.current = '[PARSE ERROR]'
 
+        self._include_params_field_in_embed = False
+
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
-        embed.description += (
-            f'Raised by `/{self.interaction.command.qualified_name if self.interaction.command else '[???]'}`\n'
-            f'In: *{self._name}* (`{self._filename}:{self._lineno}`)\n'
-            f'Target: {self.target} = {self.current}'
-            f'Given parameters: {self.params}')
-        if self.error.cause:
-            embed.description += (f'\n\n'
-                                  f'Caused by: {type(self.error.cause).__name__}\n'
-                                  f'{self.error.cause}')
-        embed.description += (f'\n\n'
-                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
-        embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
+
+        embed.add_field(
+            name='Parameters',
+            inline=False,
+            value=f'**Target:**\n'
+                  f'{self.target} = {self.current}\n'
+                  f'\n'
+                  f'**Others:**\n'
+                  f'{'\n'.join(f'{n} = {v}' for n, v in self.params)}'
+        )
+
         return embed
 
 
 class TransformerErrorContext(LoggableInteractionErrorContext):
     @property
-    def context(self) -> str:
-        return f'{type(self._original_error.transformer).__name__} with input {self._original_error.value} for command {self._interaction_context_helper}'
+    def embed_context(self) -> str:
+        return f'Transformer {type(self._original_error.transformer).__name__}{f' for command {self._interaction_embed_context_helper}' if self._interaction_embed_context_helper else ''}'
 
-    def as_embed(self) -> Embed:
-        embed: Embed = super().as_embed()
-        embed.description += (f'Raised by `/{self.interaction.command.qualified_name}`\n'
-                              f'In the Transformer {type(self._original_error.transformer).__name__}\n'
-                              f'At *{self._name}* (`{self._filename}:{self._lineno}`)\n'
-                              f'Given value ({self._original_error.type}) {self._original_error.value}\n'
-                              f'And params: {self.params}')
-        if self.error.cause:
-            embed.description += (f'\n\n'
-                                  f'Caused by: {type(self.error.cause).__name__}\n'
-                                  f'{self.error.cause}')
-        embed.description += (f'\n\n'
-                              f'Raised by: {self.interaction.user.display_name} ({self.interaction.id})')
-        embed.set_author(name=self.interaction.user.name, icon_url=self.interaction.user.display_avatar.url)
-        return embed
+    @property
+    def cmd_context(self) -> str:
+        return f'{type(self._original_error.transformer).__name__} with input {self._original_error.value} for command {self._interaction_cmd_context_helper}'
 
     def __init__(self, error: TransformerError, interaction: Interaction):
         super().__init__('transformer', error, interaction)
         self._original_error: TransformerError = error
 
+        self._include_params_field_in_embed = False
+
         if type(self.error.cause) == ValueError:
             # This error is returned when invalid input is supplied.
             # Thus, we do not log it.
             self.log = False
+
+    def as_embed(self) -> Embed:
+        embed: Embed = super().as_embed()
+
+        embed.add_field(
+            name='Parameters',
+            inline=False,
+            value=f'**Input:**\n'
+                  f'{self._original_error.value}\n'
+                  '\n'
+                  f'**Others:**\n'
+                  f'{'\n'.join(f'{n} = {v}' for n, v in self.params)}'
+        )
+
+        return embed
