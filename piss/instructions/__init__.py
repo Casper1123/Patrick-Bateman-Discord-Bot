@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from re import Match
 
 class InstructionType(Enum):
     BUILD = 0
@@ -13,7 +14,11 @@ class Instruction(ABC):
         """
         raise NotImplementedError()
 
-    def __init__(self, itype: InstructionType):
-        self.type = itype
-    # todo: execute method?
+    @staticmethod
+    @abstractmethod
+    def from_match(match: Match) -> Instruction:
+        """
+        Take one of the class' RegEx signature matches to create an Instruction.
+        """
+        raise NotImplementedError()
 
