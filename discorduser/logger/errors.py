@@ -154,8 +154,6 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
 
         self.params = f'[{'; '.join(f'{n} = {v}' for n, v in self._raw_params)}]'
 
-        self._include_params_field_in_embed: bool = True
-
     @property
     def _interaction_cmd_context_helper(self) -> str:
         return f'{f'/{self.interaction.command.qualified_name}' if self.interaction.command else '???'} with params {self.params}'
@@ -176,13 +174,6 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
             embed.set_footer(
                 text=f'{self.interaction.user.display_name} ({self.interaction.user.id})',
                 icon_url=self.interaction.user.display_avatar.url
-            )
-
-        if self._include_params_field_in_embed:
-            embed.add_field(
-                name='Parameters',
-                value='\n'.join(f'{n} = {v}' for n, v in self._raw_params),
-                inline=False
             )
 
         if self.interaction.guild is not None:
@@ -277,6 +268,17 @@ class AppCommandErrorContext(LoggableInteractionErrorContext):
         # for app_command /blablabla
         return self._interaction_cmd_context_helper
 
+    def as_embed(self) -> Embed:
+        embed: Embed = super().as_embed()
+
+        embed.add_field(
+            name='Parameters',
+            value='\n'.join(f'{n} = {v}' for n, v in self._raw_params),
+            inline=False
+        )
+
+        return embed
+
     def __init__(self, error: Exception, interaction: Interaction, ):
         super().__init__('app_command', error, interaction)
 
@@ -303,8 +305,6 @@ class AutocompleteErrorContext(LoggableInteractionErrorContext):
         except:  # noqa it's simple enough as is who gives a damn.
             self.current = '[PARSE ERROR]'
 
-        self._include_params_field_in_embed = False
-
     def as_embed(self) -> Embed:
         embed: Embed = super().as_embed()
 
@@ -315,7 +315,7 @@ class AutocompleteErrorContext(LoggableInteractionErrorContext):
                   f'{self.target} = {self.current}\n'
                   f'\n'
                   f'**Others:**\n'
-                  f'{'\n'.join(f'{n} = {v}' for n, v in self.params)}'
+                  f'{'\n'.join(f'{n} = {v}' for n, v in self._raw_params)}'
         )
 
         return embed
@@ -334,8 +334,6 @@ class TransformerErrorContext(LoggableInteractionErrorContext):
         super().__init__('transformer', error, interaction)
         self._original_error: TransformerError = error
 
-        self._include_params_field_in_embed = False
-
         if type(self.error.cause) == ValueError:
             # This error is returned when invalid input is supplied.
             # Thus, we do not log it.
@@ -351,7 +349,7 @@ class TransformerErrorContext(LoggableInteractionErrorContext):
                   f'{self._original_error.value}\n'
                   '\n'
                   f'**Others:**\n'
-                  f'{'\n'.join(f'{n} = {v}' for n, v in self.params)}'
+                  f'{'\n'.join(f'{n} = {v}' for n, v in self._raw_params)}'
         )
 
         return embed
