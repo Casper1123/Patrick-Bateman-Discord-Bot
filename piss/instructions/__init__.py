@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 from re import Match
 
-class InstructionType(Enum):
-    BUILD = 0
 
 class Instruction(ABC):
     @staticmethod
