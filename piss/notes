@@ -1,0 +1,1 @@
+todo: How to do return type of, for example, a writing block? Local scope might end with mem call, which makes writing() a mem call.

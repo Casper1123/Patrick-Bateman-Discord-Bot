@@ -18,6 +18,21 @@ An example: `Test that will be built using {A; B; C; D} into a Discord message.`
 You can recognize these data-only Instructions by their signature in the Instructions chapter,
 as well as direct calls to memory entries with types convertible to `str`.
 
+## Main text
+Main text is parsed for instruction blocks by checking for opening characters `{`,
+counting them and closing the block as soon as it has closed all the counted `{` characters using `}`.
+Main text is not counted as a recursion for the recursion limit.
+
+### Symbols
+- `{` Instruction block opening symbol. Must be closed with a `}`.
+- `}` Instruction block closing symbol. Must first be opened with a `{`.
+- `\` Escape symbol. 
+
+
+## Instruction Block
+Contain instructions, separated by `;`. Multiple instructions, when chained together,
+may only use statements that result in a value at the end of the instruction block.
+
 
 # Instructions
 The following instructions are listed in order of parsing.
