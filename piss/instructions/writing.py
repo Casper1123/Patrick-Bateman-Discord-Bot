@@ -1,0 +1,31 @@
+from re import Match as _Match
+
+from piss.instructions.abstract import Instruction as _Instruction
+from piss.exceptions import InstructionParseError as _InstructionParseError
+from piss.parsing import _parse_instruction_block
+
+
+class WritingInstruction(_Instruction):
+    @staticmethod
+    def signatures() -> tuple[tuple[str, int], ...]:
+        return (r'^writing\((?P<instr>(.*))\)$', 0),
+
+    @staticmethod
+    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
+                   writing: bool = False) -> _Instruction:
+        if not ident == 0:
+            raise ValueError('Unsupported match identifier for Instruction of type Writing')
+
+        if writing:
+            raise _InstructionParseError(match.group(0),
+                                        f'Writing Instruction cannot be used inside of another Writing Instruction')
+        content = match.group('instr')
+        content_instr: list[_Instruction] = _parse_instruction_block(content, memory_stack, recursion_depth + 1, writing=True)
+        if not content_instr:
+            raise _InstructionParseError(match.group(0),
+                                        f'Writing Instruction did not receive any Instructions (received **{content}**).')
+
+        return WritingInstruction(content_instr)
+
+    def __init__(self, instructions: list[_Instruction]):
+        self.instructions = instructions

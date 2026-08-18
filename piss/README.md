@@ -44,6 +44,14 @@ If any input matches multiple signatures, the one higher up the list is matched 
 Special Instruction created using text outside of Instruction block context.<BR>
 Appends given text to the currently built output.
 
+## Memory
+> Signature: **None**
+
+Special Instruction created by calling a memory variable at the **end** of an Instruction block. Inserts the variable's value as the built text.<BR>
+Will fail at compile time if either
+1. The memory entry does not exist
+2. The entry does not have a compatible type.
+
 
 
 # Execution and Testing

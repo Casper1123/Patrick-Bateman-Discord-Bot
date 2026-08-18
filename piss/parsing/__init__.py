@@ -2,7 +2,7 @@ import datetime as _datetime
 import re as _re
 from re import Match as _Match
 
-from piss.instructions.memory_call import MemoryInstruction
+from piss.instructions.memory import MemoryInstruction
 from piss.parsing.parse_order import parse_order
 from piss.exceptions import InstructionParseError
 from piss.instructions.abstract import Instruction
@@ -61,8 +61,7 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'global_facts': int,
     'total_facts': int,
 }
-SLEEP_TIMER_UPPER_BOUND: float = 3600  # in seconds
-SLEEP_TIMER_LOWER_BOUND: float = 0.25
+
 
 # todo: improve feedback information
 _terminator: str = ';'
@@ -236,9 +235,9 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
                 raise InstructionParseError(subsection, f'Key {subsection} not found.')
             # todo: supported output memory type?
             instructions.append(MemoryInstruction(key=subsection)) # todo: keep this code here or move it into parse_order?
-    # endregion
 
     return instructions
+    # endregion
 
 
 def parse_instructions_from_string(txt: str, ) -> list[Instruction]:
