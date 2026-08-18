@@ -4,7 +4,7 @@ import datetime as _datetime
 import re as _re
 
 from piss.exceptions import InstructionParseError
-from piss.instructions import Instruction
+from piss.instructions.abstract import Instruction
 from piss.instructions.build import BuildInstruction
 
 MAX_RECURSION_DEPTH: int = 5
@@ -63,6 +63,13 @@ SLEEP_TIMER_UPPER_BOUND: float = 3600  # in seconds
 SLEEP_TIMER_LOWER_BOUND: float = 0.25
 
 
+_terminator: str = ';'
+_bounds: list[str] = ['{', '[', '(', '\'',
+                     '"']  # Opens another subsection. Input is already stripped of containing {}
+_be_map: dict[str, str] = {'{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
+_escapes: list[str] = list(_be_map.values())  # convert to list, makes it easier to work with.
+_doubles: list[str] = [b for b in _bounds if _be_map[b] == b]
+
 def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list[dict[str, Any]], writing: bool) -> list[Instruction]:
     """
     Decomposes input string into text and Instructions blocks by turning them into Instructions.
@@ -77,7 +84,6 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list
     # Trackers
     instructions: list[Instruction] = [] # final output for this subsection
 
-    #
     i: int = 0 # Position in str
     n: int = len(parse_string)
 
@@ -86,35 +92,30 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list
 
     while i < n:
         # Is this character escaped?
-        if i == 0: escaped = False
-        else: escaped = parse_string[i-1] == '\\'
+        escaped: bool = i > 0 and build[i - 1] == '\\'
 
         char: str = parse_string[i]
 
-        if char == '{':
-            if escaped:
-                build += char
-            else:
-                if opened == 0 and build:
-                    instructions.append(BuildInstruction(text=build))
-                    build = ''
-                opened += 1
-        elif char == '}':
-            if escaped:
-                build += char
-            else:
-                if opened > 0:
-                    opened -= 1
-                    if opened == 0:
-                        # Insert build into parser
-                        instructions += _parse_instruction_block(build, memory_stack, recursion_depth, writing)
-                        build = ''
-                    else:
-                        raise InstructionParseError(parse_string, reason=f'Found block-closing symbol at pos {i} before a block-opening symbol.')
-        elif char == '\\':
+        if char == '\\':
             # Opened clause to preserve escape symbols until their required layer.
             if escaped or opened > 0:
                 build += char
+        elif escaped:
+            build += char
+        elif char == '{':
+            if opened == 0 and build:
+                instructions.append(BuildInstruction(text=build))
+                build = ''
+            opened += 1
+        elif char == '}':
+            if opened > 0:
+                opened -= 1
+                if opened == 0:
+                    # Insert build into parser
+                    instructions += _parse_instruction_block(build, memory_stack, recursion_depth, writing)
+                    build = ''
+            else:
+                raise InstructionParseError(parse_string, reason=f'Found block-closing symbol at pos {i} before a block-opening symbol.')
         else:
             build += char
 
@@ -126,86 +127,52 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list
     return instructions
 
 
-def _parse_instruction_block(build: str, memory_stack: list[dict[str, type]], depth: int = 0, writing=False) -> list[Instruction]:
+def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, type]], recursion_depth: int = 0, writing=False) -> list[Instruction]:
     """
     Determines instruction type(s) and creates instructions using their parameters.
-    :param build: Input string
-    :param depth: The current recursion depth, in case a sub-instruction requires recursion.
+    :param parse_string: Input string
+    :param recursion_depth: The current recursion depth, in case a sub-instruction requires recursion.
     :param memory_stack: The memory stack, layered on scope, of the current scope. Defines variable types for type checking.
     :param writing: The given build string would be parsed as if it is inside a writing(*i) operand.
     :return: Instructions from Build
     """
-    if depth > MAX_RECURSION_DEPTH:
-        raise InstructionParseError(build, 'Maximum recursion depth exceeded. Lower the complexity of your input.')
+    if recursion_depth > MAX_RECURSION_DEPTH:
+        raise InstructionParseError(parse_string, 'Maximum recursion depth exceeded. Lower the complexity of your input.')
 
     # region Step 1: separate into instruction subsections.
-    terminator: str = ';'
-    bounds: list[str] = ['{', '[', '(', '\'',
-                         '"']  # Opens another subsection. Input is already stripped of containing {}
-    be_map: dict[str, str] = {'{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
-    escapes: list[str] = list(be_map.values())  # convert to list, makes it easier to work with.
-    doubles: list[str] = [b for b in bounds if be_map[b] == b]
-    layer_stack: list[str] = []  # Keeps track of layers open as we need to distinguish in characters here.
-    subsections: list[str] = []  # Keep track of every single operation, separated by ; terminator.
-    subbuild: str = ''
+    subsections: list[str] = [] # Top-level instructions separated by ;
+    build: str = '' # Current subsection.
+
+    layer_stack: list[str] = [] # Stack of opened layers for the current subsection.
 
     i: int = 0
-    while i < len(build):
-        char: str = build[i]
-        escaped: bool = i > 0 and build[i - 1] == '\\'
+    n: int = len(parse_string)
 
-        if escaped:
-            subbuild += char
-        elif char == terminator:
-            # inside of (i*) arguments of some function. required for, for example, Writing compat. todo figure this out properly.
-            if len(layer_stack) > 0 and '(' in layer_stack:
-                subbuild += char
-            elif len(layer_stack) == 0:
-                subsections.append(subbuild.strip())
-                subbuild = ''
+    while i < n:
+        escaped: bool = i > 0 and parse_string[i - 1] == '\\'
+
+        char: str = parse_string[i]
+
+        if char == '\\':
+            if escaped and not layer_stack:
+                build += char
+        elif char == _terminator:
+            if layer_stack or escaped:
+                build += char
             else:
-                expected: list[str] = [be_map[b] for b in reversed(
-                    layer_stack)]  # running into some typing issues so this is the ugly version
-                raise InstructionParseError(subbuild,
-                                            reason='Non-escaped terminator appeared before frame stack end (expected the following escaping characters, in order): ' + ''.join(
-                                                expected))
-        elif char in doubles:
-            # doubles: ' bounds and escapes.
-            # no symbols to escape with this char, or top char is char (doubles property)
-            if len(layer_stack) == 0 or layer_stack[-1] != char:
-                # bound
-                subbuild += char
-                layer_stack.append(char)
-            else:
-                # there is some symbol on top (that being char), as such we can escape it
-                subbuild += char
-                layer_stack.pop()
-        elif char in escapes:  # escapes before bounds in case doubles aren't escaped properly, which would consider them as bounds.
-            top = layer_stack[-1]
-            top_escape = be_map[top]
-            if char == top_escape:
-                subbuild += char
-                layer_stack.pop()
-            else:
-                raise InstructionParseError(subbuild + char,
-                                            reason=f'Encountered unescaped {char} before encountering {top_escape}')
-        elif char in bounds:
-            subbuild += char
-            layer_stack.append(char)
-        elif char == '\\' and not escaped and len(layer_stack) == 0:
-            pass
+
+        elif char in _doubles:
+            ...
+        elif char in _bounds:
+            ...
+        elif char in _escapes:
+            ...
         else:
-            subbuild += char
-        i += 1
-    if len(layer_stack) > 0:
-        expected: list[str] = [be_map[b] for b in reversed(layer_stack)]
-        raise InstructionParseError(subbuild,
-                                    reason='Reached end-of-line before closure of frame stack. Expected the following characters before termination: ' + ''.join(
-                                        expected))
-    else:
-        subsections.append(subbuild.strip())
+            build += char
 
-    del layer_stack, subbuild, i, char, escaped  # Free this, and ensure that I cannot accidentally re-use old vars.
+        i += 1
+
+
     # endregion
 
     # region Step 2: Instruction recognition
@@ -271,7 +238,7 @@ def _parse_instruction_block(build: str, memory_stack: list[dict[str, type]], de
                 raise InstructionParseError(subsection,
                                             f'WRITING Instruction cannot be used inside of a WRITING instruction')
             content = WRITING.group('instr')
-            content_instr: list[Instruction] = Instruction.from_string(content, memory_stack, depth + 1, writing=True)
+            content_instr: list[Instruction] = Instruction.from_string(content, memory_stack, recursion_depth + 1, writing=True)
             if not content_instr:
                 raise InstructionParseError(subsection,
                                             f'WRITING instruction did not receive any instructions (received **{content}**).')
@@ -376,7 +343,7 @@ def _parse_instruction_block(build: str, memory_stack: list[dict[str, type]], de
                         build_option = ''
                         jumping = 1
                     # Character is a doubles bound
-                    elif char in doubles:
+                    elif char in _doubles:
                         # Check if it is a bound or escape
                         if len(layer_stack) > 0 and layer_stack[-1] == char:
                             # escape
@@ -385,17 +352,17 @@ def _parse_instruction_block(build: str, memory_stack: list[dict[str, type]], de
                             # bound
                             layer_stack.append(char)
                         build_option += char
-                    elif char in bounds:
+                    elif char in _bounds:
                         layer_stack.append(char)
                         build_option += char
-                    elif char in escapes:
+                    elif char in _escapes:
                         if not layer_stack:
                             raise InstructionParseError(options,
                                                         f'CHOICE Instruction parsing encountered unescaped escaping character before encountering any bounding characters.\n'
                                                         f'Received: **{char}**')
                         # escape has to be on top
                         top = layer_stack[-1]
-                        top_escape = be_map[top]
+                        top_escape = _be_map[top]
                         if char == top_escape:
                             layer_stack.pop()
                             build_option += char
@@ -421,7 +388,7 @@ def _parse_instruction_block(build: str, memory_stack: list[dict[str, type]], de
                                             f'Found options:\n'
                                             + '\n'.join(options_raw))
             options_parsed: list[list[Instruction]] = [
-                parse_variables(opt, depth=depth + 1, memstack=memory_stack + [{}], writing=writing) for opt in
+                parse_variables(opt, depth=recursion_depth + 1, memstack=memory_stack + [{}], writing=writing) for opt in
                 options_raw]
             instructions.append(Instruction(InstructionType.CHOICE, options=options_parsed))
             continue
@@ -432,7 +399,7 @@ def _parse_instruction_block(build: str, memory_stack: list[dict[str, type]], de
             if subi < len(subsections) - 1:
                 raise InstructionParseError(subsection, f'Encountered BUILD Instruction before end of block.\n'
                                                         f'Position: **{subi}**. Expected: **{len(subsections)}**.\n'
-                                                        f'In block {build}\n'
+                                                        f'In block {parse_string}\n'
                                                         f'\n'
                                                         f'To fix: Move your BUILD instruction to the end of your block. Blocks cannot contain more than one BUILD instruction to force you to format. Open a new block to include a new BUILD instruction.')
             else:
