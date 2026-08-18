@@ -1,16 +1,16 @@
-from re import Match
+from re import Match as _Match
 
-from piss.instructions import Instruction, InstructionType
+from piss.instructions.abstract import Instruction as _Instruction, Instruction
 
 
-# todo: figure out when this is usable
-class BuildInstruction(Instruction):
+class BuildInstruction(_Instruction):
     @staticmethod
-    def from_match(match: Match) -> Instruction:
+    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
+                   writing: bool = False) -> Instruction:
         raise RuntimeError('BuildInstruction incompatible with Signatures and from_match.')
 
     @staticmethod
-    def signatures() -> tuple[str, ...]:
+    def signatures() -> tuple[tuple[str, int], ...]:
         raise RuntimeError('BuildInstruction incompatible with Signatures and from_match.')
 
     def __init__(self, text: str):

@@ -1,4 +1,4 @@
-from piss.instructions import Instruction
+from piss.instructions.abstract import Instruction
 
 
 class PushInstruction(Instruction):

@@ -1,11 +1,13 @@
-# todo: two components, string parser with blocks, and one parser that parses vars only.
-from typing import Any
 import datetime as _datetime
 import re as _re
+from re import Match as _Match
 
+from piss.instructions.memory_call import MemoryInstruction
+from piss.parsing.parse_order import parse_order
 from piss.exceptions import InstructionParseError
 from piss.instructions.abstract import Instruction
 from piss.instructions.build import BuildInstruction
+from piss._utils.mem_tools import fetch
 
 MAX_RECURSION_DEPTH: int = 5
 
@@ -62,15 +64,14 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
 SLEEP_TIMER_UPPER_BOUND: float = 3600  # in seconds
 SLEEP_TIMER_LOWER_BOUND: float = 0.25
 
-
+# todo: improve feedback information
 _terminator: str = ';'
-_bounds: list[str] = ['{', '[', '(', '\'',
-                     '"']  # Opens another subsection. Input is already stripped of containing {}
+_bounds: set[str] = {'{', '[', '(', "'", '"'}  # Opens another subsection. Input is already stripped of containing surrounding {}
 _be_map: dict[str, str] = {'{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
-_escapes: list[str] = list(_be_map.values())  # convert to list, makes it easier to work with.
+_escapes: set[str] = set(_be_map.values())  # convert to list, makes it easier to work with.
 _doubles: list[str] = [b for b in _bounds if _be_map[b] == b]
 
-def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list[dict[str, Any]], writing: bool) -> list[Instruction]:
+def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list[dict[str, type]], writing: bool) -> list[Instruction]:
     """
     Decomposes input string into text and Instructions blocks by turning them into Instructions.
     :param parse_string: Input string containing variable blocks.
@@ -120,14 +121,13 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list
             build += char
 
         i += 1 # Mandatory, next char
-
     if opened != 0: raise InstructionParseError(parse_string, reason=f'Input left with {opened} unclosed scopes.')
     if build: instructions.append(BuildInstruction(text=build))
 
     return instructions
 
 
-def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, type]], recursion_depth: int = 0, writing=False) -> list[Instruction]:
+def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, type]], recursion_depth: int, writing: bool) -> list[Instruction]:
     """
     Determines instruction type(s) and creates instructions using their parameters.
     :param parse_string: Input string
@@ -199,7 +199,7 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
     # Minor postprocessing
     subsections = [i.strip() for i in subsections]
 
-    # Memory cleanup
+    # Memory cleanup to not fudge references
     del build, layer_stack, char, escaped, i, n
     # endregion
 
@@ -209,9 +209,37 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
 
     # region Step 2: Instruction recognition
     instructions: list[Instruction] = []
+
+    n: int = len(subsections) # To keep track of if stuff is still required to be done.
+
+    # Go over each subsection and determine containing Instruction based on Signature.
+    for i, subsection in enumerate(subsections):
+        found: bool = False # Keep track of if an Instruction was found.
+        for inst_type in parse_order:
+            for sig, ident in inst_type.signatures():
+                match: _Match | None = _re.match(sig, subsection)
+                if match:
+                    instructions.append(inst_type.from_match(match, ident, memory_stack, recursion_depth, writing))
+                    found = True
+                    break
+            if found: break
+
+        if not found:
+            # Perform memory call;
+            # 1. If not at the end, cannot perform a memory call for an instruction block
+            # 2. See if the key exists
+            # 3. See if resulting type is compatible for output.
+            if i < n:
+                raise InstructionParseError(parse_string, reason=f'Found memory print instruction **{subsection}** at section {i} before end of input.')
+            res_type: type | None = fetch(memory_stack, subsection)
+            if res_type is None:
+                raise InstructionParseError(subsection, f'Key {subsection} not found.')
+            # todo: supported output memory type?
+            instructions.append(MemoryInstruction(key=subsection)) # todo: keep this code here or move it into parse_order?
     # endregion
 
     return instructions
+
 
 def parse_instructions_from_string(txt: str, ) -> list[Instruction]:
     # Parse input string with default values.
