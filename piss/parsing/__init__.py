@@ -205,7 +205,7 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
 
     # todo: how the FUCK is the memory stack going to work.
     local_scope: dict[str, type] = {} if memory_stack else INITIAL_MEMORY_TYPES.copy()
-    memory_stack.append(INITIAL_MEMORY_TYPES.copy())
+    memory_stack.append(local_scope)
 
     # region Step 2: Instruction recognition
     instructions: list[Instruction] = []
