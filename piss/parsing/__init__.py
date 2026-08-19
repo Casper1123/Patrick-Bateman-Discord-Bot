@@ -234,7 +234,7 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
             if res_type is None:
                 raise InstructionParseError(subsection, f'Key {subsection} not found.')
             # todo: supported output memory type?
-            instructions.append(MemoryInstruction(key=subsection)) # todo: keep this code here or move it into parse_order?
+            instructions.append(MemoryInstruction(key=subsection))
 
     return instructions
     # endregion
