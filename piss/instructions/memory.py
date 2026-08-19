@@ -13,5 +13,7 @@ class MemoryInstruction(_Instruction):
                    writing: bool = False) -> _Instruction:
         raise RuntimeError('MemoryInstruction incompatible with Signatures and from_match.')
 
+    # todo: move mem getter function here?
+    
     def __init__(self, key: str):
         self.key = key

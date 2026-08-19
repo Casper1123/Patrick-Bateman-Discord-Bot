@@ -30,12 +30,13 @@ class PushInstruction(_Instruction):
         if not pingable_val in {0, 1, 2}:
             raise _InstructionParseError(match.group(0), f'Pingable option **{pingable_val}** not in **[0, 1, 2]**.')
 
+        # todo: could make each one of these an individual option, binary encode it into 4 bits (or let 0000 be an input)
         if pingable_val == 2:
-            pingable = MentionOptions.ALL
+            pingable = _AllowedMentions(everyone=True, users=True, roles=True, replied_user=True)
         elif pingable_val == 1:
-            pingable = MentionOptions.AUTHOR
+            pingable = _AllowedMentions(everyone=False, users=False, roles=False, replied_user=True)
         else:
-            pingable = MentionOptions.NONE
+            pingable = _AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
 
         return PushInstruction(pingable)
 
