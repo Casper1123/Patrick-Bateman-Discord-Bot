@@ -32,19 +32,17 @@ class PushInstruction(_Instruction):
 
         # todo: could make each one of these an individual option, binary encode it into 4 bits (or let 0000 be an input)
         if pingable_val == 2:
-            pingable = _AllowedMentions(everyone=True, users=True, roles=True, replied_user=True)
+            return PushInstruction(everyone=True, users=True, roles=True, replied_user=True)
         elif pingable_val == 1:
-            pingable = _AllowedMentions(everyone=False, users=False, roles=False, replied_user=True)
-        else:
-            pingable = _AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
+            return PushInstruction(replied_user=True)
+        
+        return PushInstruction()
 
-        return PushInstruction(pingable)
-
-    def __init__(self, pingable: _AllowedMentions | None = None) -> None:
-        if not pingable:
-            # Everyone: @everyone & @here
-            # Users: Can ping other users
-            # Roles: Can ping roles
-            # Replied_user: If to ping the author if replying.
-            pingable = _AllowedMentions(everyone=False, users=False, roles=False, replied_user=False)
-        self.pingable = pingable
+    def __init__(self, everyone: bool = False, users: bool = False, roles: bool = False, replied_user: bool = False) -> None:
+        """
+        :param everyone: @everyone & @here
+        :param users: Can ping other users
+        :param roles: Can ping roles
+        :param replied_user: If to ping the author if replying.
+        """
+        self.pingable = _AllowedMentions(everyone=everyone, users=users, roles=roles, replied_user=replied_user)
