@@ -2,8 +2,7 @@ from re import Match as _Match
 import ast as _ast
 
 from piss.instructions.abstract import Instruction as _Instruction
-# noinspection PyProtectedMember
-from piss.parsing import _parse_top_level
+
 # todo fixme: circular import! parser -> parse order -> ChoiceInstruction -> parser
 
 class ChoiceInstruction(_Instruction):
@@ -36,6 +35,9 @@ class ChoiceInstruction(_Instruction):
                 raise TypeError(f'Options entry of type {type(x).__name__}, not string for option {x}')
 
         opt_raw: tuple[str, ...]
+
+        # noinspection PyProtectedMember
+        from piss.parsing import _parse_top_level
 
         # Turn into Instructions
         options: list[list[_Instruction]] = []
