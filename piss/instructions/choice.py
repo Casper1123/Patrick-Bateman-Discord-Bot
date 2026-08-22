@@ -17,7 +17,7 @@ class ChoiceInstruction(_Instruction):
         return (r'^choice\(\s*(?P<options>.*)\s*\)$', 0),
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+    def from_match(match: _Match, ident: int, memory: dict[str, type], recursion_depth: int,
                    writing: bool) -> ChoiceInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Choice')
@@ -42,7 +42,7 @@ class ChoiceInstruction(_Instruction):
         # Turn into Instructions
         options: list[list[_Instruction]] = []
         for x in opt_raw:
-            instr: list[_Instruction] = _parse_top_level(x, recursion_depth + 1, memory_stack, writing)
+            instr: list[_Instruction] = _parse_top_level(x, recursion_depth + 1, memory, writing)
             options.append(instr)
 
         return ChoiceInstruction(options)

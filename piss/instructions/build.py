@@ -10,7 +10,7 @@ class BuildInstruction(_Instruction):
         return super().__str__() + f'[text={self.text}]'
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+    def from_match(match: _Match, ident: int, memory: dict[str, type], recursion_depth: int,
                    writing: bool) -> BuildInstruction:
         raise _InstructionParseError(
             'BuildInstruction incompatible with Signatures and from_match.',

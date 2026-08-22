@@ -13,7 +13,7 @@ class RandomNumberInstruction(_Instruction):
         return (r'^rand(om)?\((?P<a>-?\d+),\s?(?P<b>-?\d+)\)$', 0), # todo: make b optional s.t. it is 0-a (inclusive)
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+    def from_match(match: _Match, ident: int, memory: dict[str, type], recursion_depth: int,
                    writing: bool) -> RandomNumberInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type RandomNumber')

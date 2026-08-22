@@ -18,7 +18,7 @@ class PushInstruction(_Instruction):
         return (r'^push\((?P<pingable>(\d?))\)$', 0),
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+    def from_match(match: _Match, ident: int, memory: dict[str, type], recursion_depth: int,
                    writing: bool) -> PushInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Push')

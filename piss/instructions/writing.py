@@ -14,7 +14,7 @@ class WritingInstruction(_Instruction):
         return (r'^writing\((?P<instr>(.*))\)$', 0),
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+    def from_match(match: _Match, ident: int, memory: dict[str, type], recursion_depth: int,
                    writing: bool) -> WritingInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Writing')
@@ -27,7 +27,7 @@ class WritingInstruction(_Instruction):
         # noinspection protected-member
         from piss.parsing import _parse_instruction_block
 
-        content_instr: list[_Instruction] = _parse_instruction_block(content, memory_stack, recursion_depth + 1, writing=True)
+        content_instr: list[_Instruction] = _parse_instruction_block(content, memory, recursion_depth + 1, writing=True)
         if not content_instr:
             raise _InstructionParseError(match.group(0),
                                         f'Writing Instruction did not receive any Instructions (received **{content}**).')

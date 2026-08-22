@@ -12,6 +12,5 @@ parse_order: tuple[type[Instruction], ...] = (
     RandomUserInstruction,
     SleepInstruction,
     WritingInstruction,
-    # todo: Causes circular import! Order -> ChoiceInstruction -> parser -> order
     ChoiceInstruction,
 )

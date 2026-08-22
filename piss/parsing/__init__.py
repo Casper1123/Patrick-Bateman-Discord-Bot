@@ -17,12 +17,12 @@ MAX_RECURSION_DEPTH: int = 5 # todo: config
 
 # todo: improve feedback information
 
-def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list[dict[str, type]], writing: bool) -> list[_Instruction]:
+def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, type], writing: bool) -> list[_Instruction]:
     """
     Decomposes input string into text and Instructions blocks by turning them into Instructions.
     :param parse_string: Input string containing variable blocks.
     :param recursion_depth: Recursion depth.
-    :param memory_stack: Current given memory stack.
+    :param memory Current given memory.
     :param writing: If the current `parse_string` would be executed inside a writing(*i) environment.
     :return: `parse_string` converted into its composing Instructions.
     """
@@ -59,7 +59,7 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list
                 opened -= 1
                 if opened == 0:
                     # Insert build into parser
-                    instructions += _parse_instruction_block(build, memory_stack, recursion_depth, writing)
+                    instructions += _parse_instruction_block(build, memory, recursion_depth, writing)
                     build = ''
             else:
                 raise _InstructionParseError(parse_string, reason=f'Found block-closing symbol at pos {i} before a block-opening symbol.')
@@ -73,12 +73,12 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list
     return instructions
 
 
-def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, type]], recursion_depth: int, writing: bool) -> list[_Instruction]:
+def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursion_depth: int, writing: bool) -> list[_Instruction]:
     """
     Determines instruction type(s) and creates instructions using their parameters.
     :param parse_string: Input string
     :param recursion_depth: The current recursion depth, in case a sub-instruction requires recursion.
-    :param memory_stack: The memory stack, layered on scope, of the current scope. Defines variable types for type checking.
+    :param memory: The memory. Defines variable types for type checking.
     :param writing: The given build string would be parsed as if it is inside a writing(*i) operand.
     :return: Instructions from Build
     """
@@ -149,10 +149,6 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
     del build, layer_stack, char, escaped, i, n
     # endregion
 
-    # todo: how the FUCK is the memory stack going to work.
-    local_scope: dict[str, type] = {} if memory_stack else INITIAL_MEMORY_TYPES.copy()
-    memory_stack.append(local_scope)
-
     # region Step 2: Instruction recognition
     instructions: list[_Instruction] = []
 
@@ -166,7 +162,7 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
                 match: _Match | None = _re.match(sig, subsection)
                 if match:
                     try:
-                        instructions.append(inst_type.from_match(match, ident, memory_stack, recursion_depth, writing))
+                        instructions.append(inst_type.from_match(match, ident, memory, recursion_depth, writing))
                     except _CustomDiscordException as e:
                         raise e
                     except Exception as e:
@@ -185,7 +181,7 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
             # 3. See if resulting type is compatible for output.
             if i < n:
                 raise _InstructionParseError(parse_string, reason=f'Found memory print instruction **{subsection}** at section {i} before end of input.')
-            res_type: type | None = _fetch(memory_stack, subsection)
+            res_type: type | None = _fetch(memory, subsection)
             if res_type is None:
                 raise _InstructionParseError(subsection, f'Key {subsection} not found.')
             # todo: supported output memory type?
@@ -201,6 +197,6 @@ def parse_instructions_from_string(txt: str, ) -> list[_Instruction]:
     return _parse_top_level(
         parse_string=txt,
         recursion_depth=0,
-        memory_stack=[],
+        memory=INITIAL_MEMORY_TYPES.copy(),
         writing=False,
     )

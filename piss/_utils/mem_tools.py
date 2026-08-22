@@ -1,5 +1,5 @@
 # Just for making memory stack usage easier.
-from typing import TypeVar as _TypeVar
+from typing import TypeVar
 import datetime as _datetime
 
 
@@ -54,47 +54,19 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
     'total_facts': int,
 }
 
-_T = _TypeVar('_T')
+_T = TypeVar('_T')
 
-def _flatten(memory_stack: list[dict[str, _T]]) -> dict[str, _T]:
+def fetch(memory: dict[str, _T], key: str) -> _T | None:
     """
-    Flatten a given memory stack into available entries in local scope.
+    Get entry from Memory, silently returning None if not found.
     """
-    mem: dict[str, _T] = {}
-    for scope in reversed(memory_stack):
-        for k, v in scope.items():
-            mem[k] = v
+    return memory[key] if key in memory.keys() else None
 
-    return mem
+def assign(memory: dict[str, _T], key: str, value: _T) -> None:
+    """
+    Assign value to memory, raising error if a protected key is to be assigned.
+    """
+    if key in INITIAL_MEMORY_TYPES.keys():
+        raise KeyError(f'Key {key} cannot be overridden as it is in standard memory.')
 
-def _find_scope(memory_stack: list[dict[str, _T]], key: str) -> int | None:
-    """
-    Find the scope the given key belongs to. Returns scope index, with 0 being top-level.
-    """
-    if not memory_stack:
-        raise IndexError('Memory stack is empty.')
-
-    for i, scope in enumerate(memory_stack):
-        if key in scope.keys():
-            return i
-    return None
-
-def fetch(memory_stack: list[dict[str, _T]], key: str) -> _T | None:
-    """
-    Find entry in memory_stack. Returns None if not found.
-    """
-    mem = _flatten(memory_stack)
-    return mem[key] if key in mem.keys() else None
-
-def assign(memory_stack: list[dict[str, _T]], key: str, value: _T) -> None:
-    """
-    Assign value to the key's corresponding scope.
-    Creates local scope entry
-    """
-    # Find scope
-    scope: int | None = _find_scope(memory_stack, key)
-    if scope is None:
-        scope = len(memory_stack) - 1
-    scope: int
-
-    memory_stack[scope][key] = value
+    memory[key] = value

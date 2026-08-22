@@ -17,7 +17,7 @@ class RandomUserInstruction(_Instruction):
         return (r'^tru\((?P<num>-?\d+)(?:,\s*(?P<attr>\w+))?\)$', 0),
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+    def from_match(match: _Match, ident: int, memory: dict[str, type], recursion_depth: int,
                    writing: bool) -> RandomUserInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type RandomUser')
