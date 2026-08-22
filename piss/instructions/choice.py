@@ -6,7 +6,7 @@ from utilities.exceptions import ErrorTooltip
 from piss.instructions import _doubles, _bounds, _escapes, _be_map
 
 
-option_bounds: list[str] = ['\'', '"']
+option_bounds: list[str] = ["'", '"']  # ' "
 
 class ChoiceInstruction(_Instruction):
     def __init__(self, options: tuple[list[_Instruction], ...]):
@@ -26,4 +26,10 @@ class ChoiceInstruction(_Instruction):
             raise ValueError('Unsupported match identifier for Instruction of type Choice')
 
         # todo: remake entirely.
-        raise NotImplementedError()
+        # Tldr; choice(str, str*, str) where str* is any number >= 0 str input, each bounded with either ' or "
+        # Need to individually parse the choices given the parsing function _parse_top_level
+
+
+
+
+        ...
