@@ -12,8 +12,8 @@ class MemoryInstruction(_Instruction):
         raise RuntimeError('MemoryInstruction incompatible with Signatures and from_match.')
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> MemoryInstruction:
+    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+                   writing: bool) -> MemoryInstruction:
         raise RuntimeError('MemoryInstruction incompatible with Signatures and from_match.')
 
     # todo: move mem getter function here?

@@ -10,6 +10,7 @@ from piss.instructions.build import BuildInstruction
 # noinspection protected-member
 from piss._utils.mem_tools import fetch
 from piss.instructions import _be_map, _bounds, _doubles, _escapes, _terminator
+from utilities.exceptions import CustomDiscordException
 
 MAX_RECURSION_DEPTH: int = 5
 
@@ -215,7 +216,15 @@ def _parse_instruction_block(parse_string: str, memory_stack: list[dict[str, typ
             for sig, ident in inst_type.signatures():
                 match: _Match | None = _re.match(sig, subsection)
                 if match:
-                    instructions.append(inst_type.from_match(match, ident, memory_stack, recursion_depth, writing))
+                    try:
+                        instructions.append(inst_type.from_match(match, ident, memory_stack, recursion_depth, writing))
+                    except CustomDiscordException as e:
+                        raise e
+                    except Exception as e:
+                        err: InstructionParseError = InstructionParseError(subsection, f'Error occurred when trying to parse input for input ({inst_type.__name__} signature ID {ident})')
+                        err.cause = e
+                        raise err
+
                     found = True
                     break
             if found: break

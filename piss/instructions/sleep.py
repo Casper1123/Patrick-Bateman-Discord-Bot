@@ -12,8 +12,8 @@ class SleepInstruction(_Instruction):
         return super().__str__() + f'[t={self.time}]'
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> SleepInstruction:
+    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+                   writing: bool) -> SleepInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Sleep')
 

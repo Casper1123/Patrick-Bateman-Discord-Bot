@@ -14,7 +14,7 @@ class Instruction(ABC):
 
     @staticmethod
     @abstractmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0, writing: bool= False) -> Instruction:
+    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int, writing: bool) -> Instruction:
         """
         Take one of the class' RegEx signature matches to create an Instruction.
         Requires Match input identifier.

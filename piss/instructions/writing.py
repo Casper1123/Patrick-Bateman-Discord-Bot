@@ -14,8 +14,8 @@ class WritingInstruction(_Instruction):
         return (r'^writing\((?P<instr>(.*))\)$', 0),
 
     @staticmethod
-    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> WritingInstruction:
+    def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int,
+                   writing: bool) -> WritingInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Writing')
 
