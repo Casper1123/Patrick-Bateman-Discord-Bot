@@ -9,13 +9,16 @@ UserAttributeOptions: _TypeAlias = _Literal['id', 'name', 'account', 'created_at
 
 
 class RandomUserInstruction(_Instruction):
+    def __str__(self) -> str:
+        return super().__str__() + f'[i={self.index}; attr={self.attribute}]'
+
     @staticmethod
     def signatures() -> tuple[tuple[str, int], ...]:
         return (r'^tru\((?P<num>-?\d+)(?:,\s*(?P<attr>\w+))?\)$', 0),
 
     @staticmethod
     def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> _Instruction:
+                   writing: bool = False) -> RandomUserInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type RandomUser')
 
@@ -33,7 +36,7 @@ class RandomUserInstruction(_Instruction):
             raise _InstructionParseError(match.group(0), f'Incompatible attribute.\n'
                                                     f'Received: **{attr}**.\n'
                                                     f'Expected: Element in **{UserAttributeOptions}**.')
-        RandomUserInstruction(index=num, attribute=attr)
+        return RandomUserInstruction(index=num, attribute=attr)
 
     def __init__(self, index: int, attribute: UserAttributeOptions) -> None:
         self.index = index

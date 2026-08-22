@@ -5,13 +5,16 @@ from piss.exceptions import InstructionParseError as _InstructionParseError
 
 
 class RandomNumberInstruction(_Instruction):
+    def __str__(self) -> str:
+        return super().__str__() + f'[a={self.a}; b={self.b}]'
+
     @staticmethod
     def signatures() -> tuple[tuple[str, int], ...]:
         return (r'^rand(om)?\((?P<a>-?\d+),\s?(?P<b>-?\d+)\)$', 0), # todo: make b optional s.t. it is 0-a (inclusive)
 
     @staticmethod
     def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> _Instruction:
+                   writing: bool = False) -> RandomNumberInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type RandomNumber')
 

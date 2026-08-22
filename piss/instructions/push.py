@@ -8,13 +8,18 @@ from piss.exceptions import InstructionParseError as _InstructionParseError
 
 
 class PushInstruction(_Instruction):
+    def __str__(self) -> str:
+        # noinspection string-conversion-without-dunder-method
+        # so be it for some random list moment
+        return super().__str__() + f'[ev={self.pingable.everyone}; usr={self.pingable.users}; role={self.pingable.roles}; reply={self.pingable.replied_user}]'
+
     @staticmethod
     def signatures() -> tuple[tuple[str, int], ...]:
         return (r'^push\((?P<pingable>(\d?))\)$', 0),
 
     @staticmethod
     def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> _Instruction:
+                   writing: bool = False) -> PushInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Push')
 

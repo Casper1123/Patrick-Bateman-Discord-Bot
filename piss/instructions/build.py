@@ -6,9 +6,12 @@ from utilities.exceptions import ErrorTooltip as _ErrorTooltip
 
 
 class BuildInstruction(_Instruction):
+    def __str__(self) -> str:
+        return super().__str__() + f'[text={self.text}]'
+
     @staticmethod
     def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> _Instruction:
+                   writing: bool = False) -> BuildInstruction:
         raise _InstructionParseError(
             'BuildInstruction incompatible with Signatures and from_match.',
             tooltip=_ErrorTooltip.ISSUE

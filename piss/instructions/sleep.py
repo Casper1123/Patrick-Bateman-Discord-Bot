@@ -8,9 +8,12 @@ SLEEP_TIMER_LOWER_BOUND: float = 0.5
 
 
 class SleepInstruction(_Instruction):
+    def __str__(self) -> str:
+        return super().__str__() + f'[t={self.time}]'
+
     @staticmethod
     def from_match(match: _Match, ident: int, memory_stack: list[dict[str, type]], recursion_depth: int = 0,
-                   writing: bool = False) -> _Instruction:
+                   writing: bool = False) -> SleepInstruction:
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Sleep')
 

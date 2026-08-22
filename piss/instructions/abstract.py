@@ -22,3 +22,6 @@ class Instruction(ABC):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def __str__(self) -> str:
+        return type(self).__name__.removesuffix('Instruction') + ': '

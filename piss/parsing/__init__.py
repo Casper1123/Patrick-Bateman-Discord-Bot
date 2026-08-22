@@ -7,7 +7,9 @@ from piss.parsing.parse_order import parse_order
 from piss.exceptions import InstructionParseError
 from piss.instructions.abstract import Instruction
 from piss.instructions.build import BuildInstruction
+# noinspection protected-member
 from piss._utils.mem_tools import fetch
+from piss.instructions import _be_map, _bounds, _doubles, _escapes, _terminator
 
 MAX_RECURSION_DEPTH: int = 5
 
@@ -64,11 +66,6 @@ INITIAL_MEMORY_TYPES: dict[str, type] = {
 
 
 # todo: improve feedback information
-_terminator: str = ';'
-_bounds: set[str] = {'{', '[', '(', "'", '"'}  # Opens another subsection. Input is already stripped of containing surrounding {}
-_be_map: dict[str, str] = {'{': '}', '[': ']', '(': ')', '\'': '\'', '"': '"'}
-_escapes: set[str] = set(_be_map.values())  # convert to list, makes it easier to work with.
-_doubles: list[str] = [b for b in _bounds if _be_map[b] == b]
 
 def _parse_top_level(parse_string: str, recursion_depth: int, memory_stack: list[dict[str, type]], writing: bool) -> list[Instruction]:
     """
