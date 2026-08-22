@@ -9,6 +9,12 @@ from piss.instructions import _doubles, _bounds, _escapes, _be_map
 option_bounds: list[str] = ['\'', '"']
 
 class ChoiceInstruction(_Instruction):
+    def __init__(self, options: tuple[list[_Instruction], ...]):
+        self.options: tuple[list[_Instruction], ...] = options
+
+    def __str__(self) -> str:
+        return super().__str__() + f'[opt={self.options}]'
+
     @staticmethod
     def signatures() -> tuple[tuple[str, int], ...]:
         return (r'^choice\(\s*(?P<options>.*)\s*\)$', 0),
