@@ -1,7 +1,60 @@
 # Just for making memory stack usage easier.
-from typing import TypeVar
+from typing import TypeVar as _TypeVar
+import datetime as _datetime
 
-_T = TypeVar('_T')
+
+INITIAL_MEMORY_TYPES: dict[str, type] = {
+    '\\n': str,
+
+    # interaction target
+    'user.id': int,
+    'user': str,
+    'user.name': str,
+    'user.created_at': _datetime.datetime,
+    'user.account': str,
+    'user.mutual_guilds': int,
+    'user.roles': int,  # role count, not the actual roles.
+
+    'self.id': int,
+    'self': str,
+    'self.name': str,
+    'self.created_at': _datetime.datetime,
+    'self.account': str,
+    'self.roles': int,
+
+    'channel': str,
+    'channel.id': int,
+    'channel.name': str,
+    'channel.created_at': _datetime.datetime,
+    'channel.jump_url': str,
+
+    'guild': str,
+    'guild.id': int,
+    'guild.name': str,
+    'guild.created_at': _datetime.datetime,
+    'guild.members': int,  # member count
+    'guild.roles': int,  # still, role count.
+
+    # guild owner
+    'owner.id': int,
+    'owner': str,
+    'owner.name': str,
+    'owner.created_at': _datetime.datetime,
+    'owner.mutual_guilds': int,
+    'owner.account': str,
+    'owner.roles': int,
+
+    # Not always available!
+    # 'message': int,
+    # 'message.jump_url': str,
+
+    # external
+    'local_facts': int,
+    'global_facts': int,
+    'total_facts': int,
+}
+
+_T = _TypeVar('_T')
 
 def _flatten(memory_stack: list[dict[str, _T]]) -> dict[str, _T]:
     """

@@ -1,1 +1,3 @@
 todo: How to do return type of, for example, a writing block? Local scope might end with mem call, which makes writing() a mem call.
+todo: How to make memory easier? Stack with scopes not as needed, but need to make sure original data is not overwritten. Ensure type of obj never changes.
+    INITIAL MEMORY TYPES.keys() is a large register of things that just cannot be overwritten. That fixes it.

@@ -25,3 +25,6 @@ class Instruction(ABC):
     @abstractmethod
     def __str__(self) -> str:
         return type(self).__name__.removesuffix('Instruction') + ': '
+
+    def __hash__(self) -> int:
+        return hash(str(type(self).__name__))

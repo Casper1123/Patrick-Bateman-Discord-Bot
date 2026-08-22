@@ -58,17 +58,14 @@ class BotClient(commands.Bot):
             if not isinstance(error, Exception):
                 raise error
 
-            params: str = '[ Event type not explicitly supported ]'
-
-            # todo: parse params based on given event.
-            # todo: supported events list.
-            await self.handle_exception(
-                error_context=ListenerErrorContext(
+            error_ctx = ListenerErrorContext(
                     error=error,
                     event=event,
-                    params=params
+                    params=(('?', '?',),) # todo: parse params based on given event.
                 )
-            )
+            # todo: supported events list.
+            await self.handle_exception(
+                error_context=error_ctx)
 
         self.on_error = on_error
 
