@@ -3,10 +3,8 @@ import ast as _ast
 
 from piss.instructions.abstract import Instruction as _Instruction
 # noinspection PyProtectedMember
-from piss.parsing import _parse_top_level # todo fixme: circular import!
-
-
-option_bounds: list[str] = ["'", '"']  # ' "
+from piss.parsing import _parse_top_level
+# todo fixme: circular import! parser -> parse order -> ChoiceInstruction -> parser
 
 class ChoiceInstruction(_Instruction):
     def __init__(self, options: list[list[_Instruction]]):
