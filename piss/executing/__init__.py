@@ -3,6 +3,7 @@ import random as _r
 import asyncio as _asyncio
 
 from discord import Message as _Message, Interaction as _Interaction, Member as _Member
+from discord.abc import Messageable
 
 from discorduser.user.abstract import BotClient
 from piss.instructions.abstract import Instruction as _Instruction
@@ -32,6 +33,12 @@ class InstructionExecutor:
         """
         Run the given Instructions in the context of the given interaction.
         """
+        if not instructions:
+            return
+
+        if not isinstance(interaction.channel, Messageable):
+            raise _InstructionExecutionError(instructions[0], reason='Channel is not MessageAble.')
+
         await self._exec(
             instructions=instructions,
             interaction=interaction,
@@ -61,14 +68,14 @@ class InstructionExecutor:
             
             # faster with a 'switch' case but is that even available.
             if isinstance(instruction, BuildInstruction):
-                build += self._build(instruction)
+                build += await self._build(instruction)
             elif isinstance(instruction, PushInstruction):
                 await self._push(instruction, build, interaction)
                 build = ''
             elif isinstance(instruction, ChoiceInstruction):
                 build = await self._choice(instruction, interaction, recursion_depth, memory_stack, build)
             elif isinstance(instruction, MemoryInstruction):
-                build += await self._memory(instruction, memory_stack)
+                build += str(await self._memory(instruction, memory_stack))
             elif isinstance(instruction, RandomNumberInstruction):
                 build += str(await self._rnd_num(instruction))
             elif isinstance(instruction, RandomUserInstruction):
@@ -130,8 +137,10 @@ class InstructionExecutor:
 
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
-    async def _memory(self, instruction: MemoryInstruction, memory_stack: list[dict[str, _Any]]) -> str:
-        return _fetch(memory_stack, instruction.key)
+    async def _memory(self, instruction: MemoryInstruction, memory_stack: list[dict[str, _Any]]) -> _Any:
+        val: _Any | None = _fetch(memory_stack, instruction.key)
+        if val is None:
+            raise ValueError(f'Seemingly, the key {instruction.key} is not available. This is only possible')
 
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
@@ -175,7 +184,7 @@ class InstructionExecutor:
         """
         await _asyncio.sleep(instruction.time)
 
-    async def _writing(self, instruction: WritingInstruction, interaction: _Interaction, recursion_depth: int, memory_stack: list[dict[str, _Any]], build: str) -> str:
+    async def _writing(self, instruction: WritingInstruction, interaction: _Interaction | _Message, recursion_depth: int, memory_stack: list[dict[str, _Any]], build: str) -> str:
         """
         Executes embedded instructions while showing the typing indicator in the channel.
         Returns leftover build.

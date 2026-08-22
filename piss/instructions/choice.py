@@ -23,7 +23,6 @@ class ChoiceInstruction(_Instruction):
         if not ident == 0:
             raise ValueError('Unsupported match identifier for Instruction of type Choice')
 
-        # todo: remake entirely.
         # Tldr; choice(str, str*, str) where str* is any number >= 0 str input, each bounded with either ' or "
         # Need to individually parse the choices given the parsing function _parse_top_level
         # _ast.literal_eval should perform this function, but double check if that is true through testing.
