@@ -23,14 +23,13 @@ from utilities.exceptions import CustomDiscordException as _CustomDiscordExcepti
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
 
 class InstructionExecutor:
-    def __init__(self, client: BotClient) -> None:
-        self.client: BotClient = client
+    def __init__(self) -> None:
         self._first_reply: bool = True
 
         self._shuffled_member_list: list[_Member] = []
 
 
-    async def run(self, instructions: list[_Instruction], interaction: _Message | _Interaction):
+    async def run(self, client: BotClient, instructions: list[_Instruction], interaction: _Message | _Interaction):
         """
         Run the given Instructions in the context of the given interaction.
         Has less safety features as the Compiler is supposed to handle that.
@@ -48,7 +47,7 @@ class InstructionExecutor:
             instructions=instructions,
             interaction=interaction,
             recursion_depth=-1, # Incremented by _exec to 0
-            memory=await self._create_init_memory(interaction), # todo: init memory
+            memory=await self._create_init_memory(client, interaction), # todo: init memory
             push_final_build=True,
             build=''
         )
@@ -59,9 +58,10 @@ class InstructionExecutor:
                     build: str) -> str:
         recursion_depth += 1
         if recursion_depth > MAX_EXECUTION_RECURSION_DEPTH:
+            # todo: Make better
             raise _CustomDiscordException(
                 message=f'Maximum recursion depth of {recursion_depth} exceeded maximal value when executing Instructions.\n'
-                        f'{"\n".join(str(i) for i in instructions)}', error_type='ParsedExecutionRecursionDepthLimit',
+                        f'{"\n".join(str(i) for i in instructions)}', error_type='ParsedExecutionDepthLimit',
                 tooltip=_ErrorTooltip.WIKI)
         
         i: int = 0
@@ -72,6 +72,7 @@ class InstructionExecutor:
             instruction: _Instruction = instructions[i]
             
             # faster with a 'switch' case but is that even available.
+            # todo: make better this SMELLS it STINKS it's DOOKIE
             if isinstance(instruction, BuildInstruction):
                 build += await self._build(instruction)
             elif isinstance(instruction, PushInstruction):
@@ -147,7 +148,8 @@ class InstructionExecutor:
     async def _memory(self, instruction: MemoryInstruction, memory: dict[str, _Any]) -> _Any:
         val: _Any | None = _fetch(memory, instruction.key)
         if val is None:
-            raise ValueError(f'Seemingly, the key {instruction.key} is not available. This is only possible')
+            raise ValueError(f'Seemingly, the key {instruction.key} is not available. This is only possible using a malformed Instruction list.')
+        return val
 
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
@@ -207,7 +209,7 @@ class InstructionExecutor:
             )
     # endregion
     # region memory
-    async def _create_init_memory(self, interaction: _Interaction | _Message) -> dict[str, _Any]:
+    async def _create_init_memory(self, client: BotClient, interaction: _Interaction | _Message) -> dict[str, _Any]:
         # noinspection bad-assignment
         guild: _Guild = interaction.guild
         if not guild:
@@ -221,7 +223,7 @@ class InstructionExecutor:
             user: _User | _Member = interaction.author
             member: _Member | None = guild.get_member(interaction.author.id)
 
-        me: _ClientUser | None = self.client.user
+        me: _ClientUser | None = client.user
         if not me:
             raise ValueError('Cannot prepare memory data, missing required data to construct initial memory.')
 
@@ -233,8 +235,8 @@ class InstructionExecutor:
         # always exists.
         owner: _Member = guild.owner  # guild owner
 
-        local_facts: int = self.client.fact.get_fact_count(guild.id)
-        global_facts: int = self.client.fact.get_fact_count(None)
+        local_facts: int = client.fact.get_fact_count(guild.id)
+        global_facts: int = client.fact.get_fact_count(None)
         total_facts: int = local_facts + global_facts
 
         if None in [member, me, me_member] or not isinstance(me, _abcUser):
