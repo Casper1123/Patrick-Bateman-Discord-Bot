@@ -80,3 +80,4 @@ if __name__ == '__main__':
                 *maintenance_loops,
                 return_exceptions=True,
             )
+    asyncio.run(main())

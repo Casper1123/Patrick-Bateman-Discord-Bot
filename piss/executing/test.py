@@ -9,7 +9,7 @@ from discord import Message as _Message, Interaction as _Interaction
 from discorduser.user.abstract import BotClient as _BotClient
 from piss._utils.mem_tools import reshape as _reshape
 from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError as _InstructionExecutionError
-from piss.executing import AbstractInstructionExecutor as _AbstractInstructionExecutor
+from piss.executing.abstract import AbstractInstructionExecutor as _AbstractInstructionExecutor
 from piss.instructions.abstract import Instruction as _Instruction
 from piss.instructions.build import BuildInstruction as _BuildInstruction
 from piss.instructions.choice import ChoiceInstruction as _ChoiceInstruction
@@ -145,7 +145,7 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
     # region instructions
     async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
 
-        self.pure_out += build
+        self.pure_out += '{PUSH}' + build
 
         self.out += ('{PUSH;' +
 
