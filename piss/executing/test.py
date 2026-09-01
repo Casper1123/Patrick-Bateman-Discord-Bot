@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import _datetime
+import datetime as _datetime
 import random as _r
 from typing import Any as _Any
 
@@ -8,29 +8,29 @@ from discord import Message as _Message, Interaction as _Interaction
 
 from discorduser.user.abstract import BotClient as _BotClient
 from piss._utils.mem_tools import reshape as _reshape
-from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError
-from piss.executing import AbstractInstructionExecutor
+from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError as _InstructionExecutionError
+from piss.executing import AbstractInstructionExecutor as _AbstractInstructionExecutor
 from piss.instructions.abstract import Instruction as _Instruction
-from piss.instructions.build import BuildInstruction
-from piss.instructions.choice import ChoiceInstruction
-from piss.instructions.memory import MemoryInstruction
-from piss.instructions.push import PushInstruction
-from piss.instructions.randnum import RandomNumberInstruction
-from piss.instructions.randuser import RandomUserInstruction
-from piss.instructions.sleep import SleepInstruction
-from piss.instructions.writing import WritingInstruction
+from piss.instructions.build import BuildInstruction as _BuildInstruction
+from piss.instructions.choice import ChoiceInstruction as _ChoiceInstruction
+from piss.instructions.memory import MemoryInstruction as _MemoryInstruction
+from piss.instructions.push import PushInstruction as _PushInstruction
+from piss.instructions.randnum import RandomNumberInstruction as _RandomNumberInstruction
+from piss.instructions.randuser import RandomUserInstruction as _RandomUserInstruction
+from piss.instructions.sleep import SleepInstruction as _SleepInstruction
+from piss.instructions.writing import WritingInstruction as _WritingInstruction
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException
 
 
-class TestInstructionExecutor(AbstractInstructionExecutor):
+class TestInstructionExecutor(_AbstractInstructionExecutor):
     """
     Used for running test input. Discard after use.
     """
 
-    async def _build(self, instruction: BuildInstruction) -> str:
+    async def _build(self, instruction: _BuildInstruction) -> str:
         return instruction.text
 
-    async def _rnd_usr(self, instruction: RandomUserInstruction, interaction: _Interaction | _Message) -> str:
+    async def _rnd_usr(self, instruction: _RandomUserInstruction, interaction: _Interaction | _Message) -> str:
         if instruction.attribute == 'id':
             return f'member[{instruction.index}].id'
         elif instruction.attribute == 'name':
@@ -46,10 +46,10 @@ class TestInstructionExecutor(AbstractInstructionExecutor):
         else:
             raise _InstructionExecutionError(instruction, reason=f'Unsupported random user attribute {instruction.attribute}')
 
-    async def _sleep(self, instruction: SleepInstruction) -> None:
+    async def _sleep(self, instruction: _SleepInstruction) -> None:
         self.out += '{SLEEP; ' + f'{instruction.time}' + '}'
 
-    async def _writing(self, instruction: WritingInstruction, interaction: _Interaction | _Message,
+    async def _writing(self, instruction: _WritingInstruction, interaction: _Interaction | _Message,
                        recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         self.out += '{WRITING[OPEN]; '
         build = await self._exec(instruction.instructions, interaction, recursion_depth, memory, False, build)
@@ -143,7 +143,7 @@ class TestInstructionExecutor(AbstractInstructionExecutor):
                                          error_type='InstructionMemoryError')
 
     # region instructions
-    async def _push(self, instruction: PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
+    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
 
         self.pure_out += build
 
@@ -159,7 +159,7 @@ class TestInstructionExecutor(AbstractInstructionExecutor):
 
         self._first_reply = False
 
-    async def _choice(self, instruction: ChoiceInstruction, interaction: _Message | _Interaction,
+    async def _choice(self, instruction: _ChoiceInstruction, interaction: _Message | _Interaction,
                       recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         """
         Branches Choice instruction and returns leftover build.
@@ -174,10 +174,10 @@ class TestInstructionExecutor(AbstractInstructionExecutor):
             mem = memory.copy()
             try:
                 branch_build = await ex._exec(branch, interaction, recursion_depth, mem, False, build)
-            except InstructionExecutionError as e:
+            except _InstructionExecutionError as e:
                 raise e
             except Exception as e:
-                raise InstructionExecutionError(instruction, reason=f'The error was raised in option {i + 1}.', cause=e)
+                raise _InstructionExecutionError(instruction, reason=f'The error was raised in option {i + 1}.', cause=e)
 
             branch_results.append(
                 (ex, branch_build, mem)
@@ -200,7 +200,7 @@ class TestInstructionExecutor(AbstractInstructionExecutor):
 
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
-    async def _memory(self, instruction: MemoryInstruction, memory: dict[str, _Any]) -> _Any:
+    async def _memory(self, instruction: _MemoryInstruction, memory: dict[str, _Any]) -> _Any:
         val = super()._memory(instruction, memory)
 
         self.out += '{MEM; ' + instruction.key + '}' # todo: is this even useful / good? test it a little.
@@ -209,7 +209,7 @@ class TestInstructionExecutor(AbstractInstructionExecutor):
 
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
-    async def _rnd_num(self, instruction: RandomNumberInstruction) -> int:
+    async def _rnd_num(self, instruction: _RandomNumberInstruction) -> int:
         """
         Returns random number from instruction parameters. Requires string-conversion to be usable for building.
         """

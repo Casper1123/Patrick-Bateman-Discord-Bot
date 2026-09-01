@@ -7,29 +7,29 @@ from discord import Message as _Message, Interaction as _Interaction, Member as 
     VoiceChannel as _VoiceChannel
 from discord.abc import Messageable, User as _abcUser
 
-from discorduser.user.abstract import BotClient
+from discorduser.user.abstract import BotClient as _BotClient
 from piss.exceptions import InstructionExecutionError as _InstructionExecutionError
-from piss.executing.abstract import AbstractInstructionExecutor
+from piss.executing.abstract import AbstractInstructionExecutor as _AbstractInstructionExecutor
 from piss.instructions.abstract import Instruction as _Instruction
-from piss.instructions.build import BuildInstruction
-from piss.instructions.choice import ChoiceInstruction
-from piss.instructions.push import PushInstruction
-from piss.instructions.randuser import RandomUserInstruction
-from piss.instructions.sleep import SleepInstruction
-from piss.instructions.writing import WritingInstruction
+from piss.instructions.build import BuildInstruction as _BuildInstruction
+from piss.instructions.choice import ChoiceInstruction as _ChoiceInstruction
+from piss.instructions.push import PushInstruction as _PushInstruction
+from piss.instructions.randuser import RandomUserInstruction as _RandomUserInstruction
+from piss.instructions.sleep import SleepInstruction as _SleepInstruction
+from piss.instructions.writing import WritingInstruction as _WritingInstruction
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException, \
     IncompatibleTargetChannel as _IncompatibleTargetChannel
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
 
-class InstructionExecutor(AbstractInstructionExecutor):
+class InstructionExecutor(_AbstractInstructionExecutor):
     def __init__(self) -> None:
         super().__init__()
 
         self._shuffled_member_list: list[_Member] = []
 
 
-    async def run(self, client: BotClient, instructions: list[_Instruction], interaction: _Message | _Interaction):
+    async def run(self, client: _BotClient, instructions: list[_Instruction], interaction: _Message | _Interaction):
         """
         Run the given Instructions in the context of the given interaction.
         Has less safety features as the Compiler is supposed to handle that.
@@ -55,13 +55,13 @@ class InstructionExecutor(AbstractInstructionExecutor):
     # region instructions
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
-    async def _build(self, instruction: BuildInstruction) -> str:
+    async def _build(self, instruction: _BuildInstruction) -> str:
         """
         Returns build extension based on instruction.
         """
         return instruction.text
 
-    async def _push(self, instruction: PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
+    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
         """
         Push given build into target channel.
         Note that if no `build` is passed in, `interaction` may be a malformed object as it is never checked.
@@ -80,7 +80,7 @@ class InstructionExecutor(AbstractInstructionExecutor):
 
         self._first_reply = False
 
-    async def _choice(self, instruction: ChoiceInstruction, interaction: _Message | _Interaction, recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
+    async def _choice(self, instruction: _ChoiceInstruction, interaction: _Message | _Interaction, recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         """
         Branches Choice instruction and returns leftover build.
         """
@@ -95,7 +95,7 @@ class InstructionExecutor(AbstractInstructionExecutor):
             build=build
         )
 
-    async def _rnd_usr(self, instruction: RandomUserInstruction, interaction: _Interaction | _Message) -> str:
+    async def _rnd_usr(self, instruction: _RandomUserInstruction, interaction: _Interaction | _Message) -> str:
         """
         Returns direct conversion user attribute from instruction parameters.
         """
@@ -123,13 +123,13 @@ class InstructionExecutor(AbstractInstructionExecutor):
 
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
-    async def _sleep(self, instruction: SleepInstruction) -> None:
+    async def _sleep(self, instruction: _SleepInstruction) -> None:
         """
         Asynchronously sleeps for given time interval.
         """
         await _asyncio.sleep(instruction.time)
 
-    async def _writing(self, instruction: WritingInstruction, interaction: _Interaction | _Message, recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
+    async def _writing(self, instruction: _WritingInstruction, interaction: _Interaction | _Message, recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         """
         Executes embedded instructions while showing the typing indicator in the channel.
         Returns leftover build.
@@ -145,7 +145,7 @@ class InstructionExecutor(AbstractInstructionExecutor):
             )
     # endregion
     # region memory
-    async def _create_init_memory(self, client: BotClient, interaction: _Interaction | _Message) -> dict[str, _Any]:
+    async def _create_init_memory(self, client: _BotClient, interaction: _Interaction | _Message) -> dict[str, _Any]:
         # noinspection bad-assignment
         guild: _Guild = interaction.guild
         if not guild:

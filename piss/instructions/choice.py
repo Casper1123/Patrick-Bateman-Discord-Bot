@@ -3,9 +3,6 @@ from re import Match as _Match
 
 from piss.instructions.abstract import Instruction as _Instruction
 
-
-# todo fixme: circular import! parser -> parse order -> ChoiceInstruction -> parser
-
 class ChoiceInstruction(_Instruction):
     def __init__(self, options: list[list[_Instruction]]):
         self.options: list[list[_Instruction]] = options

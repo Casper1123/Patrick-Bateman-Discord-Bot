@@ -2,9 +2,9 @@ import re as _re
 from re import Match as _Match
 
 # noinspection protected-member
-from piss._utils.mem_tools import fetch as _fetch, INITIAL_MEMORY_TYPES
+from piss._utils.mem_tools import fetch as _fetch, INITIAL_MEMORY_TYPES as _INITIAL_MEMORY_TYPES
 # noinspection protected-member
-from piss._utils.symbols import be_map, bounds, doubles, escapes, terminator
+from piss._utils.symbols import be_map as _be_map, bounds as _bounds, doubles as _doubles, escapes as _escapes, terminator as _terminator
 from piss.exceptions import InstructionParseError as _InstructionParseError
 from piss.instructions.abstract import Instruction as _Instruction
 from piss.instructions.build import BuildInstruction as _BuildInstruction
@@ -107,14 +107,14 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
         elif escaped:
             build += char
 
-        elif char == terminator:
+        elif char == _terminator:
             if layer_stack:
                 build += char
             else:
                 subsections.append(build)
                 build = ''
 
-        elif char in doubles:
+        elif char in _doubles:
             if char == top_stack:
                 layer_stack.pop()
             else:
@@ -122,11 +122,11 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
 
             build += char
 
-        elif char in bounds:
+        elif char in _bounds:
             build += char
-            layer_stack.append(be_map[char])
+            layer_stack.append(_be_map[char])
 
-        elif char in escapes:
+        elif char in _escapes:
             if char == top_stack:
                 layer_stack.pop()
                 build += char
@@ -142,7 +142,7 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
     if build: subsections.append(build)
 
     # Minor postprocessing
-    subsections = [i.strip() for i in subsections]
+    subsections = [s.strip() for s in subsections]
 
     # Memory cleanup to not fudge references
     del build, layer_stack, char, escaped, i, n
@@ -196,6 +196,6 @@ def parse_instructions_from_string(txt: str, ) -> list[_Instruction]:
     return _parse_top_level(
         parse_string=txt,
         recursion_depth=0,
-        memory=INITIAL_MEMORY_TYPES.copy(),
+        memory=_INITIAL_MEMORY_TYPES.copy(),
         writing=False,
     )

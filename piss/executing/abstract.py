@@ -4,19 +4,19 @@ from typing import Any as _Any
 
 from discord import Message as _Message, Interaction as _Interaction
 
-from discorduser.user.abstract import BotClient
+from discorduser.user.abstract import BotClient as _BotClient
 from piss._utils.mem_tools import fetch as _fetch
-from piss.exceptions import InstructionExecutionError
+from piss.exceptions import InstructionExecutionError as _InstructionExecutionError
 from piss.instructions.abstract import Instruction as _Instruction
-from piss.instructions.build import BuildInstruction
-from piss.instructions.choice import ChoiceInstruction
-from piss.instructions.memory import MemoryInstruction
-from piss.instructions.push import PushInstruction
-from piss.instructions.randnum import RandomNumberInstruction
-from piss.instructions.randuser import RandomUserInstruction
-from piss.instructions.sleep import SleepInstruction
-from piss.instructions.writing import WritingInstruction
-from piss.old import INITIAL_MEMORY_TYPES
+from piss.instructions.build import BuildInstruction as _BuildInstruction
+from piss.instructions.choice import ChoiceInstruction as _ChoiceInstruction
+from piss.instructions.memory import MemoryInstruction as _MemoryInstruction
+from piss.instructions.push import PushInstruction as _PushInstruction
+from piss.instructions.randnum import RandomNumberInstruction as _RandomNumberInstruction
+from piss.instructions.randuser import RandomUserInstruction as _RandomUserInstruction
+from piss.instructions.sleep import SleepInstruction as _SleepInstruction
+from piss.instructions.writing import WritingInstruction as _WritingInstruction
+from piss.old import INITIAL_MEMORY_TYPES as _INITIAL_MEMORY_TYPES
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException, ErrorTooltip as _ErrorTooltip
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
@@ -47,22 +47,22 @@ class AbstractInstructionExecutor(ABC):
             try:
                 # faster with a 'switch' case but is that even available.
                 # todo: make better this SMELLS it STINKS it's DOOKIE
-                if isinstance(instruction, BuildInstruction):
+                if isinstance(instruction, _BuildInstruction):
                     build += await self._build(instruction)
-                elif isinstance(instruction, PushInstruction):
+                elif isinstance(instruction, _PushInstruction):
                     await self._push(instruction, build, interaction)
                     build = ''
-                elif isinstance(instruction, ChoiceInstruction):
+                elif isinstance(instruction, _ChoiceInstruction):
                     build = await self._choice(instruction, interaction, recursion_depth, memory, build)
-                elif isinstance(instruction, MemoryInstruction):
+                elif isinstance(instruction, _MemoryInstruction):
                     build += str(await self._memory(instruction, memory))
-                elif isinstance(instruction, RandomNumberInstruction):
+                elif isinstance(instruction, _RandomNumberInstruction):
                     build += str(await self._rnd_num(instruction))
-                elif isinstance(instruction, RandomUserInstruction):
+                elif isinstance(instruction, _RandomUserInstruction):
                     build += await self._rnd_usr(instruction, interaction)
-                elif isinstance(instruction, SleepInstruction):
+                elif isinstance(instruction, _SleepInstruction):
                     await self._sleep(instruction)
-                elif isinstance(instruction, WritingInstruction):
+                elif isinstance(instruction, _WritingInstruction):
                     build = await self._writing(instruction, interaction, recursion_depth, memory, build)
                 else:
                     raise NotImplementedError(f'Instruction of type {type(instruction)} is not supported.')
@@ -70,10 +70,10 @@ class AbstractInstructionExecutor(ABC):
             except _CustomDiscordException as e:
                 raise e
             except Exception as e:
-                raise InstructionExecutionError(instruction, cause=e)
+                raise _InstructionExecutionError(instruction, cause=e)
 
         if push_final_build:
-            await self._push(PushInstruction(), build, interaction)
+            await self._push(_PushInstruction(), build, interaction)
             build = ''
 
         return build
@@ -85,7 +85,7 @@ class AbstractInstructionExecutor(ABC):
         """
         missing_keys: set[str] = set()
         bad_types: set[tuple[str, type, type]] = set()
-        for k, v in INITIAL_MEMORY_TYPES.items():
+        for k, v in _INITIAL_MEMORY_TYPES.items():
             if k not in memory:
                 missing_keys.add(k)
                 continue
@@ -96,43 +96,43 @@ class AbstractInstructionExecutor(ABC):
                 f'Initial memory has not been constructed correctly; Missing: {missing_keys}. Incorrect types: {','.join(f'{i[0]}: {i[1]} (wanted {i[2]})' for i in bad_types)}')
 
     @abstractmethod
-    async def _build(self, instruction: BuildInstruction) -> str:
+    async def _build(self, instruction: _BuildInstruction) -> str:
         raise NotImplementedError()
 
     @abstractmethod
-    async def _push(self, instruction: PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
+    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    async def _choice(self, instruction: ChoiceInstruction, interaction: _Message | _Interaction,
+    async def _choice(self, instruction: _ChoiceInstruction, interaction: _Message | _Interaction,
                       recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         raise NotImplementedError()
 
     @abstractmethod
-    async def _rnd_usr(self, instruction: RandomUserInstruction, interaction: _Interaction | _Message) -> str:
+    async def _rnd_usr(self, instruction: _RandomUserInstruction, interaction: _Interaction | _Message) -> str:
         raise NotImplementedError()
 
     @abstractmethod
-    async def _sleep(self, instruction: SleepInstruction) -> None:
+    async def _sleep(self, instruction: _SleepInstruction) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    async def _writing(self, instruction: WritingInstruction, interaction: _Interaction | _Message,
+    async def _writing(self, instruction: _WritingInstruction, interaction: _Interaction | _Message,
                        recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         raise NotImplementedError()
 
     @abstractmethod
-    async def _create_init_memory(self, client: BotClient, interaction: _Interaction | _Message) -> dict[str, _Any]:
+    async def _create_init_memory(self, client: _BotClient, interaction: _Interaction | _Message) -> dict[str, _Any]:
         raise NotImplementedError()
 
-    async def _memory(self, instruction: MemoryInstruction, memory: dict[str, _Any]) -> _Any:
+    async def _memory(self, instruction: _MemoryInstruction, memory: dict[str, _Any]) -> _Any:
         val: _Any | None = _fetch(memory, instruction.key)
         if val is None:
             raise ValueError(
                 f'Seemingly, the key {instruction.key} is not available. This is only possible using a malformed Instruction list.')
         return val
 
-    async def _rnd_num(self, instruction: RandomNumberInstruction) -> int:
+    async def _rnd_num(self, instruction: _RandomNumberInstruction) -> int:
         """
         Returns random number from instruction parameters. Requires string-conversion to be usable for building.
         """
