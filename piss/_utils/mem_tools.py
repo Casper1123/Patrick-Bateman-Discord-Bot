@@ -70,3 +70,26 @@ def assign(memory: dict[str, _T], key: str, value: _T) -> None:
         raise KeyError(f'Key {key} cannot be overridden as it is in standard memory.')
 
     memory[key] = value
+
+def reshape(m1: dict[str, _T], m2: dict[str, _T]) -> None:
+    """
+    Mutates m1 to have values of m2, while also performing a quick memory integrity check s.t. all required keys exist and have the same type.
+    """
+    # Compare key sets
+    m1k, m2k = set(m1.keys()), set(m2.keys())
+    missing: set[str] = m1k - m2k
+    if missing:
+        raise KeyError(f'Missing m1 keys {missing}')
+
+    new: set[str] = m2k - m1k
+    for k in m2k:
+        if _T != type:
+            t1 = type(m1[k])
+            t2 = type(m2[k])
+        else:
+            t1, t2 = m1[k], m2[k]
+
+        # Type checking entries for both versions
+        if not t1 == t2 and not k in new:
+            raise TypeError(f'm1 key {k} of type {t1} not of type {t2}.')
+        m1[k] = m2[k]
