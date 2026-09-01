@@ -16,7 +16,7 @@ from piss.instructions.randuser import RandomUserInstruction
 from piss.instructions.sleep import SleepInstruction
 from piss.instructions.writing import WritingInstruction
 from piss._utils.mem_tools import fetch as _fetch
-from piss.exceptions import InstructionExecutionError as _InstructionExecutionError
+from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError
 from piss.old import INITIAL_MEMORY_TYPES
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException, ErrorTooltip as _ErrorTooltip, IncompatibleTargetChannel as _IncompatibleTargetChannel
 
@@ -70,28 +70,34 @@ class InstructionExecutor:
         
         while i < n:
             instruction: _Instruction = instructions[i]
-            
-            # faster with a 'switch' case but is that even available.
-            # todo: make better this SMELLS it STINKS it's DOOKIE
-            if isinstance(instruction, BuildInstruction):
-                build += await self._build(instruction)
-            elif isinstance(instruction, PushInstruction):
-                await self._push(instruction, build, interaction)
-                build = ''
-            elif isinstance(instruction, ChoiceInstruction):
-                build = await self._choice(instruction, interaction, recursion_depth, memory, build)
-            elif isinstance(instruction, MemoryInstruction):
-                build += str(await self._memory(instruction, memory))
-            elif isinstance(instruction, RandomNumberInstruction):
-                build += str(await self._rnd_num(instruction))
-            elif isinstance(instruction, RandomUserInstruction):
-                build += await self._rnd_usr(instruction, interaction)
-            elif isinstance(instruction, SleepInstruction):
-                await self._sleep(instruction)
-            elif isinstance(instruction, WritingInstruction):
-                build = await self._writing(instruction, interaction, recursion_depth, memory, build)
-            else:
-                raise _CustomDiscordException() # todo: proper execution raise required.
+
+            try:
+                # faster with a 'switch' case but is that even available.
+                # todo: make better this SMELLS it STINKS it's DOOKIE
+                if isinstance(instruction, BuildInstruction):
+                    build += await self._build(instruction)
+                elif isinstance(instruction, PushInstruction):
+                    await self._push(instruction, build, interaction)
+                    build = ''
+                elif isinstance(instruction, ChoiceInstruction):
+                    build = await self._choice(instruction, interaction, recursion_depth, memory, build)
+                elif isinstance(instruction, MemoryInstruction):
+                    build += str(await self._memory(instruction, memory))
+                elif isinstance(instruction, RandomNumberInstruction):
+                    build += str(await self._rnd_num(instruction))
+                elif isinstance(instruction, RandomUserInstruction):
+                    build += await self._rnd_usr(instruction, interaction)
+                elif isinstance(instruction, SleepInstruction):
+                    await self._sleep(instruction)
+                elif isinstance(instruction, WritingInstruction):
+                    build = await self._writing(instruction, interaction, recursion_depth, memory, build)
+                else:
+                    raise NotImplementedError(f'Instruction of type {type(instruction)} is not supported.')
+
+            except _CustomDiscordException as e:
+                raise e
+            except Exception as e:
+                raise InstructionExecutionError(instruction, cause=e)
 
         if push_final_build:
             await self._push(PushInstruction(), build, interaction)
