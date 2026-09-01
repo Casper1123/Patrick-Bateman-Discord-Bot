@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import os
 import sqlite3 as _sql
 from abc import ABC
-import asyncio
 
 from data.implementation.utilities.caching import RecursiveCacheHandler
 

@@ -1,7 +1,6 @@
 # Just for making memory stack usage easier.
-from typing import TypeVar
 import datetime as _datetime
-
+from typing import TypeVar
 
 INITIAL_MEMORY_TYPES: dict[str, type] = {
     '\\n': str,

@@ -1,16 +1,15 @@
-import datetime as _datetime
 import re as _re
 from re import Match as _Match
 
-from piss.instructions.memory import MemoryInstruction as _MemoryInstruction
-from piss.parsing.parse_order import parse_order as _parse_order
-from piss.exceptions import InstructionParseError as _InstructionParseError
-from piss.instructions.abstract import Instruction as _Instruction
-from piss.instructions.build import BuildInstruction as _BuildInstruction
 # noinspection protected-member
 from piss._utils.mem_tools import fetch as _fetch, INITIAL_MEMORY_TYPES
 # noinspection protected-member
 from piss._utils.symbols import be_map, bounds, doubles, escapes, terminator
+from piss.exceptions import InstructionParseError as _InstructionParseError
+from piss.instructions.abstract import Instruction as _Instruction
+from piss.instructions.build import BuildInstruction as _BuildInstruction
+from piss.instructions.memory import MemoryInstruction as _MemoryInstruction
+from piss.parsing.parse_order import parse_order as _parse_order
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException
 
 MAX_RECURSION_DEPTH: int = 5 # todo: config

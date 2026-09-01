@@ -9,8 +9,8 @@ from discord import AllowedMentions, Message, Interaction, Member, VoiceChannel,
 from discord.abc import Messageable
 
 from discorduser.user.abstract import BotClient
-from utilities.exceptions import CustomDiscordException, ErrorTooltip, IncompatibleTargetChannel
 from piss.old import Instruction, InstructionType, MentionOptions, INITIAL_MEMORY_TYPES, UserAttributeOptions
+from utilities.exceptions import CustomDiscordException, ErrorTooltip, IncompatibleTargetChannel
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
 

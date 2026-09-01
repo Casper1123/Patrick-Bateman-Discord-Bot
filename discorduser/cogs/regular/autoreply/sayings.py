@@ -11,6 +11,7 @@ from discorduser.user.abstract import BotClient
 from piss.old import Instruction, parse_variables
 from piss.old.instructionexecutor import InstructionExecutor
 
+
 @app_commands.guild_only()
 class RandomAutoreplyCog(commands.Cog):
     def __init__(self, client: BotClient, say: SayingInterface, pref: PreferencesInterface) -> None:

@@ -1,9 +1,8 @@
 from re import Match as _Match
 from typing import TypeAlias as _TypeAlias, Literal as _Literal
 
-from piss.instructions.abstract import Instruction as _Instruction
 from piss.exceptions import InstructionParseError as _InstructionParseError
-
+from piss.instructions.abstract import Instruction as _Instruction
 
 UserAttributeOptions: _TypeAlias = _Literal['id', 'name', 'account', 'created_at', 'roles', 'mutual_guilds']
 

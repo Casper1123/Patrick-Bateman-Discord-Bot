@@ -1,12 +1,12 @@
+import random as _r
 from abc import ABC, abstractmethod
 from typing import Any as _Any
-import random as _r
-import asyncio as _asyncio
 
-from discord import Message as _Message, Interaction as _Interaction, Member as _Member, Guild as _Guild, User as _User, ClientUser as _ClientUser, TextChannel as _TextChannel, Thread as _Thread, StageChannel as _StageChannel, VoiceChannel as _VoiceChannel
-from discord.abc import Messageable, User as _abcUser
+from discord import Message as _Message, Interaction as _Interaction
 
 from discorduser.user.abstract import BotClient
+from piss._utils.mem_tools import fetch as _fetch
+from piss.exceptions import InstructionExecutionError
 from piss.instructions.abstract import Instruction as _Instruction
 from piss.instructions.build import BuildInstruction
 from piss.instructions.choice import ChoiceInstruction
@@ -16,10 +16,8 @@ from piss.instructions.randnum import RandomNumberInstruction
 from piss.instructions.randuser import RandomUserInstruction
 from piss.instructions.sleep import SleepInstruction
 from piss.instructions.writing import WritingInstruction
-from piss._utils.mem_tools import fetch as _fetch
-from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError
 from piss.old import INITIAL_MEMORY_TYPES
-from utilities.exceptions import CustomDiscordException as _CustomDiscordException, ErrorTooltip as _ErrorTooltip, IncompatibleTargetChannel as _IncompatibleTargetChannel
+from utilities.exceptions import CustomDiscordException as _CustomDiscordException, ErrorTooltip as _ErrorTooltip
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
 

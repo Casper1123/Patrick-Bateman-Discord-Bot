@@ -1,7 +1,7 @@
 from re import Match as _Match
 
-from piss.instructions.abstract import Instruction as _Instruction
 from piss.exceptions import InstructionParseError as _InstructionParseError
+from piss.instructions.abstract import Instruction as _Instruction
 from utilities.exceptions import ErrorTooltip as _ErrorTooltip
 
 

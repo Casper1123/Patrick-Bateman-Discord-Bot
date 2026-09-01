@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import _datetime
-from typing import Any as _Any
 import random as _r
+from typing import Any as _Any
 
 from discord import Message as _Message, Interaction as _Interaction
 
-from piss.executing import InstructionExecutor as _InstructionExecutor, AbstractInstructionExecutor
+from discorduser.user.abstract import BotClient as _BotClient
+from piss._utils.mem_tools import reshape as _reshape
+from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError
+from piss.executing import AbstractInstructionExecutor
 from piss.instructions.abstract import Instruction as _Instruction
 from piss.instructions.build import BuildInstruction
 from piss.instructions.choice import ChoiceInstruction
@@ -15,11 +18,8 @@ from piss.instructions.push import PushInstruction
 from piss.instructions.randnum import RandomNumberInstruction
 from piss.instructions.randuser import RandomUserInstruction
 from piss.instructions.sleep import SleepInstruction
-from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError
 from piss.instructions.writing import WritingInstruction
-from piss._utils.mem_tools import fetch as _fetch, reshape as _reshape
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException
-from discorduser.user.abstract import BotClient as _BotClient
 
 
 class TestInstructionExecutor(AbstractInstructionExecutor):

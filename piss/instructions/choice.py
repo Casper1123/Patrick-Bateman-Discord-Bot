@@ -1,7 +1,8 @@
-from re import Match as _Match
 import ast as _ast
+from re import Match as _Match
 
 from piss.instructions.abstract import Instruction as _Instruction
+
 
 # todo fixme: circular import! parser -> parse order -> ChoiceInstruction -> parser
 

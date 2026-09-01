@@ -5,6 +5,7 @@ from discord.ext import commands
 from data.interfaces.pref import PreferencesInterface
 from discorduser.user.abstract import BotClient
 
+
 @app_commands.guild_only()
 class NumberAutoreplyCog(commands.Cog):
     def __init__(self, client: BotClient, pref: PreferencesInterface) -> None:

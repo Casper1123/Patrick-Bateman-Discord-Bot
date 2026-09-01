@@ -1,5 +1,5 @@
-from utilities.exceptions import CustomDiscordException, ErrorTooltip
 from piss.instructions.abstract import Instruction as _Instruction
+from utilities.exceptions import CustomDiscordException, ErrorTooltip
 
 
 class InstructionParseError(CustomDiscordException):

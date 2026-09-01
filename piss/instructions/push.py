@@ -1,10 +1,9 @@
-from enum import Enum as _Enum
 from re import Match as _Match
 
 from discord import AllowedMentions as _AllowedMentions
 
-from piss.instructions.abstract import Instruction as _Instruction
 from piss.exceptions import InstructionParseError as _InstructionParseError
+from piss.instructions.abstract import Instruction as _Instruction
 
 
 class PushInstruction(_Instruction):
