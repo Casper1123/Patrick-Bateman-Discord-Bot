@@ -318,7 +318,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                            reason='A reason, for logging purposes.')
     async def ban_user(self, interaction: Interaction, user_id: int, reason: str | None = None,
                        ephemeral: bool = False) -> None:
-        state: bool = self.mod.toggle_ban('user', user_id)
+        state: bool = self.mod.toggle_user_ban(user_id)
         user = self.client.get_user(user_id)
 
         await self.logger.ban_user(interaction, user_id, user, state, reason)
@@ -343,7 +343,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                            reason='A reason, for logging purposes.')
     async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str | None = None,
                         ephemeral: bool = False) -> None:
-        state: bool = self.mod.toggle_ban('guild', guild_id)
+        state: bool = self.mod.toggle_guild_ban(guild_id)
         guild = self.client.get_guild(guild_id)
 
         await self.logger.ban_guild(interaction, guild_id, guild, state, reason)

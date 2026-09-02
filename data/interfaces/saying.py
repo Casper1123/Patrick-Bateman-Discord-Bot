@@ -83,11 +83,3 @@ class GlobalAdminSayingInterface(SayingInterface):
         Get all sayings and their full data.
         """
         raise NotImplementedError()
-
-    @abstractmethod
-    def get_saying_by_index(self, index: int) -> SimpleSayingEditorData:
-        """
-        Get a saying at a given index.
-        Raises IndexError if index is out of range.
-        """
-        raise NotImplementedError()

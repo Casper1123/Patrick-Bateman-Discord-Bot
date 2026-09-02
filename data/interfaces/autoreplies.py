@@ -237,14 +237,6 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
         Gets all aliases with their activation rates.
         """
         raise NotImplementedError()
-
-    @abstractmethod
-    def alias_exists(self, alias: str) -> bool:
-        """
-        Does the given Alias exist?
-        """
-        raise NotImplementedError()
-
     # endregion
 
     # region trigger
@@ -262,7 +254,7 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
     @abstractmethod
     def get_trigger_by_index(self, alias: str, index: int) -> SimpleTriggerData:
         """
-        Gets the  TriggerData for the trigger at the given index.
+        Gets the TriggerData for the trigger at the given index.
         Raises ValueError if the Alias does not exist.
         Raises IndexError if given index is out of range.
         """
@@ -340,5 +332,3 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
         """
         raise NotImplementedError()
     # endregion
-
-    # todo: create indexing command options to dump complete data into file.

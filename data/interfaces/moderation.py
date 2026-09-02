@@ -1,13 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Literal, TypeAlias
-
-BanDomains: TypeAlias = Literal['user', 'guild']
-
-class ModerationInterface(ABC):
-    ...
 
 
-class LocalAdminModerationInterface(ModerationInterface):
+class LocalAdminModerationInterface(ABC):
     @abstractmethod
     def is_banned_user(self, user_id: int) -> bool:
         """
@@ -36,15 +30,15 @@ class LocalAdminModerationInterface(ModerationInterface):
 
 class GlobalAdminModerationInterface(LocalAdminModerationInterface):
     @abstractmethod
-    def toggle_ban(self, ban_type: BanDomains, identifier: int) -> bool:
+    def toggle_guild_ban(self, identifier: int) -> bool:
         """
         Toggles the ban on the given ID. Returns new state.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_banlist(self, ban_type: BanDomains) -> list[int]:
+    def toggle_user_ban(self, identifier: int) -> bool:
         """
-        Gets the banned Identifiers for the given type.
+        Toggles the ban on the given ID. Returns new state.
         """
         raise NotImplementedError()
