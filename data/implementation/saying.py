@@ -9,7 +9,7 @@ SAYING:
 - author: int; ID of author
 - creation: int; timestamp of creation
 - modification: int; timestamp of modification
-PK: ??? little finicky isn't it.
+PK: Creation
 """
 
 

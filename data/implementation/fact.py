@@ -1,7 +1,7 @@
 import random as _r
 
 from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
-from data.interfaces.fact import GlobalAdminFactInterface
+from data.interfaces.fact import GlobalAdminFactInterface, SimpleFactEditorData
 
 """
 Table(s) and design:
@@ -27,6 +27,33 @@ Disallows users adding duplicate facts, which is good.
 
 
 class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
+    def create_global_fact(self, user_id: int, fact: str) -> None:
+        pass
+
+    def edit_global_fact(self, index: int, editor_id: int, new_fact: str) -> SimpleFactEditorData:
+        pass
+
+    def delete_global_fact(self, index: int) -> SimpleFactEditorData:
+        pass
+
+    def get_global_facts(self) -> list[SimpleFactEditorData]:
+        pass
+
+    def get_all_local_facts(self) -> dict[int, list[SimpleFactEditorData]]:
+        pass
+
+    def create_fact(self, guild_id: int, user_id: int, fact: str) -> None:
+        pass
+
+    def edit_fact(self, guild_id: int, index: int, new_fact: str, editor_id: int) -> SimpleFactEditorData:
+        pass
+
+    def delete_fact(self, guild_id: int, index: int) -> SimpleFactEditorData:
+        pass
+
+    def get_local_facts(self, guild_id: int) -> list[SimpleFactEditorData]:
+        pass
+
     def __init__(self, path: str):
         super().__init__(path, "data/schemas/fact.sql")
 

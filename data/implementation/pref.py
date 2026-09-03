@@ -1,13 +1,29 @@
-from typing import Literal, TypeAlias, get_args
+from typing import get_args
 
-from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
+from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
 from data.interfaces.pref import PreferencesInterface, UserPreferenceData, supported_autoreply_features, \
     GuildChannelPreferenceData
 
 """
 Table(s) and design:
+Pausing: Handled completely through cache.
 
+CHANNEL:
+- GuildID: ID of the corresponding channel's guild.
+- ChannelID: ID of the corresponding channel. 0 if global/None id
+- saying
+- text
+- letter
+- number
+PK: (GuildID, ChannelID)
 
+USER:
+- UserID: ID of the corresponding user
+- saying
+- text
+- letter
+- number
+PK: UserID
 """
 
 _all_features: set[supported_autoreply_features] = {i for i in get_args(supported_autoreply_features)}
