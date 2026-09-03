@@ -1,4 +1,4 @@
-from data.implementation.utilities.abstract import AbstractSQLDatabase
+from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
 from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
 
 """
@@ -8,6 +8,6 @@ Table(s) and design:
 """
 
 
-class AutoreplyDatabase(AbstractSQLDatabase, GlobalTextAutoreplyInterface):
+class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface):
     def __init__(self, path: str):
         super().__init__(path, 'data/schemas/autoreplies.sql')

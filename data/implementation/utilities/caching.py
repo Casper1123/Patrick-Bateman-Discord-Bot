@@ -41,21 +41,21 @@ class RecursiveCacheHandler:
         self.path: tuple[str, ...] = () if not path else path
         self.path_as_string: str = '/'.join(('ROOT',) + self.path)
 
-    def register(self, keys: tuple[str], val, timeout: float) -> None:
+    def register(self, keys: tuple[str, ...], val, timeout: float) -> None:
         """
         Create a new cache entry leaf, creating required nodes along the way.
         If no path was given, raises an AttributeError.
         Re-registering raises an Exception.
         """
         if not keys:
-            raise AttributeError(f'Received empty keys at path {self.path_as_string}')
+            raise KeyError(f'Received empty keys at path {self.path_as_string}')
         curr, *rest = keys
         if rest:
             if not curr in self.children.keys():
                 new_node: RecursiveCacheHandler = RecursiveCacheHandler(root=self.root, path=self.path + (curr,))
                 self.children[curr] = new_node
             if not isinstance(self.children[curr], RecursiveCacheHandler):
-                raise Exception(
+                raise KeyError(
                     f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
             # noinspection unresolved-references
             # Ensured child at key curr is Handler not Entry
@@ -64,13 +64,13 @@ class RecursiveCacheHandler:
             self.children[curr].register(rest, val, timeout)
         else:
             if curr not in self.children.keys():
-                raise Exception(f'{self.path_as_string}/{curr} is already registered, use Refresh instead.')
+                raise ValueError(f'{self.path_as_string}/{curr} is already registered, use Refresh instead.')
 
             timeout = monotonic() + timeout
             self.children[curr] = RecursiveCacheEntry(val, timeout)
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
-    def refresh(self, keys: tuple[str], timeout: float) -> None:
+    def refresh(self, keys: tuple[str, ...], timeout: float) -> None:
         """
         Refreshes the timeout on the given data path, assuming it exists.
         If it does not, raises an Exception. If no keys were given, it raises an AttributeError.
@@ -84,7 +84,7 @@ class RecursiveCacheHandler:
 
         if rest:
             if not isinstance(self.children[curr], RecursiveCacheHandler):
-                raise Exception(
+                raise KeyError(
                     f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
 
             # noinspection unresolved-references
@@ -94,7 +94,7 @@ class RecursiveCacheHandler:
             self.children[curr].refresh(rest, timeout)
         else:
             if not isinstance(self.children[curr], RecursiveCacheEntry):
-                raise Exception(
+                raise KeyError(
                     f'Walk down path into cache of {self.path_as_string}/{curr} cannot be completed as {self.path_as_string}/{curr} does not yield a tree leaf.')
 
             timeout = monotonic() + timeout
@@ -103,7 +103,7 @@ class RecursiveCacheHandler:
             self.children[curr].timeout = timeout
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
-    def unregister(self, keys: tuple[str]) -> None:
+    def unregister(self, keys: tuple[str, ...]) -> None:
         """
         Early-unregisters cached entry leaves AND NODES (if path ends early) for given path.
         Higher up the tree is first in the list.
@@ -127,7 +127,7 @@ class RecursiveCacheHandler:
             if not curr in self.children.keys():
                 return
             if not isinstance(self.children[curr], RecursiveCacheHandler):
-                raise Exception(
+                raise KeyError(
                     f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
             # noinspection unresolved-references
             # Ensured child at key curr is Handler not Entry

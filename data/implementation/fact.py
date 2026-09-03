@@ -1,6 +1,6 @@
 import random as _r
 
-from data.implementation.utilities.abstract import AbstractSQLDatabase
+from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
 from data.interfaces.fact import GlobalAdminFactInterface
 
 """
@@ -26,7 +26,7 @@ Disallows users adding duplicate facts, which is good.
 """
 
 
-class FactDatabase(AbstractSQLDatabase, GlobalAdminFactInterface):
+class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
     def __init__(self, path: str):
         super().__init__(path, "data/schemas/fact.sql")
 

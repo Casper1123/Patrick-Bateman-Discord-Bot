@@ -383,7 +383,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
         self.pref.pause_all_in_channel(guild.id, interaction.channel_id, CFG.CHANNEL_PAUSE_DURATION)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Features paused',
-                                        desc=f'Features put on pause for another {CFG.CHANNEL_PAUSE_DURATION} seconds.')
+                                        desc=f'Features put on pause for {CFG.CHANNEL_PAUSE_DURATION} seconds.')
 
     # endregion
 

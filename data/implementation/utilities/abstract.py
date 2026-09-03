@@ -25,7 +25,7 @@ class AbstractSQLDatabase(ABC):
         return conn
 
 class CachedAbstractSQLDatabase(AbstractSQLDatabase, ABC):
-    def __init__(self, db_path: str, schema_path: str, default_cache_timeout) -> None:
+    def __init__(self, db_path: str, schema_path: str, default_cache_timeout: float) -> None:
         super().__init__(db_path, schema_path)
 
         self._default_cache_timeout = default_cache_timeout
