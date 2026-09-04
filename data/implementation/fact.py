@@ -53,7 +53,11 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
         pass
 
     def __init__(self, path: str):
-        super().__init__(path, "data/schemas/fact.sql")
+        super().__init__(
+            db_path=path,
+            schema_name='fact',
+            schema_version=1
+        )
 
         self.local_fact_kill_switch: bool = False
         # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
