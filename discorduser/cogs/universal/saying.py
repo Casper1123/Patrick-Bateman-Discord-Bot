@@ -29,7 +29,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         if not await input_test(self.client, interaction, saying, ephemeral):
             return
 
-        self.saying.create_saying(saying)
+        self.saying.create_saying(saying, interaction.user.id)
         await self.logger.saying_create(interaction, saying)
         await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Success',
                                         desc='Saying created successfully')
@@ -43,7 +43,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
             return
 
         try:
-            old: SimpleSayingEditorData = self.saying.edit_saying(index, saying)
+            old: SimpleSayingEditorData = self.saying.edit_saying(index, saying, interaction.user.id)
         except IndexError:
             await self.client.user_feedback(interaction, title='Index is out of range.', ephemeral=ephemeral)
             return

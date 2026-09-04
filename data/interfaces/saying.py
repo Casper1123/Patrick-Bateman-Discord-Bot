@@ -50,19 +50,20 @@ class SayingInterface(ABC):
 
 class GlobalAdminSayingInterface(SayingInterface):
     @abstractmethod
-    def create_saying(self, text: str) -> None:
+    def create_saying(self, text: str, author_id: int) -> None:
         """
         Creates PISS-compatible autoreply saying using given text.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_saying(self, index: int, text: str) -> SimpleSayingEditorData:
+    def edit_saying(self, index: int, text: str, author_id: int) -> SimpleSayingEditorData:
         """
         Edit a saying at a given index.
         Raises IndexError if index is out of range.
         :param index: Index of editing saying.
         :param text: PISS-compatible replacement text
+        :param author_id: ID of modifying author
         :returns: The old saying data before editing.
         """
         raise NotImplementedError()

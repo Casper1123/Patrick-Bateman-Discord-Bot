@@ -12,10 +12,10 @@ class TestSayingDatabase(GlobalAdminSayingInterface):
     # endregion
 
     # region Global
-    def create_saying(self, text: str) -> None:
+    def create_saying(self, text: str, author_id: int) -> None:
         pass
 
-    def edit_saying(self, index: int, text: str) -> SimpleSayingEditorData:
+    def edit_saying(self, index: int, text: str, author_id: int) -> SimpleSayingEditorData:
         return SimpleSayingEditorData(text=f'Edited saying at index {index}: {text}')
 
     def delete_saying(self, index: int) -> SayingEditorData:
