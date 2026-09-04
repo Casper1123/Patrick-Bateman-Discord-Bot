@@ -1,4 +1,4 @@
-PRAGMA foreign_keys = ON;
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS LocalFacts (
     ID          INTEGER PRIMARY KEY,
@@ -25,3 +25,9 @@ CREATE TABLE IF NOT EXISTS GlobalFacts (
 -- Efficiently retrieve global facts in creation order.
 CREATE INDEX IF NOT EXISTS idx_globalfacts_creation
 ON GlobalFacts (CreatedAt, ID);
+
+UPDATE SchemaVersions
+SET Version = 1
+WHERE SchemaName = fact
+
+COMMIT;

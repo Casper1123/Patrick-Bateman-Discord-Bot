@@ -1,4 +1,4 @@
-PRAGMA foreign_keys = ON;
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS aliases (
     id           TEXT PRIMARY KEY,
@@ -41,3 +41,10 @@ CREATE TABLE IF NOT EXISTS replies (
 
 CREATE INDEX IF NOT EXISTS idx_replies_alias
 ON replies (alias_id);
+
+--- Bookkeeping
+UPDATE SchemaVersions
+SET Version = 1
+WHERE SchemaName = autoreplies
+
+COMMIT;

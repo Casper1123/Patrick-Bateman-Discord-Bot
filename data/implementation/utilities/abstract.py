@@ -11,6 +11,8 @@ from data.implementation.utilities.caching import RecursiveCacheHandler
 class AbstractSQLDatabase(ABC):
     _METADATA_SCHEMA_VERSION = 1
 
+    # todo: backup method
+
     def __init__(
         self,
         db_path: str,
@@ -19,24 +21,16 @@ class AbstractSQLDatabase(ABC):
     ) -> None:
         """
         :param db_path: Path to target database file
-        :param schema_name: Name of schema. Example: fact for fact.sql
+        :param schema_name: Name of schema.
         :param schema_version: Target version of schema.
         """
         self.path = db_path
-
-        schema_path = Path(f'data/schemas/{schema_name}.sql')
-
-        if not schema_path.is_file():
-            raise FileNotFoundError(
-                f"Schema at {schema_path} does not exist"
-            )
 
         with _sql.connect(db_path) as conn:
             conn.execute("PRAGMA foreign_keys = ON")
             self._ensure_metadata(conn)
             self._update_schema(
                 conn,
-                schema_path,
                 schema_name,
                 schema_version,
             )
@@ -47,7 +41,7 @@ class AbstractSQLDatabase(ABC):
         ).fetchone()[0]
 
         if version == 0:
-            with open(f'data/schemas/metadata.sql', 'r') as f:
+            with open(f'data/schemas/metadata/001.sql', 'r') as f:
                 conn.executescript(f.read())
 
             version = conn.execute(
@@ -63,7 +57,7 @@ class AbstractSQLDatabase(ABC):
             return
 
         # Needs updates
-        migrations_path = Path('data/schemas/migrations/metadata')
+        migrations_path = Path('data/schemas/metadata/')
 
         for new_version in range(
                 version + 1,
@@ -86,14 +80,16 @@ class AbstractSQLDatabase(ABC):
             ).fetchone()[0]
 
             if version != new_version:
-                raise ValueError(f'Attempted to update metadata to version {new_version} but found finalized version at {version} instead')
+                raise ValueError(
+                    f'Attempted to update metadata to version {new_version} '
+                    f'but found finalized version at {version} instead'
+                )
 
             print(f'Migrated metadata for to version {new_version}')
 
     def _update_schema(
         self,
         conn: _sql.Connection,
-        schema_path: Path,
         schema_name: str,
         target_version: int,
     ) -> None:
@@ -111,32 +107,22 @@ class AbstractSQLDatabase(ABC):
                 f"supports version {target_version}"
             )
 
+        schemas_path = Path(f'data/schemas/{schema_name}')
+
         if current_version == 0:
             # Load and create initial schema
-            with schema_path.open("r") as f:
+            with (schemas_path / '001.sql').open("r") as f:
                 conn.executescript(f.read())
-
-            conn.execute(
-                """
-                INSERT INTO SchemaVersions (SchemaName, Version)
-                VALUES (?, ?)
-                """,
-                (schema_name, 1),
-            )
             print(f'Inserted schema {schema_name} into database.')
 
             current_version = 1 # Continue updating and applying.
 
         if current_version < target_version:
-            migrations_path = (
-                schema_path.parent / "migrations" / schema_name
-            )
-
             for version in range(
                 current_version + 1,
                 target_version + 1,
             ):
-                migration_path = migrations_path / f"{version:03d}.sql"
+                migration_path = schemas_path / f"{version:03d}.sql"
 
                 if not migration_path.is_file():
                     raise FileNotFoundError(
