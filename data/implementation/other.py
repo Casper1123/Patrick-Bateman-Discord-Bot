@@ -22,4 +22,8 @@ class GeneralDatabase(CachedAbstractSQLDatabase, LocalAdminDataInterface):
         pass
 
     def __init__(self, path: str):
-        super().__init__(path, 'data/schemas/other.sql')
+        super().__init__(
+            db_path=path,
+            schema_name='other',
+            schema_version=1
+        )

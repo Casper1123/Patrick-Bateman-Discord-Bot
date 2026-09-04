@@ -83,4 +83,8 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
         pass
 
     def __init__(self, path: str):
-        super().__init__(path, 'data/schemas/autoreplies.sql')
+        super().__init__(
+            db_path=path,
+            schema_name='autoreplies',
+            schema_version=1
+        )

@@ -79,4 +79,8 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
     # endregion
 
     def __init__(self, path: str):
-        super().__init__(path, 'data/schemas/pref.sql')
+        super().__init__(
+            db_path=path,
+            schema_name='pref',
+            schema_version=1
+        )

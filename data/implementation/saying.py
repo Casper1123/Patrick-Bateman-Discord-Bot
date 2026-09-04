@@ -15,7 +15,11 @@ PK: Creation
 
 class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
     def __init__(self, path: str) -> None:
-        super().__init__(path, 'data/schemas/saying.sql')
+        super().__init__(
+            db_path=path,
+            schema_name='saying',
+            schema_version=1
+        )
 
 
     def create_saying(self, text: str) -> None:
