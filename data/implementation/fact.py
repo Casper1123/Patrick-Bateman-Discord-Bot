@@ -77,13 +77,13 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
         with self._connection() as conn:
             cursor = conn.cursor()
 
-            cursor.execute("SELECT COUNT(*) FROM GlobalFacts")
+            cursor.execute("SELECT COUNT(*) FROM GlobalFact")
             global_count = cursor.fetchone()[0]
 
             local_count = 0
             if guild_id is not None:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM LocalFacts WHERE GuildID = ?",
+                    "SELECT COUNT(*) FROM LocalFact WHERE guild_id = ?",
                     (guild_id,)
                 )
                 local_count = cursor.fetchone()[0]
@@ -104,9 +104,9 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
             if offset < global_count:
                 cursor.execute(
                     """
-                    SELECT Text
-                    FROM GlobalFacts
-                    ORDER BY CreatedAt DESC
+                    SELECT text
+                    FROM GlobalFact
+                    ORDER BY created_at DESC
                     LIMIT 1 OFFSET ?
                     """,
                     (offset,)
@@ -117,10 +117,10 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
 
                 cursor.execute(
                     """
-                    SELECT Text
-                    FROM LocalFacts
-                    WHERE GuildID = ?
-                    ORDER BY CreatedAt DESC
+                    SELECT text
+                    FROM LocalFact
+                    WHERE guild_id = ?
+                    ORDER BY created_at DESC
                     LIMIT 1 OFFSET ?
                     """,
                     (guild_id, offset - global_count)
@@ -130,17 +130,17 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
             if row is None:
                 raise IndexError("Index out of range.")
 
-            return row['Text']
+            return row['text']
 
     def get_fact_count(self, guild_id: int | None) -> int:
         with self._connection() as conn:
             cursor = conn.cursor()
 
             if guild_id is None:
-                cursor.execute("SELECT COUNT(*) FROM GlobalFacts")
+                cursor.execute("SELECT COUNT(*) FROM GlobalFact")
             else:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM LocalFacts WHERE GuildID = ?",
+                    "SELECT COUNT(*) FROM LocalFact WHERE guild_id = ?",
                     (guild_id,)
                 )
             return int(cursor.fetchone()[0])
