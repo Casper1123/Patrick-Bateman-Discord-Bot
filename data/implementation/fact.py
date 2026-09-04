@@ -7,19 +7,17 @@ from data.interfaces.fact import GlobalAdminFactInterface, SimpleFactEditorData
 Table(s) and design:
 
 # GlobalFacts:
-- str; Text
-- int; CreatedAt (UNIX Timestamp) (order on for index offset; needs to remain static regardless of edits)
-- int; AuthorID (keep track of last modified user ID)
-- int; ModifiedAt (UNIX Timestamp) (Moderation purposes)
-PK: Text
+- str; text
+- int; createdAt (UNIX Timestamp) (order on for index offset; needs to remain static regardless of edits)
+- int; authorID (keep track of last modified user ID)
+- int; modifiedAt (UNIX Timestamp) (Moderation purposes)
 
 # LocalFacts:
-- str; Text
-- int; GuildID (Guild local fact belongs to)
-- int; CreatedAt (UNIX Timestamp) (to order for indexing)
-- int; AuthorID (keep track of last modified user ID)
-- int; ModifiedAt (UNIX Timestamp) (Moderation purposes)
-PK: (GuildID, Text)
+- str; text
+- int; guildID (Guild local fact belongs to)
+- int; createdAt (UNIX Timestamp) (to order for indexing)
+- int; authorID (keep track of last modified user ID)
+- int; modifiedAt (UNIX Timestamp) (Moderation purposes)
 
 Order by CreatedAt for Indexing purposes.
 Disallows users adding duplicate facts, which is good.

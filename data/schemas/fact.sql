@@ -1,9 +1,3 @@
--- Stores:
--- (Local) Facts
--- Logging destinations for Local fact edits
--- Super Server IDS
--- Banned Guilds / Users (IDS too)
-
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS LocalFacts (
@@ -29,20 +23,3 @@ CREATE TABLE IF NOT EXISTS GlobalFacts (
 
 CREATE INDEX IF NOT EXISTS idx_globalfacts_creation
 ON GlobalFacts (CreatedAt);
-
-CREATE TABLE IF NOT EXISTS BannedUsers (
-    UserID INTEGER NOT NULL PRIMARY KEY
-) WITHOUT ROWID;
-
-CREATE TABLE IF NOT EXISTS BannedGuilds (
-    GuildID INTEGER NOT NULL PRIMARY KEY
-) WITHOUT ROWID;
-
-CREATE TABLE IF NOT EXISTS SuperServers (
-    GuildID INTEGER NOT NULL PRIMARY KEY
-) WITHOUT ROWID;
-
-CREATE TABLE IF NOT EXISTS LocalLogChannels (
-    GuildID   INTEGER NOT NULL PRIMARY KEY,
-    ChannelID INTEGER NOT NULL
-) WITHOUT ROWID;
