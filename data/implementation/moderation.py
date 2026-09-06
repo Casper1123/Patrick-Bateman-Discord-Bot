@@ -16,6 +16,13 @@ PK trivial
 
 
 class ModerationDatabase(CachedAbstractSQLDatabase, GlobalAdminModerationInterface):
+    def __init__(self, path: str) -> None:
+        super().__init__(
+            db_path=path,
+            schema_name='moderation',
+            schema_version=1
+        )
+
     def toggle_guild_ban(self, identifier: int) -> bool:
         pass
 
@@ -30,10 +37,3 @@ class ModerationDatabase(CachedAbstractSQLDatabase, GlobalAdminModerationInterfa
 
     def is_super_server(self, guild_id: int) -> bool:
         pass
-
-    def __init__(self, path: str) -> None:
-        super().__init__(
-            db_path=path,
-            schema_name='moderation',
-            schema_version=1
-        )

@@ -29,7 +29,13 @@ PK: UserID
 _all_features: set[supported_autoreply_features] = {i for i in get_args(supported_autoreply_features)}
 
 class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
-    # region abstract
+    def __init__(self, path: str):
+        super().__init__(
+            db_path=path,
+            schema_name='pref',
+            schema_version=1
+        )
+
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None, duration: int) -> None:
         try:
             self._cache.register(
@@ -76,11 +82,3 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
 
     def user_autoreplies_enabled(self, user_id: int) -> UserPreferenceData:
         pass
-    # endregion
-
-    def __init__(self, path: str):
-        super().__init__(
-            db_path=path,
-            schema_name='pref',
-            schema_version=1
-        )

@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS GlobalFact (
 CREATE INDEX IF NOT EXISTS idx_globalfact_creation
 ON GlobalFact (created_at, id);
 
+--- Bookkeeping
 UPDATE SchemaVersions
 SET Version = 1
 WHERE SchemaName = fact

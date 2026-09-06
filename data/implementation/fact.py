@@ -25,6 +25,17 @@ Disallows users adding duplicate facts, which is good.
 
 
 class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
+    def __init__(self, path: str):
+        super().__init__(
+            db_path=path,
+            schema_name='fact',
+            schema_version=1
+        )
+
+        self.local_fact_kill_switch: bool = False
+        # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
+        # Mostly intended for Moderation purposes.
+
     def create_global_fact(self, user_id: int, fact: str) -> None:
         pass
 
@@ -51,17 +62,6 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
 
     def get_local_facts(self, guild_id: int) -> list[SimpleFactEditorData]:
         pass
-
-    def __init__(self, path: str):
-        super().__init__(
-            db_path=path,
-            schema_name='fact',
-            schema_version=1
-        )
-
-        self.local_fact_kill_switch: bool = False
-        # This killswitch is disabled on-launch, but allows temporary disabling of the Local Fact service in case something goes HORRIBLY wrong.
-        # Mostly intended for Moderation purposes.
 
     def toggle_local_fact_killswitch(self) -> bool:
         self.local_fact_kill_switch = not self.local_fact_kill_switch

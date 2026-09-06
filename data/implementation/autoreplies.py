@@ -33,6 +33,13 @@ todo: what PK's?
 
 
 class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface):
+    def __init__(self, path: str):
+        super().__init__(
+            db_path=path,
+            schema_name='autoreplies',
+            schema_version=1
+        )
+
     def create_alias(self, name: str, rate: int) -> None:
         pass
 
@@ -81,10 +88,3 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
 
     def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
         pass
-
-    def __init__(self, path: str):
-        super().__init__(
-            db_path=path,
-            schema_name='autoreplies',
-            schema_version=1
-        )
