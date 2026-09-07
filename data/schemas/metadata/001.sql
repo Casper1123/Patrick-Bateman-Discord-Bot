@@ -1,3 +1,7 @@
+BEGIN;
+
+PRAGMA foreign_keys = ON
+
 -- Required to maintain easy migration to other versions. Base information for DB files.
 CREATE TABLE IF NOT EXISTS SchemaVersions (
     SchemaName TEXT PRIMARY KEY,
@@ -5,3 +9,5 @@ CREATE TABLE IF NOT EXISTS SchemaVersions (
 );
 
 PRAGMA user_version = 1;
+
+COMMIT;
