@@ -1,11 +1,11 @@
-from data.interfaces.moderation import GlobalAdminModerationInterface, BanDomains
+from data.interfaces.moderation import GlobalAdminModerationInterface
 
 
 class TestModerationDatabase(GlobalAdminModerationInterface):
-    def get_guild_banlist(self, ban_type: BanDomains) -> list[int]:
-        return []
+    def toggle_guild_ban(self, identifier: int, reason: str | None) -> bool:
+        pass
 
-    def toggle_guild_ban(self, ban_type: BanDomains, identifier: int) -> bool:
+    def toggle_user_ban(self, identifier: int, reason: str | None) -> bool:
         pass
 
     def __init__(self, user_banned: bool, banned_guild: bool, super_guild: bool) -> None:

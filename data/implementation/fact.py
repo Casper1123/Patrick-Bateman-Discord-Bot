@@ -1,26 +1,12 @@
 import random as _r
 
-from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
+from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
 from data.interfaces.fact import GlobalAdminFactInterface, SimpleFactEditorData
 
 """
 Table(s) and design:
 
-# globalfacts:
-- str; text
-- int; createdAt (UNIX Timestamp) (order on for index offset; needs to remain static regardless of edits)
-- int; authorID (keep track of last modified user ID)
-- int; modifiedAt (UNIX Timestamp) (Moderation purposes)
-
-# localfacts:
-- str; text
-- int; guildID (Guild local fact belongs to)
-- int; createdAt (UNIX Timestamp) (to order for indexing)
-- int; authorID (keep track of last modified user ID)
-- int; modifiedAt (UNIX Timestamp) (Moderation purposes)
-
-Order by CreatedAt for Indexing purposes.
-Disallows users adding duplicate facts, which is good.
+todo: fill this in.
 """
 
 
@@ -77,13 +63,13 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
         with self._connection() as conn:
             cursor = conn.cursor()
 
-            cursor.execute("SELECT COUNT(*) FROM globalfact")
+            cursor.execute('SELECT COUNT(*) FROM globalfact')
             global_count = cursor.fetchone()[0]
 
             local_count = 0
             if guild_id is not None:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM localfact WHERE guild_id = ?",
+                    'SELECT COUNT(*) FROM localfact WHERE guild_id = ?',
                     (guild_id,)
                 )
                 local_count = cursor.fetchone()[0]
@@ -93,12 +79,12 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
             # transform index into table ordering offset.
             if index is None:
                 if total == 0:
-                    raise IndexError("No facts available.")
+                    raise IndexError('No facts available.')
                 offset = _r.randrange(total)
             else:
                 offset = index - 1
                 if offset >= total:
-                    raise IndexError("Index out of range.")
+                    raise IndexError('Index out of range.')
 
             # offset implies table to select from
             if offset < global_count:
@@ -113,7 +99,7 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
                 )
             else:
                 if guild_id is None:
-                    raise IndexError("Index out of range.")
+                    raise IndexError('Index out of range.')
 
                 cursor.execute(
                     """
@@ -128,7 +114,7 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
 
             row = cursor.fetchone()
             if row is None:
-                raise IndexError("Index out of range.")
+                raise IndexError('Index out of range.')
 
             return row['text']
 
@@ -137,10 +123,10 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
             cursor = conn.cursor()
 
             if guild_id is None:
-                cursor.execute("SELECT COUNT(*) FROM globalfact")
+                cursor.execute('SELECT COUNT(*) FROM globalfact')
             else:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM localfact WHERE guild_id = ?",
+                    'SELECT COUNT(*) FROM localfact WHERE guild_id = ?',
                     (guild_id,)
                 )
             return int(cursor.fetchone()[0])

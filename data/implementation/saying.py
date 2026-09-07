@@ -39,7 +39,7 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
         with self._connection() as conn:
             cursor = conn.cursor()
             # todo: double check table implementation
-            cursor.execute("SELECT COUNT(*) FROM Saying")
+            cursor.execute("SELECT COUNT(*) FROM saying")
             count = cursor.fetchone()[0]
 
             if not count:
@@ -50,9 +50,9 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
 
             cursor.execute(
                 """
-                SELECT Text
-                FROM Saying
-                ORDER BY CreatedAt DESC LIMIT 1
+                SELECT text
+                FROM saying
+                ORDER BY created_at DESC LIMIT 1
                 OFFSET ?
                 """,
                 (index,)
@@ -60,6 +60,6 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
 
             row = cursor.fetchone()
             if row is None:
-                return 'My head\'s a mess right now'
+                return 'My head\'s a mess right now.'
 
             return row['Text']
