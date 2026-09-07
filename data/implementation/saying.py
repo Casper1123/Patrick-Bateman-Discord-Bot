@@ -24,6 +24,10 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
         )
 
     def create_saying(self, text: str, author_id: int) -> None:
+        self._cache.unregister(
+            keys=('get_sayings',),
+        )
+
         now = int(_time.time())
 
         with self._connection() as conn:
@@ -41,6 +45,10 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
     def edit_saying(self, index: int, text: str, author_id: int) -> SimpleSayingEditorData:
         if index < 1:
             raise IndexError(f"Saying index {index} is out of range.")
+
+        self._cache.unregister(
+            keys=('get_sayings',),
+        )
 
         now = int(_time.time())
 
@@ -74,6 +82,10 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
     def delete_saying(self, index: int) -> SayingEditorData:
         if index < 1:
             raise IndexError(f"Saying index {index} is out of range.")
+
+        self._cache.unregister(
+            keys=('get_sayings',),
+        )
 
         with self._connection() as conn:
             row = conn.execute(
@@ -142,6 +154,14 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
         return val
 
     def get_saying(self) -> str:
+        val = self._cache.get_cached(
+            keys=('get_sayings',),
+            out_type=list[SayingEditorData],
+        )
+        if val is not None and val:
+            # I mean, if it's cached anyway might as well snag it, no?
+            return _r.choice(val)
+
         with self._connection() as conn:
             count = conn.execute(
                 "SELECT COUNT(*) FROM saying"
