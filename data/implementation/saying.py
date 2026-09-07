@@ -43,7 +43,6 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
             count = cursor.fetchone()[0]
 
             if not count:
-                print('No sayings. Add some.')
                 return 'I wish I had something to say right now, as I\'m out of inspiration.'
 
             index: int = _r.randrange(count)
@@ -62,4 +61,4 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
             if row is None:
                 return 'My head\'s a mess right now.'
 
-            return row['Text']
+            return row['text']
