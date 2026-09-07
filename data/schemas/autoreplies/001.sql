@@ -43,8 +43,8 @@ CREATE INDEX IF NOT EXISTS idx_replies_alias
 ON replies (alias_id);
 
 --- Bookkeeping
-UPDATE SchemaVersions
-SET Version = 1
-WHERE SchemaName = autoreplies
+UPDATE schema_versions
+SET version = 1
+WHERE name = autoreplies
 
 COMMIT;

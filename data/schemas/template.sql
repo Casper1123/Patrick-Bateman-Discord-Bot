@@ -4,9 +4,9 @@ BEGIN;
 --- Modifications
 
 --- Bookkeeping
-UPDATE SchemaVersions
-SET Version = ?
-WHERE SchemaName = ?
+UPDATE schema_versions
+SET version = ?
+WHERE name = ?
 
 COMMIT;
 

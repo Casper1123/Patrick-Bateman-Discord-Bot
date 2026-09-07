@@ -111,6 +111,9 @@ class AbstractSQLDatabase(ABC):
 
         if current_version == 0:
             # Load and create initial schema
+            if not (schemas_path / '001.sql').is_file():
+                raise RuntimeError(f'Could not find version 001 for {schema_name}')
+
             with (schemas_path / '001.sql').open("r") as f:
                 conn.executescript(f.read())
             print(f'Inserted schema {schema_name} into database.')
@@ -153,9 +156,9 @@ class AbstractSQLDatabase(ABC):
     ) -> int | None:
         row = conn.execute(
             """
-            SELECT Version
-            FROM SchemaVersions
-            WHERE SchemaName = ?
+            SELECT version
+            FROM schema_versions
+            WHERE name = ?
             """,
             (schema_name,),
         ).fetchone()

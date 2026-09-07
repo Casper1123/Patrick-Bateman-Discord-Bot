@@ -6,13 +6,13 @@ from data.interfaces.fact import GlobalAdminFactInterface, SimpleFactEditorData
 """
 Table(s) and design:
 
-# GlobalFacts:
+# globalfacts:
 - str; text
 - int; createdAt (UNIX Timestamp) (order on for index offset; needs to remain static regardless of edits)
 - int; authorID (keep track of last modified user ID)
 - int; modifiedAt (UNIX Timestamp) (Moderation purposes)
 
-# LocalFacts:
+# localfacts:
 - str; text
 - int; guildID (Guild local fact belongs to)
 - int; createdAt (UNIX Timestamp) (to order for indexing)
@@ -77,13 +77,13 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
         with self._connection() as conn:
             cursor = conn.cursor()
 
-            cursor.execute("SELECT COUNT(*) FROM GlobalFact")
+            cursor.execute("SELECT COUNT(*) FROM globalfact")
             global_count = cursor.fetchone()[0]
 
             local_count = 0
             if guild_id is not None:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM LocalFact WHERE guild_id = ?",
+                    "SELECT COUNT(*) FROM localfact WHERE guild_id = ?",
                     (guild_id,)
                 )
                 local_count = cursor.fetchone()[0]
@@ -105,7 +105,7 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
                 cursor.execute(
                     """
                     SELECT text
-                    FROM GlobalFact
+                    FROM globalfact
                     ORDER BY created_at DESC
                     LIMIT 1 OFFSET ?
                     """,
@@ -118,7 +118,7 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
                 cursor.execute(
                     """
                     SELECT text
-                    FROM LocalFact
+                    FROM localfact
                     WHERE guild_id = ?
                     ORDER BY created_at DESC
                     LIMIT 1 OFFSET ?
@@ -137,10 +137,10 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
             cursor = conn.cursor()
 
             if guild_id is None:
-                cursor.execute("SELECT COUNT(*) FROM GlobalFact")
+                cursor.execute("SELECT COUNT(*) FROM globalfact")
             else:
                 cursor.execute(
-                    "SELECT COUNT(*) FROM LocalFact WHERE guild_id = ?",
+                    "SELECT COUNT(*) FROM localfact WHERE guild_id = ?",
                     (guild_id,)
                 )
             return int(cursor.fetchone()[0])

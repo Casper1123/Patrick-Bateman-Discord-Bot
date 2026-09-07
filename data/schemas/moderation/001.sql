@@ -3,8 +3,8 @@ BEGIN;
 --- Modifications
 
 --- Bookkeeping
-UPDATE SchemaVersions
-SET Version = 1
-WHERE SchemaName = moderation
+UPDATE schema_versions
+SET version = 1
+WHERE name = moderation
 
 COMMIT;

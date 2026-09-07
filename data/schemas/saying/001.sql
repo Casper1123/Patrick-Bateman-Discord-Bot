@@ -4,8 +4,8 @@ BEGIN;
 
 
 --- Bookkeeping
-UPDATE SchemaVersions
-SET Version = 1
-WHERE SchemaName = saying
+UPDATE schema_versions
+SET version = 1
+WHERE name = saying
 
 COMMIT;

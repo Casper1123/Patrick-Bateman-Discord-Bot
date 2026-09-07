@@ -1,6 +1,6 @@
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS LocalFact (
+CREATE TABLE IF NOT EXISTS localfact (
     id           INTEGER PRIMARY KEY,
     text         TEXT NOT NULL,
     guild_id     INTEGER NOT NULL,
@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS LocalFact (
 
 -- Efficiently retrieve facts belonging to a guild in creation order.
 CREATE INDEX IF NOT EXISTS idx_localfact_guild_creation
-ON LocalFact (guild_id, created_at, id);
+ON localfact (guild_id, created_at, id);
 
 
-CREATE TABLE IF NOT EXISTS GlobalFact (
+CREATE TABLE IF NOT EXISTS globalfact (
     id           INTEGER PRIMARY KEY,
     text         TEXT NOT NULL,
     modified_by  INTEGER NOT NULL,
@@ -24,11 +24,11 @@ CREATE TABLE IF NOT EXISTS GlobalFact (
 
 -- Efficiently retrieve global facts in creation order.
 CREATE INDEX IF NOT EXISTS idx_globalfact_creation
-ON GlobalFact (created_at, id);
+ON globalfact (created_at, id);
 
 --- Bookkeeping
-UPDATE SchemaVersions
-SET Version = 1
-WHERE SchemaName = fact
+UPDATE schema_versions
+SET version = 1
+WHERE name = fact
 
 COMMIT;
