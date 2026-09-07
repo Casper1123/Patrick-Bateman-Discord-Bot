@@ -7,8 +7,7 @@ CREATE TABLE IF NOT EXISTS local_log_channels (
 );
 
 --- Bookkeeping
-UPDATE schema_versions
-SET version = 1
-WHERE name = other
+INSERT INTO schema_versions (name, version)
+VALUES ('other', 1);
 
 COMMIT;

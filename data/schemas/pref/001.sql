@@ -24,8 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_pref_guild_channel
 ON pref_guild (guild_id, channel_id, id);
 
 --- Bookkeeping
-UPDATE schema_versions
-SET version = 1
-WHERE name = pref
+INSERT INTO schema_versions (name, version)
+VALUES ('pref', 1);
 
 COMMIT;

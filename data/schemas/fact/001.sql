@@ -27,8 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_globalfact_creation
 ON globalfact (created_at, id);
 
 --- Bookkeeping
-UPDATE schema_versions
-SET version = 1
-WHERE name = fact
+INSERT INTO schema_versions (name, version)
+VALUES ('fact', 1);
 
 COMMIT;

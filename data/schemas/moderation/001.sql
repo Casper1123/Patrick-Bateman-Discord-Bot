@@ -16,8 +16,7 @@ CREATE TABLE IF NOT EXISTS banned_users (
 );
 
 --- Bookkeeping
-UPDATE schema_versions
-SET version = 1
-WHERE name = moderation
+INSERT INTO schema_versions (name, version)
+VALUES ('moderation', 1);
 
 COMMIT;

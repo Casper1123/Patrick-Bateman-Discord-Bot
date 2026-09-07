@@ -13,8 +13,7 @@ CREATE INDEX IF NOT EXISTS idx_saying_creation
 ON saying (created_at, id);
 
 --- Bookkeeping
-UPDATE schema_versions
-SET version = 1
-WHERE name = saying
+INSERT INTO schema_versions (name, version)
+VALUES ('saying', 1);
 
 COMMIT;
