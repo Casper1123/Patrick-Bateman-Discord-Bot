@@ -165,7 +165,11 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
                     except _CustomDiscordException as e:
                         raise e
                     except Exception as e:
-                        err = _InstructionParseError(subsection, f'Error occurred when trying to parse input for input ({inst_type.__name__} signature ID {ident})')
+                        err = _InstructionParseError(
+                            subsection,
+                            f'Error occurred when trying to parse input for input ({inst_type.__name__}'
+                            f' signature ID {ident})'
+                        )
                         err.cause = e
                         raise err
 
