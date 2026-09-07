@@ -14,18 +14,18 @@ banned_users, banned_guilds:
 
 
 class ModerationDatabase(CachedAbstractSQLDatabase, GlobalAdminModerationInterface):
+    def toggle_guild_ban(self, identifier: int, author: int, reason: str | None) -> bool:
+        pass
+
+    def toggle_user_ban(self, identifier: int, author: int, reason: str | None) -> bool:
+        pass
+
     def __init__(self, path: str) -> None:
         super().__init__(
             db_path=path,
             schema_name='moderation',
             schema_version=1
         )
-
-    def toggle_guild_ban(self, identifier: int, reason: str | None) -> bool:
-        pass
-
-    def toggle_user_ban(self, identifier: int, reason: str | None) -> bool:
-        pass
 
     def is_banned_user(self, user_id: int) -> bool:
         pass

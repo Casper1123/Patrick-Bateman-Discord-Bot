@@ -33,17 +33,10 @@ todo: what PK's?
 
 
 class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface):
-    def __init__(self, path: str):
-        super().__init__(
-            db_path=path,
-            schema_name='autoreplies',
-            schema_version=1
-        )
-
-    def create_alias(self, name: str, rate: int) -> None:
+    def create_alias(self, name: str, rate: int, author: int) -> None:
         pass
 
-    def edit_alias(self, old_name: str, new_name: str | None, rate: int | None = None) -> None:
+    def edit_alias(self, old_name: str, author: int, new_name: str | None, rate: int | None = None) -> None:
         pass
 
     def delete_alias(self, name: str) -> SimpleAliasData:
@@ -52,23 +45,23 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
     def get_aliases(self) -> list[SimpleAliasData]:
         pass
 
-    def add_trigger(self, alias: str, trigger_type: trigger_types, data: str, rate: int | None) -> None:
+    def add_trigger(self, alias: str, trigger_type: trigger_types, data: str, rate: int | None, author: int) -> None:
         pass
 
     def get_trigger_by_index(self, alias: str, index: int) -> SimpleTriggerData:
         pass
 
-    def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None,
-                     rate: int | None) -> None:
+    def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None, rate: int | None,
+                     author: int) -> None:
         pass
 
     def remove_trigger(self, alias: str, index: int) -> SimpleTriggerData:
         pass
 
-    def add_reply(self, alias: str, reply_type: reply_types, data, weight) -> None:
+    def add_reply(self, alias: str, reply_type: reply_types, data: str, weight: int, author: int) -> None:
         pass
 
-    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None) -> None:
+    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> None:
         pass
 
     def remove_reply(self, alias: str, index: int) -> SimpleReplyData:
@@ -88,3 +81,10 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
 
     def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
         pass
+
+    def __init__(self, path: str):
+        super().__init__(
+            db_path=path,
+            schema_name='autoreplies',
+            schema_version=1
+        )

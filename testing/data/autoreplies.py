@@ -21,13 +21,13 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
     def alias_exists(self, alias: str) -> bool:
         return alias in ['reaction', 'text', 'number_wildcard_test', 'error_test']
 
-    def create_alias(self, name: str, rate: int) -> None:
+    def create_alias(self, name: str, rate: int, author: int) -> None:
         if self.alias_exists(name):
             raise ValueError('duplicate alias')
         if not (1 <= rate <= 256):
             raise Exception('rate out of bounds')
 
-    def edit_alias(self, old_name: str, new_name: str | None, rate: int | None = None) -> None:
+    def edit_alias(self, old_name: str, author: int, new_name: str | None, rate: int | None = None) -> None:
         if not self.alias_exists(old_name):
             raise ValueError('invalid alias name')
         if new_name is not None and self.alias_exists(new_name):
@@ -41,7 +41,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
 
         return SimpleAliasData(name=name, rate=256)
 
-    def add_trigger(self, alias: str, trigger_type: trigger_types, data: str, rate: int | None) -> None:
+    def add_trigger(self, alias: str, trigger_type: trigger_types, data: str, rate: int | None, author: int) -> None:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
         if not trigger_type in get_args(trigger_types):
@@ -50,7 +50,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             raise Exception('rate out of bounds')
 
     def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None,
-                     rate: int | None) -> None:
+                     rate: int | None, author: int) -> None:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
         if not index == 1:
@@ -70,7 +70,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
 
         return SimpleTriggerData(trigger_type='regex', data=f'Trigger from alias {alias} at index {index}', rate=None)
 
-    def add_reply(self, alias: str, reply_type: reply_types, data, weight) -> None:
+    def add_reply(self, alias: str, reply_type: reply_types, data: str, weight: int, author:int) -> None:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
         if not reply_type in get_args(reply_types):
@@ -78,7 +78,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
         if not (weight >= 1):
             raise Exception('weight out of bounds')
 
-    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None) -> None:
+    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> None:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
         if not index == 1:

@@ -2,10 +2,10 @@ from data.interfaces.moderation import GlobalAdminModerationInterface
 
 
 class TestModerationDatabase(GlobalAdminModerationInterface):
-    def toggle_guild_ban(self, identifier: int, reason: str | None) -> bool:
+    def toggle_guild_ban(self, identifier: int, reason: str | None, author: int) -> bool:
         pass
 
-    def toggle_user_ban(self, identifier: int, reason: str | None) -> bool:
+    def toggle_user_ban(self, identifier: int, reason: str | None, author: int) -> bool:
         pass
 
     def __init__(self, user_banned: bool, banned_guild: bool, super_guild: bool) -> None:
