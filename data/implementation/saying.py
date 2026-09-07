@@ -1,7 +1,7 @@
 import random as _r
 import time as _time
 
-from data.implementation.utilities.abstract import AbstractSQLDatabase
+from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
 from data.interfaces.saying import GlobalAdminSayingInterface, SayingEditorData, SimpleSayingEditorData
 
 """
@@ -15,8 +15,7 @@ SAYING:
 PK: Creation
 """
 
-                    # Not cached bc only rarely needed.
-class SayingDatabase(AbstractSQLDatabase, GlobalAdminSayingInterface):
+class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
     def __init__(self, path: str) -> None:
         super().__init__(
             db_path=path,
@@ -106,6 +105,13 @@ class SayingDatabase(AbstractSQLDatabase, GlobalAdminSayingInterface):
         )
 
     def get_sayings(self) -> list[SayingEditorData]:
+        val = self._cache.get_cached(
+            keys=('get_sayings',),
+            out_type=list[SayingEditorData],
+        )
+        if val is not None:
+            return val
+
         with self._connection() as conn:
             rows = conn.execute(
                 """
@@ -115,7 +121,7 @@ class SayingDatabase(AbstractSQLDatabase, GlobalAdminSayingInterface):
                 """
             ).fetchall()
 
-        return [
+        val = [
             SayingEditorData(
                 text=row["text"],
                 author_id=row["modified_by"],
@@ -123,6 +129,17 @@ class SayingDatabase(AbstractSQLDatabase, GlobalAdminSayingInterface):
             )
             for row in rows
         ]
+
+        self._cache.register(
+            keys=('get_sayings',),
+            val=val,
+            timeout=60,
+            auto_refresh=(
+                15,
+                30
+            )
+        )
+        return val
 
     def get_saying(self) -> str:
         with self._connection() as conn:

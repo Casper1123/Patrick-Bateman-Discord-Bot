@@ -106,11 +106,6 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
             out_type=GuildChannelPreferenceData,
         )
         if val is not None:
-            # todo: how to prevent mass-refreshing on messages?
-            self._cache.refresh(
-                keys=('guild', str(guild_id), str(channel_id),),
-                timeout=120  # 2min
-            )
             return val
 
         with self._connection() as conn:
@@ -153,7 +148,11 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
         self._cache.register(
             keys=('guild', str(guild_id), str(channel_id),),
             val=val,
-            timeout=120  # 2min
+            timeout=120,  # 2min
+            auto_refresh=(
+                15,
+                120
+            )
         )
 
         return val
@@ -193,11 +192,6 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
             out_type=UserPreferenceData,
         )
         if val is not None:
-            # todo: how to prevent mass-refreshing on messages?
-            self._cache.refresh(
-                keys=('user', str(user_id),),
-                timeout=120  # 2min
-            )
             return val
         
         with self._connection() as conn:
@@ -225,10 +219,15 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
                 letter=bool(row["letter"]),
                 number=bool(row["number"]),
             )
+
         self._cache.register(
             keys=('user', str(user_id),),
             val=val,
-            timeout=120  # 2min
+            timeout=120,  # 2min
+            auto_refresh=(
+                15,
+                120
+            )
         )
 
         return val

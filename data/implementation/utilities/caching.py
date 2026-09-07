@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import heapq
 from time import monotonic
-from typing import TypeVar
+from typing import TypeVar, Any
 
 _T = TypeVar('_T')
 
@@ -11,12 +11,13 @@ _T = TypeVar('_T')
 # Tree-structure, nodes are RecursiveCacheHandlers, leaves are values.
 # Index through levels in dict by keys.
 class RecursiveCacheEntry:
-    def __init__(self, val, timeout: float):
+    def __init__(self, val: Any, removal: float | int, refresh_window: int | float | None, refresh_timeout: float | int | None):
         self.val = val
-        self.timeout = timeout
+        self.removal = removal
+        self.refresh_window = refresh_window
+        self.refresh_timeout = refresh_timeout
 
 
-# TODO: WARNING FOR USING THIS IN IMPLEMENTATION; ARE THERE RACING CONDITIONS FOR AROUND AWAIT CALLS?
 class RecursiveCacheHandler:
     """
     Automated data caching handler using a Tree-node structure. Try not to go too deep.
@@ -41,11 +42,14 @@ class RecursiveCacheHandler:
         self.path: tuple[str, ...] = () if not path else path
         self.path_as_string: str = '/'.join(('ROOT',) + self.path)
 
-    def register(self, keys: tuple[str, ...], val, timeout: float) -> None:
+    # noinspection incorrect-docstring
+    def register(self, keys: tuple[str, ...], val: Any, timeout: float| int, auto_refresh: tuple[int | float, int | float] | None = None) -> None:
         """
         Create a new cache entry leaf, creating required nodes along the way.
         If no path was given, raises an AttributeError.
         Re-registering raises an Exception.
+
+        :param auto_refresh: (refresh_window, refresh_timeout) where if in last `window` seconds of timeout, extend with `refresh_timeout` when obtained through `get_cached`. Both numbers must be positive or functionality will fizzle quietly.
         """
         if not keys:
             raise KeyError(f'Received empty keys at path {self.path_as_string}')
@@ -61,13 +65,19 @@ class RecursiveCacheHandler:
             # Ensured child at key curr is Handler not Entry
             # noinspection bad-argument-type
             # rest may be treated as tuple.
-            self.children[curr].register(rest, val, timeout)
+            self.children[curr].register(rest, val, timeout, auto_refresh)
         else:
             if curr not in self.children.keys():
                 raise ValueError(f'{self.path_as_string}/{curr} is already registered, use Refresh instead.')
 
             timeout = monotonic() + timeout
-            self.children[curr] = RecursiveCacheEntry(val, timeout)
+
+            if auto_refresh:
+                val = RecursiveCacheEntry(val, timeout, auto_refresh[0], auto_refresh[1])
+            else:
+                val = RecursiveCacheEntry(val, timeout, None, None)
+
+            self.children[curr] = val
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
     def refresh(self, keys: tuple[str, ...], timeout: float) -> None:
@@ -100,7 +110,7 @@ class RecursiveCacheHandler:
             timeout = monotonic() + timeout
             # noinspection unresolved-references
             # Child MUST be leaf, given the check above.
-            self.children[curr].timeout = timeout
+            self.children[curr].removal = timeout
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
     def unregister(self, keys: tuple[str, ...]) -> None:
@@ -170,6 +180,18 @@ class RecursiveCacheHandler:
         if not isinstance(val.val, out_type):
             raise TypeError(
                 f'Return value at path {self.path_as_string}/{'/'.join(keys)} is of type {type(val.val)} (wanted {out_type})')
+
+        # auto-refresh
+        if (val.refresh_window is None or
+                # Handle malformed input by letting it fizzle quietly.
+                not (val.refresh_window > 0 and val.refresh_timeout > 0)):
+            return val.val
+
+        now = monotonic()
+        if now > val.removal - val.refresh_window:
+            assert val.refresh_timeout is not None
+            self.refresh(keys, val.refresh_timeout)
+
         return val.val
 
     def _find(self, keys: tuple[str, ...]) -> RecursiveCacheEntry | None:
@@ -238,7 +260,7 @@ class RecursiveCacheHandler:
                 if entry is None:
                     continue
 
-                if entry.timeout > var_timeout:  # current entry timeout is invalid
+                if entry.removal > var_timeout:  # current entry timeout is invalid
                     continue
 
                 self._prune_entry(path, clean_empty_nodes=clean_empty_nodes)
@@ -266,7 +288,7 @@ class RecursiveCacheHandler:
         marked: list[str] = []
         for k, v in self.children.items():
             if isinstance(v, RecursiveCacheEntry):
-                if v.timeout < time:
+                if v.removal < time:
                     marked.append(k)
             else:
                 v._check_complete(clean_empty_child_nodes, time)
