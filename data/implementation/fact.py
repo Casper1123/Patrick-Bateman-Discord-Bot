@@ -61,18 +61,15 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
         if index is not None and index < 1:
             raise IndexError('Index must not be smaller than 1.')
         with self._connection() as conn:
-            cursor = conn.cursor()
 
-            cursor.execute('SELECT COUNT(*) FROM globalfact')
-            global_count = cursor.fetchone()[0]
+            global_count = conn.execute('SELECT COUNT(*) FROM globalfact').fetchone()[0]
 
             local_count = 0
             if guild_id is not None:
-                cursor.execute(
+                local_count = conn.execute(
                     'SELECT COUNT(*) FROM localfact WHERE guild_id = ?',
                     (guild_id,)
-                )
-                local_count = cursor.fetchone()[0]
+                ).fetchone()[0]
 
             total = global_count + local_count
 
@@ -86,13 +83,14 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
                 if offset >= total:
                     raise IndexError('Index out of range.')
 
+            cursor = conn.cursor()
             # offset implies table to select from
             if offset < global_count:
                 cursor.execute(
                     """
                     SELECT text
                     FROM globalfact
-                    ORDER BY created_at DESC
+                    ORDER BY created_at, id ASC
                     LIMIT 1 OFFSET ?
                     """,
                     (offset,)
@@ -106,7 +104,7 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
                     SELECT text
                     FROM localfact
                     WHERE guild_id = ?
-                    ORDER BY created_at DESC
+                    ORDER BY created_at, id ASC
                     LIMIT 1 OFFSET ?
                     """,
                     (guild_id, offset - global_count)

@@ -1,4 +1,5 @@
 import random as _r
+import time as _time
 
 from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
 from data.interfaces.saying import GlobalAdminSayingInterface, SayingEditorData, SimpleSayingEditorData
@@ -24,41 +25,130 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
         )
 
     def create_saying(self, text: str, author_id: int) -> None:
-        pass
+        now = int(_time.time())
+
+        with self._connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO saying (text,
+                                    modified_by,
+                                    modified_at,
+                                    created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (text, author_id, now, now),
+            )
 
     def edit_saying(self, index: int, text: str, author_id: int) -> SimpleSayingEditorData:
-        pass
+        if index < 1:
+            raise IndexError(f"Saying index {index} is out of range.")
+
+        now = int(_time.time())
+
+        with self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT id, text
+                FROM saying
+                ORDER BY created_at, id LIMIT 1
+                OFFSET ?
+                """,
+                (index - 1,),
+            ).fetchone()
+
+            if row is None:
+                raise IndexError(f"Saying index {index} is out of range")
+
+            conn.execute(
+                """
+                UPDATE saying
+                SET text        = ?,
+                    modified_by = ?,
+                    modified_at = ?
+                WHERE id = ?
+                """,
+                (text, author_id, now, row["id"]),
+            )
+
+        return SimpleSayingEditorData(text=row["text"])
 
     def delete_saying(self, index: int) -> SayingEditorData:
-        pass
+        if index < 1:
+            raise IndexError(f"Saying index {index} is out of range.")
+
+        with self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT id, text, modified_by, modified_at
+                FROM saying
+                ORDER BY created_at, id LIMIT 1
+                OFFSET ?
+                """,
+                (index - 1,),
+            ).fetchone()
+
+            if row is None:
+                raise IndexError(f"Saying index {index} is out of range")
+
+            conn.execute(
+                """
+                DELETE
+                FROM saying
+                WHERE id = ?
+                """,
+                (row["id"],),
+            )
+
+        return SayingEditorData(
+            text=row["text"],
+            author_id=row["modified_by"],
+            modified_at=row["modified_at"]
+        )
 
     def get_sayings(self) -> list[SayingEditorData]:
-        pass
+        with self._connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT text, modified_by, modified_at
+                FROM saying
+                ORDER BY created_at, id
+                """
+            ).fetchall()
+
+        return [
+            SayingEditorData(
+                text=row["text"],
+                author_id=row["modified_by"],
+                modified_at=row["modified_at"],
+            )
+            for row in rows
+        ]
 
     def get_saying(self) -> str:
         with self._connection() as conn:
-            cursor = conn.cursor()
-            # todo: double check table implementation
-            cursor.execute("SELECT COUNT(*) FROM saying")
-            count = cursor.fetchone()[0]
+            count = conn.execute(
+                "SELECT COUNT(*) FROM saying"
+            ).fetchone()[0]
 
-            if not count:
-                return 'I wish I had something to say right now, as I\'m out of inspiration.'
+            if count == 0:
+                return (
+                    "I wish I had something to say right now, "
+                    "as I'm out of inspiration."
+                )
 
-            index: int = _r.randrange(count)
+            index = _r.randrange(count)
 
-            cursor.execute(
+            row = conn.execute(
                 """
                 SELECT text
                 FROM saying
-                ORDER BY created_at DESC LIMIT 1
+                ORDER BY created_at, id LIMIT 1
                 OFFSET ?
                 """,
-                (index,)
-            )
+                (index,),
+            ).fetchone()
 
-            row = cursor.fetchone()
             if row is None:
-                return 'My head\'s a mess right now.'
+                return "My head's a mess right now."
 
-            return row['text']
+            return row["text"]
