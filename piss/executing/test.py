@@ -8,7 +8,7 @@ from discord import Message as _Message, Interaction as _Interaction
 
 from discorduser.user.abstract import BotClient as _BotClient
 from piss._utils.mem_tools import reshape as _reshape
-from piss.exceptions import InstructionExecutionError as _InstructionExecutionError, InstructionExecutionError as _InstructionExecutionError
+from piss.exceptions import InstructionExecutionError as _InstructionExecutionError
 from piss.executing.abstract import AbstractInstructionExecutor as _AbstractInstructionExecutor
 from piss.instructions.abstract import Instruction as _Instruction
 from piss.instructions.build import BuildInstruction as _BuildInstruction

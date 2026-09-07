@@ -1,4 +1,4 @@
-from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
+from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
 from data.interfaces.other import LocalAdminDataInterface
 
 """

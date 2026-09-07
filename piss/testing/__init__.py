@@ -1,11 +1,11 @@
-from discord import Interaction as _Interaction, Message as _Message, Embed as _Embed
+from discord import Interaction as _Interaction, Message as _Message
 
 from discorduser.user.abstract import BotClient as _BotClient
-
-from piss.parsing import parse_instructions_from_string as _parse_text
-from piss.instructions.abstract import Instruction as _Instruction
+from piss.exceptions import InstructionParseError as _InstructionParseError, \
+    InstructionExecutionError as _InstructionExecutionError
 from piss.executing.test import TestInstructionExecutor as _TestInstructionExecutor
-from piss.exceptions import InstructionParseError as _InstructionParseError, InstructionExecutionError as _InstructionExecutionError
+from piss.instructions.abstract import Instruction as _Instruction
+from piss.parsing import parse_instructions_from_string as _parse_text
 
 
 async def test_raw_input(client: _BotClient, interaction: _Interaction | _Message, text: str, ephemeral: bool) -> bool:

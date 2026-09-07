@@ -4,7 +4,8 @@ from re import Match as _Match
 # noinspection protected-member
 from piss._utils.mem_tools import fetch as _fetch, INITIAL_MEMORY_TYPES as _INITIAL_MEMORY_TYPES
 # noinspection protected-member
-from piss._utils.symbols import be_map as _be_map, bounds as _bounds, doubles as _doubles, escapes as _escapes, terminator as _terminator
+from piss._utils.symbols import be_map as _be_map, bounds as _bounds, doubles as _doubles, escapes as _escapes, \
+    terminator as _terminator
 from piss.exceptions import InstructionParseError as _InstructionParseError
 from piss.instructions.abstract import Instruction as _Instruction
 from piss.instructions.build import BuildInstruction as _BuildInstruction

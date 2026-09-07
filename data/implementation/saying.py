@@ -1,7 +1,7 @@
 import random as _r
 import time as _time
 
-from data.implementation.utilities.abstract import AbstractSQLDatabase, CachedAbstractSQLDatabase
+from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
 from data.interfaces.saying import GlobalAdminSayingInterface, SayingEditorData, SimpleSayingEditorData
 
 """
