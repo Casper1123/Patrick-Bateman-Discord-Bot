@@ -318,7 +318,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                            reason='A reason, for logging purposes.')
     async def ban_user(self, interaction: Interaction, user_id: int, reason: str | None = None,
                        ephemeral: bool = False) -> None:
-        state: bool = self.mod.toggle_user_ban(user_id)
+        state: bool = self.mod.toggle_user_ban(user_id, reason)
         user = self.client.get_user(user_id)
 
         await self.logger.ban_user(interaction, user_id, user, state, reason)
@@ -336,14 +336,14 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
             embed.set_author(name=f'{user_id}')
         await interaction.response.send_message(ephemeral=ephemeral, embed=embed)
 
-    @app_commands.command(name='guildban',
+    @app_commands.command(name='ban_guild',
                           description='Ban a guild from using Local Fact administrative features. If already banned, unbans it.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            guild_id='The ID of the guild you aim to (un)ban.',
                            reason='A reason, for logging purposes.')
     async def ban_guild(self, interaction: Interaction, guild_id: int, reason: str | None = None,
                         ephemeral: bool = False) -> None:
-        state: bool = self.mod.toggle_guild_ban(guild_id)
+        state: bool = self.mod.toggle_guild_ban(guild_id, reason)
         guild = self.client.get_guild(guild_id)
 
         await self.logger.ban_guild(interaction, guild_id, guild, state, reason)

@@ -4,14 +4,12 @@ from data.interfaces.moderation import GlobalAdminModerationInterface
 """
 Table(s) and design:
 
-BANNEDGUILDS:
-- GuildID: int ID of banned guild
+banned_users, banned_guilds:
+- id
+- reason
+- since
+- banned_by
 
-BANNEDUSERS:
-- UserID: int ID of banned user
-
-Inclusion implies ban.
-PK trivial
 """
 
 
@@ -23,10 +21,10 @@ class ModerationDatabase(CachedAbstractSQLDatabase, GlobalAdminModerationInterfa
             schema_version=1
         )
 
-    def toggle_guild_ban(self, identifier: int) -> bool:
+    def toggle_guild_ban(self, identifier: int, reason: str | None) -> bool:
         pass
 
-    def toggle_user_ban(self, identifier: int) -> bool:
+    def toggle_user_ban(self, identifier: int, reason: str | None) -> bool:
         pass
 
     def is_banned_user(self, user_id: int) -> bool:

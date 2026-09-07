@@ -30,15 +30,17 @@ class LocalAdminModerationInterface(ABC):
 
 class GlobalAdminModerationInterface(LocalAdminModerationInterface):
     @abstractmethod
-    def toggle_guild_ban(self, identifier: int) -> bool:
+    def toggle_guild_ban(self, identifier: int, reason: str | None) -> bool:
         """
         Toggles the ban on the given ID. Returns new state.
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def toggle_user_ban(self, identifier: int) -> bool:
+    def toggle_user_ban(self, identifier: int, reason: str | None) -> bool:
         """
         Toggles the ban on the given ID. Returns new state.
         """
         raise NotImplementedError()
+
+    # todo: get function for data s.t. can be indexed into file for bookkeeping and history purposes.

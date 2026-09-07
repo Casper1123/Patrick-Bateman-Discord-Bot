@@ -4,13 +4,11 @@ from data.interfaces.other import LocalAdminDataInterface
 """
 Table(s) and design:
 
-LOCALLOG:
-- GuildID: int
-- ChannelID: int
-PK: GuildID
+local_log_channels:
+- guild_id int PK
+- channel_id int
 
-Makeshift GID -> CID mapping.
-If logging disabled, is not present in GuildID
+If logging disabled, no entry with guild_id
 """
 
 
