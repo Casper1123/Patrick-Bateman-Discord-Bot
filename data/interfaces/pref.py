@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, get_args
 
 from data.interfaces.utilities import AbstractDTO
 
@@ -80,25 +80,13 @@ class PreferencesInterface(ABC):
 
     # region Server - Autoreply Features
     @abstractmethod
-    def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None,
-                                 features: set[supported_autoreply_features]) -> None:
+    def set_autoreply_features(self, guild_id: int, channel_id: int | None,
+                               features: set[supported_autoreply_features]) -> None:
         """
-        Flips the activity state on each of the passed features.
+        Sets autoreply features such that only the passed in features are enabled.
         :param guild_id:
         :param channel_id: Leave empty for 'all channels' option.
-        :param features: Set of supported features. At least ONE needs to be selected.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None,
-                             feature: supported_autoreply_features) -> bool:
-        """
-        Gets enabled state for guild channel's autoreply feature.
-        :param guild_id:
-        :param channel_id:
-        :param feature: Given feature to check status for.
-        :return: Feature availability status.
+        :param features: Set of supported features. Empty implies 'all disabled'.
         """
         raise NotImplementedError()
 
@@ -108,7 +96,6 @@ class PreferencesInterface(ABC):
         Gets all guild preferences for the current channel. Use over `is_autoreply_enabled` if you intend to request more than one data point.
         :param guild_id: The guild ID to get for.
         :param channel_id: The channel ID to get for. NONE if all channels.
-        :return: GuildChannelPreferenceData for the given data.
         """
         raise NotImplementedError()
 
@@ -116,21 +103,11 @@ class PreferencesInterface(ABC):
 
     # region User - Autoreply Features
     @abstractmethod
-    def toggle_user_autoreply_feature(self, user_id: int, features: set[supported_autoreply_features]) -> None:
+    def set_user_autoreply_features(self, user_id: int, features: set[supported_autoreply_features]) -> None:
         """
-        Flips the activity state on each of the passed features.
+        Sets autoreply features such that only the passed in features are enabled.
         :param user_id:
-        :param features: Set of supported features. At least ONE needs to be selected.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def is_user_autoreply_enabled(self, user_id: int, feature: supported_autoreply_features) -> bool:
-        """
-        Gets enabled state for user's autoreply feature.
-        :param user_id
-        :param feature: Given feature to check status for.
-        :return: Feature availability status.
+        :param features: Set of supported features. Empty implies 'all disabled'.
         """
         raise NotImplementedError()
 
@@ -139,7 +116,6 @@ class PreferencesInterface(ABC):
         """
         Gets all user preferences. Use over `is_user_autoreply_enabled` if you intend to request more than one data point.
         :param user_id: User ID to get for.
-        :return: UserPreferenceData for the given data.
         """
         raise NotImplementedError()
     # endregion

@@ -37,10 +37,10 @@ class LetterAutoreplyCog(commands.Cog):
 
         if self.pref.is_paused_channel(message.guild.id, message.channel.id):
             return
-        if not self.pref.is_user_autoreply_enabled(message.author.id, 'letter'):
+        if not self.pref.user_autoreplies_enabled(message.author.id).letter:
             return
 
-        if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'letter'):
+        if not self.pref.guild_channel_autoreplies_enabled(message.guild.id, message.channel.id).letter:
             return
 
         letter: str = _letterdict[message.content.lower()]

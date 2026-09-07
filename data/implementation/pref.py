@@ -28,6 +28,12 @@ PK: UserID
 
 _all_features: set[supported_autoreply_features] = {i for i in get_args(supported_autoreply_features)}
 
+def _get_feat_attr_name(feat: supported_autoreply_features) -> str:
+    if not feat in ['saying', 'text', 'letter', 'number']:
+        raise KeyError(f'Feature {feat} not supported.')
+    # Conversion TypeAlias to str
+    return {i: str(i) for i in get_args(supported_autoreply_features)}[feat]
+
 class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
     def __init__(self, path: str):
         super().__init__(
@@ -63,22 +69,166 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
         )
         return val is not None
 
-    def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None,
-                                 features: set[supported_autoreply_features]) -> None:
-        pass
-
-    def is_autoreply_enabled(self, guild_id: int, channel_id: int | None,
-                             feature: supported_autoreply_features) -> bool:
-        pass
+    def set_autoreply_features(self, guild_id: int, channel_id: int | None,
+                               features: set[supported_autoreply_features]) -> None:
+        self._cache.unregister(
+            keys=('guild', str(guild_id), str(channel_id),),
+        )
+        with self._connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO pref_guild (guild_id,
+                                        channel_id,
+                                        saying,
+                                        text,
+                                        letter,
+                                        number)
+                VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO
+                UPDATE SET
+                    saying = excluded.saying,
+                    text = excluded.text,
+                    letter = excluded.letter,
+                    number = excluded.number
+                """,
+                (
+                    guild_id,
+                    channel_id,
+                    int("saying" in features),
+                    int("text" in features),
+                    int("letter" in features),
+                    int("number" in features),
+                ),
+            )
 
     def guild_channel_autoreplies_enabled(self, guild_id: int, channel_id: int | None) -> GuildChannelPreferenceData:
-        pass
+        val = self._cache.get_cached(
+            keys=('guild', str(guild_id), str(channel_id),),
+            out_type=GuildChannelPreferenceData,
+        )
+        if val is not None:
+            # todo: how to prevent mass-refreshing on messages?
+            self._cache.refresh(
+                keys=('guild', str(guild_id), str(channel_id),),
+                timeout=120  # 2min
+            )
+            return val
 
-    def toggle_user_autoreply_feature(self, user_id: int, features: set[supported_autoreply_features]) -> None:
-        pass
+        with self._connection() as conn:
+            if channel_id is None:
+                row = conn.execute(
+                    """
+                    SELECT saying, text, letter, number
+                    FROM pref_guild
+                    WHERE guild_id = ?
+                      AND channel_id IS NULL
+                    """,
+                    (guild_id,),
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    """
+                    SELECT saying, text, letter, number
+                    FROM pref_guild
+                    WHERE guild_id = ?
+                      AND channel_id = ?
+                    """,
+                    (guild_id, channel_id),
+                ).fetchone()
 
-    def is_user_autoreply_enabled(self, user_id: int, feature: supported_autoreply_features) -> bool:
-        pass
+        if row is None:
+            val = GuildChannelPreferenceData(
+                saying=True,
+                text=True,
+                letter=True,
+                number=True,
+            )
+        else:
+            val = GuildChannelPreferenceData(
+                saying=bool(row["saying"]),
+                text=bool(row["text"]),
+                letter=bool(row["letter"]),
+                number=bool(row["number"]),
+            )
+
+        self._cache.register(
+            keys=('guild', str(guild_id), str(channel_id),),
+            val=val,
+            timeout=120  # 2min
+        )
+
+        return val
+
+    def set_user_autoreply_features(self, user_id: int, features: set[supported_autoreply_features]) -> None:
+        self._cache.unregister(
+            keys=('user', str(user_id),),
+        )
+
+        with self._connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO pref_user (user_id,
+                                       saying,
+                                       text,
+                                       letter,
+                                       number)
+                VALUES (?, ?, ?, ?, ?) ON CONFLICT(user_id) DO
+                UPDATE SET
+                    saying = excluded.saying,
+                    text = excluded.text,
+                    letter = excluded.letter,
+                    number = excluded.number
+                """,
+                (
+                    user_id,
+                    int("saying" in features),
+                    int("text" in features),
+                    int("letter" in features),
+                    int("number" in features),
+                ),
+            )
 
     def user_autoreplies_enabled(self, user_id: int) -> UserPreferenceData:
-        pass
+        val = self._cache.get_cached(
+            keys=('user', str(user_id),),
+            out_type=UserPreferenceData,
+        )
+        if val is not None:
+            # todo: how to prevent mass-refreshing on messages?
+            self._cache.refresh(
+                keys=('user', str(user_id),),
+                timeout=120  # 2min
+            )
+            return val
+        
+        with self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT saying, text, letter, number
+                FROM pref_user
+                WHERE user_id = ?
+                """,
+                (user_id,),
+            ).fetchone()
+
+        if row is None:
+            val = UserPreferenceData(
+                # No entry implies all enabled (none disabled)
+                saying=True,
+                text=True,
+                letter=True,
+                number=True,
+            )
+        else:
+            val = UserPreferenceData(
+                saying=bool(row["saying"]),
+                text=bool(row["text"]),
+                letter=bool(row["letter"]),
+                number=bool(row["number"]),
+            )
+        self._cache.register(
+            keys=('user', str(user_id),),
+            val=val,
+            timeout=120  # 2min
+        )
+
+        return val

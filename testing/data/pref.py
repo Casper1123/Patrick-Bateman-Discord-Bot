@@ -9,8 +9,8 @@ class TestPreferencesDatabase(PreferencesInterface):
     def is_paused_channel(self, guild_id: int, channel_id: int) -> bool:
         return False
 
-    def toggle_autoreply_feature(self, guild_id: int, channel_id: int | None,
-                                 features: set[supported_autoreply_features]) -> None:
+    def set_autoreply_features(self, guild_id: int, channel_id: int | None,
+                               features: set[supported_autoreply_features]) -> None:
         pass
 
     def is_autoreply_enabled(self, guild_id: int, channel_id: int | None,
@@ -30,7 +30,7 @@ class TestPreferencesDatabase(PreferencesInterface):
             # saying configurable but leaving True to make testing easier.
         )
 
-    def toggle_user_autoreply_feature(self, user_id: int, features: set[supported_autoreply_features]) -> None:
+    def set_user_autoreply_features(self, user_id: int, features: set[supported_autoreply_features]) -> None:
         pass
 
     def is_user_autoreply_enabled(self, user_id: int, feature: supported_autoreply_features) -> bool:

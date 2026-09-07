@@ -329,7 +329,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
             raise RuntimeError('Set of selected features is 0 even though some feature was selected.')
 
         # todo: return updated data and then use that to save a DB call.
-        self.pref.toggle_autoreply_feature(guild_id, channel_id, feat)
+        self.pref.set_autoreply_features(guild_id, channel_id, feat)
         await self.local_logger.set_channel_preferences(interaction, channel, pref)
 
         desc = desc.removesuffix('\n')

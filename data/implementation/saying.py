@@ -1,7 +1,7 @@
 import random as _r
 import time as _time
 
-from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
+from data.implementation.utilities.abstract import AbstractSQLDatabase
 from data.interfaces.saying import GlobalAdminSayingInterface, SayingEditorData, SimpleSayingEditorData
 
 """
@@ -15,8 +15,8 @@ SAYING:
 PK: Creation
 """
 
-
-class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
+                    # Not cached bc only rarely needed.
+class SayingDatabase(AbstractSQLDatabase, GlobalAdminSayingInterface):
     def __init__(self, path: str) -> None:
         super().__init__(
             db_path=path,

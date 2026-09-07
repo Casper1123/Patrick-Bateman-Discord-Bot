@@ -34,7 +34,7 @@ class RandomAutoreplyCog(commands.Cog):
         if self.pref.is_paused_channel(message.guild.id, message.channel.id):
             return
 
-        if not self.pref.is_autoreply_enabled(message.guild.id, message.channel.id, 'saying'):
+        if not self.pref.guild_channel_autoreplies_enabled(message.guild.id, message.channel.id).saying:
             return
 
         line_raw: str = self.say.get_saying()
