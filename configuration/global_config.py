@@ -26,9 +26,12 @@ class _GlobalConfig(AbstractJSONConfig):
                  preview_cd: float, delete_cd: float, edit_cd: float, add_cd: float,
                  channel_pause_duration: int,
                  fact_cd: float,
-                 saying_probability: int):
+                 saying_probability: int,
+                 super_server_ids: int):
         super().__init__(path)
 
+        if not isinstance(super_server_ids, list) or super_server_ids is None or not all(isinstance(i, int) for i in super_server_ids):
+            raise TypeError('super_server_ids must be a list[int]')
         if not isinstance(global_admin_serverid, int) or global_admin_serverid is None:
             raise TypeError('global_admin_serverid must be an int')
         if not isinstance(reply_weight_upper_bound, int) or reply_weight_upper_bound is None:
@@ -57,6 +60,8 @@ class _GlobalConfig(AbstractJSONConfig):
         if not isinstance(saying_probability, int) or saying_probability is None:
             raise TypeError('saying_probability must be an int')
 
+        self.SUPER_SERVER_IDS: list[int] = super_server_ids
+
         self.GLOBAL_ADMIN_SERVER_ID: int = global_admin_serverid
         self.REPLY_WEIGHT_UPPER_BOUND: int = reply_weight_upper_bound
 
@@ -82,6 +87,7 @@ class _GlobalConfig(AbstractJSONConfig):
 
     def to_json(self) -> dict:
         return {
+            'SUPER_SERVER_IDS': self.SUPER_SERVER_IDS,
             'GLOBAL_ADMIN_SERVER_ID': self.GLOBAL_ADMIN_SERVER_ID,
             'REPLY_WEIGHT_UPPER_BOUND': self.REPLY_WEIGHT_UPPER_BOUND,
 
@@ -103,6 +109,7 @@ class _GlobalConfig(AbstractJSONConfig):
     def build_config(path: str):
         from utilities import write_json
         defaults: dict[str, Any] = {
+            'SUPER_SERVER_IDS': [],
             'GLOBAL_ADMIN_SERVER_ID': None,  # Mandate manually setting this value.
             'REPLY_WEIGHT_UPPER_BOUND': 1024,
 
@@ -137,9 +144,10 @@ class _GlobalConfig(AbstractJSONConfig):
         channel_pause_duration = cfg['CHANNEL_PAUSE_DURATION']
         fact_cooldown = cfg['FACT_COOLDOWN']
         saying_probability = cfg['SAYING_PROBABILITY']
+        super_server_ids = cfg['SUPER_SERVER_IDS']
 
         return _GlobalConfig(path, gad_sid, repl_w_up, fact_count_max, fact_char_limit, preview_cd, delete_cd, edit_cd,
-                             add_cd, channel_pause_duration, fact_cooldown, saying_probability)
+                             add_cd, channel_pause_duration, fact_cooldown, saying_probability, super_server_ids)
 
 
 import os as _os
