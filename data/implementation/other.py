@@ -21,8 +21,54 @@ class GeneralDatabase(CachedAbstractSQLDatabase, LocalAdminDataInterface):
         )
 
     def set_log_output(self, guild_id: int, channel_id: int | None) -> None:
-        pass
+        self._cache.unregister(
+            keys=('log_output', guild_id),
+        )
+        
+        with self._connection() as conn:
+            if channel_id is None:
+                conn.execute(
+                    """
+                    DELETE
+                    FROM local_log_channels
+                    WHERE guild_id = ?
+                    """,
+                    (guild_id,),
+                )
+            else:
+                conn.execute(
+                    """
+                    INSERT INTO local_log_channels (guild_id, channel_id)
+                    VALUES (?, ?) ON CONFLICT(guild_id) DO
+                    UPDATE SET
+                        channel_id = excluded.channel_id
+                    """,
+                    (guild_id, channel_id),
+                )
 
     def get_log_channel(self, guild_id: int) -> int | None:
-        pass
+        with self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT channel_id
+                FROM local_log_channels
+                WHERE guild_id = ?
+                """,
+                (guild_id,),
+            ).fetchone()
+
+        if row is None:
+            val = None
+        else:
+            val = row["channel_id"]
+
+        self._cache.register(
+            keys=('log_channel', guild_id),
+            val=val,
+            timeout=60,
+            auto_refresh=(
+                15,
+                30
+            )
+        )
 
