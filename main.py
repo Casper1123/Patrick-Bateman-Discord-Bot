@@ -4,7 +4,7 @@ if __name__ == '__main__':
     from configuration.token import TokenConfig
 
     # Config build
-    print('Config setup')
+    print('\tConfig setup')
     logger_cfg_fp = 'config/logger.json'
     token_cfg_fp = 'config/token.json'
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Logger config
-    print('LOGGER config')
+    print('\tLOGGER config')
 
     from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
     global_logger_config: GlobalLoggerConfig
@@ -37,11 +37,11 @@ if __name__ == '__main__':
     global_logger_config, local_logger_config = from_json(logger_cfg_fp)
 
     # Token config
-    print('TOKEN config')
+    print('\tTOKEN config')
     token_config: TokenConfig = TokenConfig.from_json(token_cfg_fp)
 
     # DB
-    print('Database')
+    print('\tDatabase')
     from data.implementation.autoreplies import AutoreplyDatabase
     from data.implementation.fact import FactDatabase
     from data.implementation.moderation import ModerationDatabase
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     pref = PreferencesDatabase(db_user_path)
     saying = SayingDatabase(db_data_path)
 
-    print('Client instance')
+    print('\tClient instance')
     client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
     import asyncio
@@ -89,5 +89,5 @@ if __name__ == '__main__':
                 return_exceptions=True,
             )
 
-    print('Starting')
+    print('\tStarting')
     asyncio.run(main())
