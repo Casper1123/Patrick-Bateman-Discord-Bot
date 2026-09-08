@@ -208,6 +208,7 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
         Creates an alias with the given name. Raises ValueError if already exists.
         :param name: New alias name.
         :param rate: The default activation rate of the new alias in [1..256]
+        :param author: ID of authoring user.
         """
         raise NotImplementedError()
 

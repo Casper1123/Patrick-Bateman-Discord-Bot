@@ -40,7 +40,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
             return
 
         try:
-            self.repl.create_alias(name, rate if rate is not None else 256)
+            self.repl.create_alias(name, rate if rate is not None else 256, author=interaction.user.id)
         except ValueError:
             await self.client.user_feedback(interaction, ephemeral=ephemeral, title='Alias creation failed',
                                             desc='This alias already exists.')
@@ -67,7 +67,7 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                                             ephemeral=ephemeral)
             return
         try:
-            self.repl.edit_alias(alias, new_name if (new_name and new_name != alias) else None, rate)
+            self.repl.edit_alias(alias, interaction.user.id, new_name if (new_name and new_name != alias) else None, rate)
         except ValueError:
             await self.client.user_feedback(interaction, title='Alias edit failed',
                                             desc='The given alias does not exist, or the new alias name is already taken.',
@@ -191,7 +191,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
             return
         try:
             self.repl.add_trigger(alias, trigger_type='regex', data=text,
-                                  rate=rate)  # todo: create and support other trigger types.
+                                  rate=rate, author=interaction.user.id)  # todo: create and support other trigger types.
         except ValueError:
             await self.client.user_feedback(interaction, title='Trigger creation failed',
                                             desc=f'The given Alias {alias} does not exist.', ephemeral=ephemeral)
@@ -328,7 +328,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
             await self.client.user_feedback(interaction, title='Reply creation failed',
                                             desc=f'Reply type {reply_type} not supported.', ephemeral=ephemeral)
         try:
-            self.repl.add_reply(alias, reply_type, data=text, weight=weight)
+            self.repl.add_reply(alias, reply_type, data=text, weight=weight, author=interaction.user.id)
         except ValueError:
             await self.client.user_feedback(interaction, title='Reply creation failed',
                                             desc=f'Alias {alias} does not exist.', ephemeral=ephemeral)
@@ -368,7 +368,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
             else:
                 raise ValueError('Received reply with un accounted for type.')
 
-            self.repl.edit_reply(alias, index, text, weight)
+            self.repl.edit_reply(alias, index, text, weight, interaction.user.id)
 
         except ValueError:
             await self.client.user_feedback(interaction, title='Reply edit failed',
