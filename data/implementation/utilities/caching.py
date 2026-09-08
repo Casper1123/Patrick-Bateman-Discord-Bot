@@ -69,7 +69,7 @@ class RecursiveCacheHandler:
             # rest may be treated as tuple.
             self.children[curr].register(rest, val, timeout, auto_refresh)
         else:
-            if curr not in self.children.keys():
+            if curr in self.children.keys():
                 raise ValueError(f'{self.path_as_string}/{curr} is already registered, use Refresh instead.')
 
             timeout = monotonic() + timeout
