@@ -4,6 +4,7 @@ if __name__ == '__main__':
     from configuration.token import TokenConfig
 
     # Config build
+    print('Config setup')
     logger_cfg_fp = 'config/logger.json'
     token_cfg_fp = 'config/token.json'
 
@@ -18,15 +19,7 @@ if __name__ == '__main__':
         print(f'Token config built at {token_cfg_fp}, please edit accordingly.')
         logger_created = True
 
-    # This may create a global_config and close the application
-    from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
-    from data.interfaces.fact import GlobalAdminFactInterface
-    from data.interfaces.moderation import GlobalAdminModerationInterface
-    from data.interfaces.other import LocalAdminDataInterface
-    from data.interfaces.pref import PreferencesInterface
-    from data.interfaces.saying import GlobalAdminSayingInterface
-    from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
-
+    # Imports CFG which may create a global_config and close the application
     from discorduser.user import BotClient
 
     if logger_created:
@@ -35,37 +28,50 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Logger config
+    print('LOGGER config')
+
+    from configuration.logger import GlobalLoggerConfig, LocalLoggerConfig
     global_logger_config: GlobalLoggerConfig
     local_logger_config: LocalLoggerConfig
+
     global_logger_config, local_logger_config = from_json(logger_cfg_fp)
 
     # Token config
+    print('TOKEN config')
     token_config: TokenConfig = TokenConfig.from_json(token_cfg_fp)
 
     # DB
-    db_target_path: str = 'data/data/data.sql'
+    print('Database')
+    from data.implementation.autoreplies import AutoreplyDatabase
+    from data.implementation.fact import FactDatabase
+    from data.implementation.moderation import ModerationDatabase
+    from data.implementation.other import GeneralDatabase
+    from data.implementation.pref import PreferencesDatabase
+    from data.implementation.saying import SayingDatabase
 
-    autoreplies: GlobalTextAutoreplyInterface = ...
-    fact: GlobalAdminFactInterface = ...
-    mod: GlobalAdminModerationInterface = ...
-    db: LocalAdminDataInterface = ...
-    pref: PreferencesInterface = ...
-    saying: GlobalAdminSayingInterface = ...
+    db_data_path: str = 'data/data/data.sql'
+    db_user_path: str = 'data/data/user.sql'
 
+    autoreplies = AutoreplyDatabase(db_data_path)
+    fact = FactDatabase(db_data_path)
+    mod = ModerationDatabase(db_user_path)
+    db = GeneralDatabase(db_user_path)
+    pref = PreferencesDatabase(db_user_path)
+    saying = SayingDatabase(db_data_path)
+
+    print('Client instance')
     client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
-
-    # Not supported yet
-    print('Exiting as upcoming code is not complete yet.\nThe application cannot run.')
-    sys.exit(0)
 
     import asyncio
     async def main():
-        from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
-        # Just for an example to myself for later
-        dummy: CachedAbstractSQLDatabase
-
         maintenance_loops = [
-            dummy.get_cache_task()
+            # Method on CachedAbstractSQLDatabase
+            autoreplies.get_cache_task(),
+            fact.get_cache_task(),
+            mod.get_cache_task(),
+            db.get_cache_task(),
+            pref.get_cache_task(),
+            saying.get_cache_task(),
         ]
 
         for loop in maintenance_loops:
@@ -82,4 +88,6 @@ if __name__ == '__main__':
                 *maintenance_loops,
                 return_exceptions=True,
             )
+
+    print('Starting')
     asyncio.run(main())

@@ -2,6 +2,7 @@ if __name__ == '__main__':
     import os
     from configuration.token import TokenConfig
 
+    print('Config setup')
     token_cfg_fp = 'config/test_token.json'
 
     logger_created: bool = False
@@ -34,13 +35,16 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Logger config
+    print('LOGGER config')
     global_logger_config: GlobalLoggerConfig = TestGlobalLoggerConfig(output_channel_id=None)
     local_logger_config: LocalLoggerConfig = TestLocalLoggerConfig()
 
     # Token config
+    print('TOKEN config')
     token_config: TokenConfig = TokenConfig.from_json(token_cfg_fp)
 
     # DB
+    print('Database')
     autoreplies: GlobalTextAutoreplyInterface = TestAutoreplyDatabase()
     fact: GlobalAdminFactInterface = TestFactDatabase()
     mod: GlobalAdminModerationInterface = TestModerationDatabase(user_banned=False, banned_guild=False,
@@ -49,6 +53,8 @@ if __name__ == '__main__':
     pref: PreferencesInterface = TestPreferencesDatabase(text=True, number=True, letter=True)
     saying: GlobalAdminSayingInterface = TestSayingDatabase()
 
+    print('Client instance')
     client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
+    print('Starting')
     client.run(token=token_config.token)
