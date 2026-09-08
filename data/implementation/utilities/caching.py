@@ -3,10 +3,11 @@ from __future__ import annotations
 import asyncio
 import heapq
 from time import monotonic
-from typing import TypeVar, Any
+from typing import TypeVar, Any, TypeAlias, Union
 
 _T = TypeVar('_T')
-_I = TypeVar('_I')
+
+_Key_Types: TypeAlias = Union[str, float, int, None]
 
 
 # Tree-structure, nodes are RecursiveCacheHandlers, leaves are values.
@@ -24,27 +25,27 @@ class RecursiveCacheHandler:
     Automated data caching handler using a Tree-node structure. Try not to go too deep.
     """
 
-    def __init__(self, root: RecursiveCacheHandler | None = None, path: tuple[str | int | float | None, ...] | None = None):
+    def __init__(self, root: RecursiveCacheHandler | None = None, path: tuple[_Key_Types, ...] | None = None):
         """
         Leave empty for manual initialization as a Root node. Use class methods otherwise.
         """
-        self.children: dict[str, RecursiveCacheHandler | RecursiveCacheEntry] = {}
+        self.children: dict[_Key_Types, RecursiveCacheHandler | RecursiveCacheEntry] = {}
         self._maintenance_loop: bool | None = False  # If None is in shutdown mode.
 
 
         if not root:
             self.root = self  # is_root <==> self.root == self
-            self._timeouts: list[tuple[float, tuple[str, ...]]] = []
+            self._timeouts: list[tuple[float | int, tuple[str, ...]]] = []
         else:
             self.root = root
             self._timeouts = self.root._timeouts  # Not to be used, just here just in case.
         self._timeouts: list[tuple[float, tuple[str, ...]]]
 
-        self.path: tuple[str | int | float | None, ...] = () if not path else path
+        self.path: tuple[_Key_Types, ...] = () if not path else path
         self.path_as_string: str = '/'.join(['ROOT',] + [str(i) for i in self.path])
 
     # noinspection incorrect-docstring
-    def register(self, keys: tuple[str | int | float | None, ...], val: Any, timeout: float| int, auto_refresh: tuple[int | float, int | float] | None = None) -> None:
+    def register(self, keys: tuple[_Key_Types, ...], val: Any, timeout: float| int, auto_refresh: tuple[int | float, int | float] | None = None) -> None:
         """
         Create a new cache entry leaf, creating required nodes along the way.
         If no path was given, raises an AttributeError.
@@ -61,7 +62,7 @@ class RecursiveCacheHandler:
                 self.children[curr] = new_node
             if not isinstance(self.children[curr], RecursiveCacheHandler):
                 raise KeyError(
-                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
+                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(str(i) for i in rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
             # noinspection unresolved-references
             # Ensured child at key curr is Handler not Entry
             # noinspection bad-argument-type
@@ -81,7 +82,7 @@ class RecursiveCacheHandler:
             self.children[curr] = val
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
-    def refresh(self, keys: tuple[str | int | float | None, ...], timeout: float) -> None:
+    def refresh(self, keys: tuple[_Key_Types, ...], timeout: float) -> None:
         """
         Refreshes the timeout on the given data path, assuming it exists.
         If it does not, raises an Exception. If no keys were given, it raises an AttributeError.
@@ -91,12 +92,12 @@ class RecursiveCacheHandler:
         curr, *rest = keys
         if curr not in self.children.keys():
             raise KeyError(
-                f'{self.path_as_string}/{curr}{'/' + '/'.join(rest) if rest else ''} cannot be refreshed as {self.path_as_string}/{curr} does not exist.')
+                f'{self.path_as_string}/{curr}{'/' + '/'.join(str(i) for i in rest) if rest else ''} cannot be refreshed as {self.path_as_string}/{curr} does not exist.')
 
         if rest:
             if not isinstance(self.children[curr], RecursiveCacheHandler):
                 raise KeyError(
-                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
+                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(str(i) for i in rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
 
             # noinspection unresolved-references
             # Ensured child at key curr is Handler not Entry
@@ -114,7 +115,7 @@ class RecursiveCacheHandler:
             self.children[curr].removal = timeout
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
-    def unregister(self, keys: tuple[str | int | float | None, ...]) -> None:
+    def unregister(self, keys: tuple[_Key_Types, ...]) -> None:
         """
         Early-unregisters cached entry leaves AND NODES (if path ends early) for given path.
         Higher up the tree is first in the list.
@@ -124,7 +125,7 @@ class RecursiveCacheHandler:
         """
         self._prune_entry(keys, clean_empty_nodes=True)
 
-    def _prune_entry(self, keys: tuple[str | int | float | None, ...], clean_empty_nodes: bool) -> None:
+    def _prune_entry(self, keys: tuple[_Key_Types, ...], clean_empty_nodes: bool) -> None:
         """
         Removes entry at path (or removes entire subtree at path) rooted at call node.
         :param keys: Path to entry / subtree root node.
@@ -139,7 +140,7 @@ class RecursiveCacheHandler:
                 return
             if not isinstance(self.children[curr], RecursiveCacheHandler):
                 raise KeyError(
-                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
+                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(str(i) for i in rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
             # noinspection unresolved-references
             # Ensured child at key curr is Handler not Entry
             # noinspection bad-argument-type
@@ -153,7 +154,7 @@ class RecursiveCacheHandler:
         else:
             del self.children[curr]
 
-    def is_cached(self, keys: tuple[str | int | float | None, ...]) -> bool:
+    def is_cached(self, keys: tuple[_Key_Types, ...]) -> bool:
         if not keys:
             return False
         curr, *rest = keys
@@ -168,7 +169,7 @@ class RecursiveCacheHandler:
         else:
             return True
 
-    def get_cached(self, keys: tuple[str | int | float | None, ...], out_type: type[_T]) -> _T | None:
+    def get_cached(self, keys: tuple[_Key_Types, ...], out_type: type[_T]) -> _T | None:
         """
         Get cached value, if it exists.
         :param keys: Target path to cached value.
@@ -181,7 +182,7 @@ class RecursiveCacheHandler:
         # todo: proper typechecking for _T = list[_I] for some type _I?
         if (not _T == list and not isinstance(val.val, out_type)) or (_T == list and not isinstance(val.val, list)):
             raise TypeError(
-                f'Return value at path {self.path_as_string}/{'/'.join(keys)} is of type {type(val.val)} (wanted {out_type})')
+                f'Return value at path {self.path_as_string}/{'/'.join(str(i) for i in keys)} is of type {type(val.val)} (wanted {out_type})')
 
         # auto-refresh
         if (val.refresh_window is None or
@@ -196,7 +197,7 @@ class RecursiveCacheHandler:
 
         return val.val
 
-    def _find(self, keys: tuple[str | int | float | None, ...]) -> RecursiveCacheEntry | None:
+    def _find(self, keys: tuple[_Key_Types, ...]) -> RecursiveCacheEntry | None:
         """
         Find Entry in data tree, if it exists.
         :param keys: Target path to cached value.
@@ -211,7 +212,7 @@ class RecursiveCacheHandler:
         if rest:
             if not isinstance(self.children[curr], RecursiveCacheHandler):
                 raise Exception(
-                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
+                    f'Walk down path into cache of {self.path_as_string}/{curr}/{'/'.join(str(i) for i in rest)} cannot be completed as {self.path_as_string}/{curr} does not yield a tree node.')
             # noinspection unresolved-references
             # Ensured child at key curr is Handler not Entry
             # noinspection bad-argument-type
@@ -287,7 +288,7 @@ class RecursiveCacheHandler:
         if time is None:
             time = monotonic()
 
-        marked: list[str] = []
+        marked: list[_Key_Types] = []
         for k, v in self.children.items():
             if isinstance(v, RecursiveCacheEntry):
                 if v.removal < time:
