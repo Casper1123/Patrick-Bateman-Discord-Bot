@@ -1,8 +1,6 @@
 import random as _r
 import time as _time
 
-import sqlite3 as _sql
-
 from data.implementation.utilities.abstract import CachedAbstractSQLDatabase
 from data.interfaces.autoreplies import GlobalTextAutoreplyInterface, SimpleTriggerData, SimpleAliasData, \
     SimpleReplyData, reply_types, trigger_types

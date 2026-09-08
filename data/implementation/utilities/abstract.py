@@ -149,6 +149,7 @@ class AbstractSQLDatabase(ABC):
 
                 print(f'Migrated {schema_name} to version {version}')
 
+    # noinspection method-may-be-static
     def _get_schema_version(
             self,
             conn: _sql.Connection,

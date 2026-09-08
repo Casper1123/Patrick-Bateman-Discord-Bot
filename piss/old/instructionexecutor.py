@@ -22,7 +22,7 @@ class ParsedExecutionFailure(CustomDiscordException):
             cause)
 
 
-# noinspection bad-assignment,unsupported-operator,bad-argument-type
+# noinspection bad-assignment,unsupported-operator,bad-argument-type,unresolved-references
 class InstructionExecutor:
     """
     Executes given instructions using asynchronous run method.

@@ -76,6 +76,8 @@ class InstructionExecutor(_AbstractInstructionExecutor):
         elif isinstance(interaction, _Interaction) and self._first_reply:
             await interaction.response.send_message(content=build, allowed_mentions=instruction.pingable)
         else:
+            # noinspection unresolved-references
+            # Messageable implied by check in .run()
             await interaction.channel.send(content=build, allowed_mentions=instruction.pingable)
 
         self._first_reply = False
@@ -100,6 +102,8 @@ class InstructionExecutor(_AbstractInstructionExecutor):
         Returns direct conversion user attribute from instruction parameters.
         """
         if not self._shuffled_member_list:
+            # noinspection unresolved-references
+            # Guild existence required by .run()
             self._shuffled_member_list = list(interaction.guild.members)
             _r.shuffle(self._shuffled_member_list)
 
@@ -134,6 +138,8 @@ class InstructionExecutor(_AbstractInstructionExecutor):
         Executes embedded instructions while showing the typing indicator in the channel.
         Returns leftover build.
         """
+        # noinspection unresolved-references
+        # Messageable implied by check in .run()
         async with interaction.channel.typing():
             return await self._exec(
                 instructions=instruction.instructions,

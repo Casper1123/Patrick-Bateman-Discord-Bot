@@ -116,6 +116,7 @@ class UserAttributeOptions(Enum):
     ROLES = 5
 
 
+# noinspection pep8-naming
 class Instruction:
     def __init__(self, instruction_type: InstructionType, **options):
         self.type: InstructionType = instruction_type

@@ -26,6 +26,7 @@ class TestSayingDatabase(GlobalAdminSayingInterface):
             SayingEditorData('PISS-compatible saying for {user}', author_id=0, modified_at=0),
         ]
 
+    # noinspection method-may-be-static
     def get_saying_by_index(self, index: int) -> SimpleSayingEditorData:
         return SimpleSayingEditorData('PISS-compatible saying for {user} at index ' + str(index))
     # endregion

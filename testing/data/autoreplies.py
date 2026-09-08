@@ -18,6 +18,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
                 return v
         raise ValueError('bad alias name')
 
+    # noinspection method-may-be-static
     def alias_exists(self, alias: str) -> bool:
         return alias in ['reaction', 'text', 'number_wildcard_test', 'error_test']
 
@@ -50,7 +51,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             raise Exception('rate out of bounds')
 
     def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None,
-                     rate: int | None, author: int) -> None:
+                     rate: int | None, author: int) -> SimpleTriggerData:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
         if not index == 1:
@@ -61,6 +62,12 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             raise Exception('rate out of bounds')
         if data is None and rate is None:
             raise AttributeError('both inputs None')
+
+        return SimpleTriggerData(
+            trigger_type=trigger_type,
+            data='old data',
+            rate=0
+        )
 
     def remove_trigger(self, alias: str, index: int) -> SimpleTriggerData:
         if not self.alias_exists(alias):
@@ -78,7 +85,7 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
         if not (weight >= 1):
             raise Exception('weight out of bounds')
 
-    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> None:
+    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> SimpleReplyData:
         if not self.alias_exists(alias):
             raise ValueError('invalid alias name')
         if not index == 1:
@@ -87,6 +94,12 @@ class TestAutoreplyDatabase(GlobalTextAutoreplyInterface):
             raise Exception('weight out of bounds')
         if weight is None and text is None:
             raise AttributeError('both none')
+
+        return SimpleReplyData(
+            reply_type='text',
+            data='old data',
+            weight=0
+        )
 
     def remove_reply(self, alias: str, index: int) -> SimpleReplyData:
         if not self.alias_exists(alias):

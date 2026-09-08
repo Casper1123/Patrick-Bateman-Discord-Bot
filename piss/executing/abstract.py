@@ -65,7 +65,7 @@ class AbstractInstructionExecutor(ABC):
                 elif isinstance(instruction, _WritingInstruction):
                     build = await self._writing(instruction, interaction, recursion_depth, memory, build)
                 else:
-                    raise NotImplementedError(f'Instruction of type {type(instruction)} is not supported.')
+                    raise NotImplementedError(f'Instruction of type {type(instruction).__name__} is not supported.')
 
             except _CustomDiscordException as e:
                 raise e
@@ -93,7 +93,7 @@ class AbstractInstructionExecutor(ABC):
                 bad_types.add((k, v, type(memory[k])))
         if missing_keys or bad_types:
             raise TypeError(
-                f'Initial memory has not been constructed correctly; Missing: {missing_keys}. Incorrect types: {','.join(f'{i[0]}: {i[1]} (wanted {i[2]})' for i in bad_types)}')
+                f'Initial memory has not been constructed correctly; Missing: {missing_keys}. Incorrect types: {','.join(f'{i[0]}: {i[1].__name__} (wanted {i[2].__name__})' for i in bad_types)}')
 
     @abstractmethod
     async def _build(self, instruction: _BuildInstruction) -> str:

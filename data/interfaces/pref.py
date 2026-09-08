@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, TypeAlias, get_args
+from typing import Literal, TypeAlias
 
 from data.interfaces.utilities import AbstractDTO
 

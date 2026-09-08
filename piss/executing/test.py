@@ -65,6 +65,8 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
         if not instructions:
             raise AttributeError('No instructions given.')
 
+        # noinspection bad-argument-type
+        # On purpose.
         await super()._exec(
             instructions=instructions,
             interaction=None,

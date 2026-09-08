@@ -2,6 +2,7 @@ from data.interfaces.pref import PreferencesInterface, UserPreferenceData, suppo
     GuildChannelPreferenceData
 
 
+# noinspection unused-parameter
 class TestPreferencesDatabase(PreferencesInterface):
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None, duration: int) -> None:
         pass

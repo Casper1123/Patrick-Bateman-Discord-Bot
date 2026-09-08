@@ -27,7 +27,7 @@ class _GlobalConfig(AbstractJSONConfig):
                  channel_pause_duration: int,
                  fact_cd: float,
                  saying_probability: int,
-                 super_server_ids: int):
+                 super_server_ids: list[int]):
         super().__init__(path)
 
         if not isinstance(super_server_ids, list) or super_server_ids is None or not all(isinstance(i, int) for i in super_server_ids):

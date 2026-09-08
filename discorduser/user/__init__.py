@@ -45,7 +45,7 @@ class BotClient(_AbstractClient):
         await self.add_cog(LocalAdminCog(self, self.fact, self.mod, self.pref, self.db, self.logger, self.local_logger))
 
         # Common
-        await self.add_cog(AskPatrick(self, self.saying))
+        # await self.add_cog(AskPatrick(self, self.saying))
         await self.add_cog(FactsCog(self, self.fact))
         await self.add_cog(MainCommandsCog(self))
         await self.add_cog(UserPreferenceCog(self, self.pref))
