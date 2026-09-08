@@ -1,6 +1,6 @@
 BEGIN;
 
-PRAGMA foreign_keys = ON
+PRAGMA foreign_keys = ON;
 
 -- Required to maintain easy migration to other versions. Base information for DB files.
 CREATE TABLE IF NOT EXISTS schema_versions (
