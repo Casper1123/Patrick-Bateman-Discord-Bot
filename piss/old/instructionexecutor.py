@@ -22,6 +22,7 @@ class ParsedExecutionFailure(CustomDiscordException):
             cause)
 
 
+# noinspection bad-assignment,unsupported-operator,bad-argument-type
 class InstructionExecutor:
     """
     Executes given instructions using asynchronous run method.
@@ -319,6 +320,7 @@ class InstructionExecutor:
         return _r.randint(left, right)
 
 
+# noinspection bad-assignment
 class DebugInstructionExecutor(InstructionExecutor):
     def __init__(self, client: BotClient, pure_output: bool = False):
         self.output: str = ''
