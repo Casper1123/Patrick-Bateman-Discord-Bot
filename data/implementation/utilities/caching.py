@@ -23,7 +23,7 @@ class RecursiveCacheHandler:
     Automated data caching handler using a Tree-node structure. Try not to go too deep.
     """
 
-    def __init__(self, root: RecursiveCacheHandler | None = None, path: tuple[str, ...] | None = None):
+    def __init__(self, root: RecursiveCacheHandler | None = None, path: tuple[str | int | float | None, ...] | None = None):
         """
         Leave empty for manual initialization as a Root node. Use class methods otherwise.
         """
@@ -39,11 +39,11 @@ class RecursiveCacheHandler:
             self._timeouts = self.root._timeouts  # Not to be used, just here just in case.
         self._timeouts: list[tuple[float, tuple[str, ...]]]
 
-        self.path: tuple[str, ...] = () if not path else path
-        self.path_as_string: str = '/'.join(('ROOT',) + self.path)
+        self.path: tuple[str | int | float | None, ...] = () if not path else path
+        self.path_as_string: str = '/'.join(['ROOT',] + [str(i) for i in self.path])
 
     # noinspection incorrect-docstring
-    def register(self, keys: tuple[str, ...], val: Any, timeout: float| int, auto_refresh: tuple[int | float, int | float] | None = None) -> None:
+    def register(self, keys: tuple[str | int | float | None, ...], val: Any, timeout: float| int, auto_refresh: tuple[int | float, int | float] | None = None) -> None:
         """
         Create a new cache entry leaf, creating required nodes along the way.
         If no path was given, raises an AttributeError.
@@ -80,7 +80,7 @@ class RecursiveCacheHandler:
             self.children[curr] = val
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
-    def refresh(self, keys: tuple[str, ...], timeout: float) -> None:
+    def refresh(self, keys: tuple[str | int | float | None, ...], timeout: float) -> None:
         """
         Refreshes the timeout on the given data path, assuming it exists.
         If it does not, raises an Exception. If no keys were given, it raises an AttributeError.
@@ -113,7 +113,7 @@ class RecursiveCacheHandler:
             self.children[curr].removal = timeout
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
 
-    def unregister(self, keys: tuple[str, ...]) -> None:
+    def unregister(self, keys: tuple[str | int | float | None, ...]) -> None:
         """
         Early-unregisters cached entry leaves AND NODES (if path ends early) for given path.
         Higher up the tree is first in the list.
@@ -123,7 +123,7 @@ class RecursiveCacheHandler:
         """
         self._prune_entry(keys, clean_empty_nodes=True)
 
-    def _prune_entry(self, keys: tuple[str, ...], clean_empty_nodes: bool) -> None:
+    def _prune_entry(self, keys: tuple[str | int | float | None, ...], clean_empty_nodes: bool) -> None:
         """
         Removes entry at path (or removes entire subtree at path) rooted at call node.
         :param keys: Path to entry / subtree root node.
@@ -152,7 +152,7 @@ class RecursiveCacheHandler:
         else:
             del self.children[curr]
 
-    def is_cached(self, keys: tuple[str, ...]) -> bool:
+    def is_cached(self, keys: tuple[str | int | float | None, ...]) -> bool:
         if not keys:
             return False
         curr, *rest = keys
@@ -167,7 +167,7 @@ class RecursiveCacheHandler:
         else:
             return True
 
-    def get_cached(self, keys: tuple[str, ...], out_type: type[_T]) -> _T | None:
+    def get_cached(self, keys: tuple[str | int | float | None, ...], out_type: type[_T]) -> _T | None:
         """
         Get cached value, if it exists.
         :param keys: Target path to cached value.
@@ -194,7 +194,7 @@ class RecursiveCacheHandler:
 
         return val.val
 
-    def _find(self, keys: tuple[str, ...]) -> RecursiveCacheEntry | None:
+    def _find(self, keys: tuple[str | int | float | None, ...]) -> RecursiveCacheEntry | None:
         """
         Find Entry in data tree, if it exists.
         :param keys: Target path to cached value.

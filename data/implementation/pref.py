@@ -45,13 +45,13 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None, duration: int) -> None:
         try:
             self._cache.register(
-                keys=('paused', str(guild_id), str(channel_id),),
+                keys=('paused', guild_id, channel_id,),
                 val=channel_id if channel_id else 0,
                 timeout=duration,
             )
         except ValueError:
             self._cache.refresh(
-                keys=('paused', str(guild_id), str(channel_id),),
+                keys=('paused', guild_id, channel_id,),
                 timeout=duration,
             )
 
@@ -72,7 +72,7 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
     def set_autoreply_features(self, guild_id: int, channel_id: int | None,
                                features: set[supported_autoreply_features]) -> None:
         self._cache.unregister(
-            keys=('guild', str(guild_id), str(channel_id),),
+            keys=('guild', guild_id, channel_id,),
         )
         with self._connection() as conn:
             conn.execute(
@@ -102,7 +102,7 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
 
     def guild_channel_autoreplies_enabled(self, guild_id: int, channel_id: int | None) -> GuildChannelPreferenceData:
         val = self._cache.get_cached(
-            keys=('guild', str(guild_id), str(channel_id),),
+            keys=('guild', guild_id, channel_id,),
             out_type=GuildChannelPreferenceData,
         )
         if val is not None:
@@ -146,7 +146,7 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
             )
 
         self._cache.register(
-            keys=('guild', str(guild_id), str(channel_id),),
+            keys=('guild', guild_id, channel_id,),
             val=val,
             timeout=120,  # 2min
             auto_refresh=(
@@ -159,7 +159,7 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
 
     def set_user_autoreply_features(self, user_id: int, features: set[supported_autoreply_features]) -> None:
         self._cache.unregister(
-            keys=('user', str(user_id),),
+            keys=('user', user_id,),
         )
 
         with self._connection() as conn:
@@ -188,7 +188,7 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
 
     def user_autoreplies_enabled(self, user_id: int) -> UserPreferenceData:
         val = self._cache.get_cached(
-            keys=('user', str(user_id),),
+            keys=('user', user_id,),
             out_type=UserPreferenceData,
         )
         if val is not None:
@@ -221,7 +221,7 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
             )
 
         self._cache.register(
-            keys=('user', str(user_id),),
+            keys=('user', user_id,),
             val=val,
             timeout=120,  # 2min
             auto_refresh=(
