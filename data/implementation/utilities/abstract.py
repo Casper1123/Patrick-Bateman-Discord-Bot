@@ -48,12 +48,15 @@ class AbstractSQLDatabase(ABC):
                 "PRAGMA user_version"
             ).fetchone()[0]
 
+
         if version > self._METADATA_SCHEMA_VERSION:
             raise RuntimeError(
                 f"Database metadata version {version} is newer than "
                 f"supported version {self._METADATA_SCHEMA_VERSION}"
             )
-        elif version == self._METADATA_SCHEMA_VERSION:
+
+        print(f'Inserted metadata version {version} into database.')
+        if version == self._METADATA_SCHEMA_VERSION:
             return
 
         # Needs updates
