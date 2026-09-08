@@ -187,7 +187,7 @@ class RecursiveCacheHandler:
         try:
             bad_type = not isinstance(val.val, out_type)
         except TypeError:
-            bad_type = True
+            bad_type = not isinstance(val.val, list) # Just kind of explicitly stating 'yeah we'll let lists pass this one'
         if bad_type:
             raise TypeError(
                 f'Return value at path {self.path_as_string}/{'/'.join(str(i) for i in keys)} is of type {type(val.val)} (wanted {out_type})')
