@@ -110,7 +110,7 @@ class AbstractSQLDatabase(ABC):
                 f"supports version {target_version}"
             )
 
-        schemas_path = Path(f'data/schemas/{schema_name}')
+        schemas_path = Path(f'data/schemas/{schema_name}/')
 
         if current_version == 0:
             # Load and create initial schema
