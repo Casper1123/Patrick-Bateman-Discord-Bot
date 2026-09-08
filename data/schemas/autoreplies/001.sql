@@ -1,19 +1,19 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS aliases (
-    id           TEXT PRIMARY KEY,
+    id           INTEGER PRIMARY KEY,
     name         TEXT NOT NULL,
-    rate         INTEGER NOT NULL,
+    rate         INTEGER NOT NULL CHECK (rate BETWEEN 1 AND 256),
     modified_by  INTEGER NOT NULL,
     modified_at  INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS triggers (
     id           INTEGER PRIMARY KEY,
-    alias_id     TEXT NOT NULL,
+    alias_id     INTEGER NOT NULL,
     type         TEXT NOT NULL,
     data         TEXT NOT NULL,
-    rate         INTEGER,
+    rate         INTEGER CHECK (rate BETWEEN 1 AND 256),
     modified_by  INTEGER NOT NULL,
     modified_at  INTEGER NOT NULL,
 
@@ -27,10 +27,10 @@ ON triggers (alias_id);
 
 CREATE TABLE IF NOT EXISTS replies (
     id           INTEGER PRIMARY KEY,
-    alias_id     TEXT NOT NULL,
+    alias_id     INTEGER NOT NULL,
     type         TEXT NOT NULL,
     data         TEXT NOT NULL,
-    weight       INTEGER NOT NULL,
+    weight       INTEGER NOT NULL CHECK (weight >= 0),
     modified_by  INTEGER NOT NULL,
     modified_at  INTEGER NOT NULL,
 
