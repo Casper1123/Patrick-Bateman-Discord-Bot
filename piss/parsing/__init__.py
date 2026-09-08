@@ -172,7 +172,7 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
                             f' signature ID {ident})'
                         )
                         err.cause = e
-                        raise err
+                        raise err from e
 
                     found = True
                     break

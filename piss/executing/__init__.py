@@ -240,5 +240,5 @@ class InstructionExecutor(_AbstractInstructionExecutor):
         except Exception as e:
             # todo: this is dookie.
             raise _CustomDiscordException(message='Initial Instruction Memory failed to build.', cause=e,
-                                         error_type='InstructionMemoryError')
+                                         error_type='InstructionMemoryError') from e
     # endregion

@@ -72,9 +72,10 @@ class BotClient(commands.Bot):
     # region error-handling
     async def setup_hook(self) -> None:
         async def on_tree_error(interaction: Interaction, error: AppCommandError):
+            # noinspection broad-exception
             try:
                 await interaction.response.defer(ephemeral=True, thinking=False)
-            except Exception:  # noqa Shoddy attempt at hiding the error from users. todo: find better solution
+            except Exception:  #  Shoddy attempt at hiding the error from users. todo: find better solution
                 pass
             # handle exceptions
             finally:

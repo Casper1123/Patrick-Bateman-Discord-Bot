@@ -59,7 +59,7 @@ class LoggableErrorContext(ABC):
         self.error, self.log = _normalize_exception(error)
         self.error: CustomDiscordException
         self.log: bool
-
+        # todo: this is only where the final thing is. However, that means that the original calling function is never revealed. Maybe like, 3 layers up?
         self._filename: str = '(Error not raised yet?)'
         self._lineno: int | None = 0
         self._name: str = ''

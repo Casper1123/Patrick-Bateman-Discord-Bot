@@ -70,7 +70,7 @@ class AbstractInstructionExecutor(ABC):
             except _CustomDiscordException as e:
                 raise e
             except Exception as e:
-                raise _InstructionExecutionError(instruction, cause=e)
+                raise _InstructionExecutionError(instruction, cause=e) from e
 
         if push_final_build:
             await self._push(_PushInstruction(), build, interaction)

@@ -142,7 +142,7 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
             raise e  # Pass pre-constructed Exceptions up to user layer.
         except Exception as e:
             raise _CustomDiscordException(message='Initial Instruction Memory failed to build.', cause=e,
-                                         error_type='InstructionMemoryError')
+                                         error_type='InstructionMemoryError') from e
 
     # region instructions
     async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
@@ -179,7 +179,7 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
             except _InstructionExecutionError as e:
                 raise e
             except Exception as e:
-                raise _InstructionExecutionError(instruction, reason=f'The error was raised in option {i + 1}.', cause=e)
+                raise _InstructionExecutionError(instruction, reason=f'The error was raised in option {i + 1}.', cause=e) from e
 
             branch_results.append(
                 (ex, branch_build, mem)
