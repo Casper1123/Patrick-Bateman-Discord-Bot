@@ -40,7 +40,8 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
         super().__init__(
             db_path=path,
             schema_name='autoreplies',
-            schema_version=1
+            schema_version=1,
+            default_cache_timeout=10
         )
         
     def create_alias(self, name: str, rate: int, author: int) -> None:

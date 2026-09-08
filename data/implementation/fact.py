@@ -16,7 +16,8 @@ class FactDatabase(CachedAbstractSQLDatabase, GlobalAdminFactInterface):
         super().__init__(
             db_path=path,
             schema_name='fact',
-            schema_version=1
+            schema_version=1,
+            default_cache_timeout=10
         )
 
         self.local_fact_kill_switch: bool = False

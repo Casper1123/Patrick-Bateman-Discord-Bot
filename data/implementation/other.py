@@ -17,7 +17,8 @@ class GeneralDatabase(CachedAbstractSQLDatabase, LocalAdminDataInterface):
         super().__init__(
             db_path=path,
             schema_name='other',
-            schema_version=1
+            schema_version=1,
+            default_cache_timeout=10
         )
 
     def set_log_output(self, guild_id: int, channel_id: int | None) -> None:

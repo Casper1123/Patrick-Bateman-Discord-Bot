@@ -21,7 +21,8 @@ class ModerationDatabase(CachedAbstractSQLDatabase, GlobalAdminModerationInterfa
         super().__init__(
             db_path=path,
             schema_name='moderation',
-            schema_version=1
+            schema_version=1,
+            default_cache_timeout=10
         )
 
     def toggle_guild_ban(self, identifier: int, author: int, reason: str | None) -> bool:

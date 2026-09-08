@@ -39,7 +39,8 @@ class PreferencesDatabase(CachedAbstractSQLDatabase, PreferencesInterface):
         super().__init__(
             db_path=path,
             schema_name='pref',
-            schema_version=1
+            schema_version=1,
+            default_cache_timeout=10
         )
 
     def pause_all_in_channel(self, guild_id: int, channel_id: int | None, duration: int) -> None:

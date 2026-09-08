@@ -20,7 +20,8 @@ class SayingDatabase(CachedAbstractSQLDatabase, GlobalAdminSayingInterface):
         super().__init__(
             db_path=path,
             schema_name='saying',
-            schema_version=1
+            schema_version=1,
+            default_cache_timeout=10
         )
 
     def create_saying(self, text: str, author_id: int) -> None:
