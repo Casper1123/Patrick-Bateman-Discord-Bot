@@ -58,6 +58,9 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
             self._cache.unregister(
                 keys=('aliases',),
             )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
 
             conn.execute(
                 """
@@ -103,6 +106,9 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
             self._cache.unregister(
                 keys=('aliases',),
             )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
 
             now = int(_time.time())
 
@@ -146,6 +152,9 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
 
             self._cache.unregister(
                 keys=('aliases',),
+            )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
             )
 
             conn.execute(
@@ -200,32 +209,398 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
         return val
 
     def add_trigger(self, alias: str, trigger_type: trigger_types, data: str, rate: int | None, author: int) -> None:
-        pass
+        with self._connection() as conn:
+            alias_row = conn.execute(
+                """
+                SELECT id
+                FROM aliases
+                WHERE name = ?
+                """,
+                (alias,),
+            ).fetchone()
 
-    def get_trigger_by_index(self, alias: str, index: int) -> SimpleTriggerData:
-        pass
+            if alias_row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            self._cache.unregister(
+                keys=('triggers', alias,),
+            )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
+
+            conn.execute(
+                """
+                INSERT INTO triggers (alias_id,
+                                      type,
+                                      data,
+                                      rate,
+                                      modified_by,
+                                      modified_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    alias_row['id'],
+                    trigger_type,
+                    data,
+                    rate,
+                    author,
+                    int(_time.time()),
+                ),
+            )
 
     def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None, rate: int | None,
-                     author: int) -> None:
-        pass
+                     author: int) -> SimpleTriggerData:
+        if index < 1:
+            raise IndexError('Index must not be smaller than 1.')
+
+        if data is None and rate is None:
+            raise AttributeError('No replacement data was given.')
+
+        with self._connection() as conn:
+            alias_row = conn.execute(
+                """
+                SELECT id
+                FROM aliases
+                WHERE name = ?
+                """,
+                (alias,),
+            ).fetchone()
+
+            if alias_row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            trigger_row = conn.execute(
+                """
+                SELECT id, type, data, rate
+                FROM triggers
+                WHERE alias_id = ?
+                ORDER BY id LIMIT 1
+                OFFSET ?
+                """,
+                (alias_row['id'], index - 1),
+            ).fetchone()
+
+            if trigger_row is None:
+                raise IndexError('Index out of range.')
+
+            self._cache.unregister(
+                keys=('triggers', alias,),
+            )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
+
+            conn.execute(
+                """
+                UPDATE triggers
+                SET type = ?,
+                    data = COALESCE(?, data),
+                    rate = COALESCE(?, rate),
+                    modified_by = ?,
+                    modified_at = ?
+                WHERE id = ?
+                """,
+                (
+                    trigger_type,
+                    data,
+                    rate,
+                    author,
+                    int(_time.time()),
+                    trigger_row['id'],
+                ),
+            )
+
+        return SimpleTriggerData(
+            trigger_type=trigger_row['type'],
+            data=trigger_row['data'],
+            rate=trigger_row['rate'],
+        )
 
     def remove_trigger(self, alias: str, index: int) -> SimpleTriggerData:
-        pass
+        if index < 1:
+            raise IndexError('Index must not be smaller than 1.')
+
+        with self._connection() as conn:
+            alias_row = conn.execute(
+                """
+                SELECT id
+                FROM aliases
+                WHERE name = ?
+                """,
+                (alias,),
+            ).fetchone()
+
+            if alias_row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            trigger_row = conn.execute(
+                """
+                SELECT id, type, data, rate
+                FROM triggers
+                WHERE alias_id = ?
+                ORDER BY id LIMIT 1
+                OFFSET ?
+                """,
+                (alias_row['id'], index - 1),
+            ).fetchone()
+
+            if trigger_row is None:
+                raise IndexError('Index out of range.')
+
+            self._cache.unregister(
+                keys=('triggers', alias,),
+            )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
+
+            conn.execute(
+                """
+                DELETE
+                FROM triggers
+                WHERE id = ?
+                """,
+                (trigger_row['id'],),
+            )
+
+        return SimpleTriggerData(
+            trigger_type=trigger_row['type'],
+            data=trigger_row['data'],
+            rate=trigger_row['rate'],
+        )
 
     def add_reply(self, alias: str, reply_type: reply_types, data: str, weight: int, author: int) -> None:
-        pass
+        with self._connection() as conn:
+            row = conn.execute(
+                'SELECT id FROM aliases WHERE name = ?',
+                (alias,),
+            ).fetchone()
 
-    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> None:
-        pass
+            if row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            self._cache.unregister(
+                keys=('replies', alias,),
+            )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
+
+            conn.execute(
+                """
+                INSERT INTO replies (alias_id,
+                                     type,
+                                     data,
+                                     weight,
+                                     modified_by,
+                                     modified_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    row['id'],
+                    reply_type,
+                    data,
+                    weight,
+                    author,
+                    int(_time.time()),
+                ),
+            )
+
+    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> SimpleReplyData:
+        if index < 1:
+            raise IndexError('Reply index must be at least 1.')
+
+        if text is None and weight is None:
+            raise AttributeError('No replacement data was given.')
+
+        with self._connection() as conn:
+            alias_row = conn.execute(
+                'SELECT id FROM aliases WHERE name = ?',
+                (alias,),
+            ).fetchone()
+
+            if alias_row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            row = conn.execute(
+                """
+                SELECT id, type, data, weight
+                FROM replies
+                WHERE alias_id = ?
+                ORDER BY id LIMIT 1
+                OFFSET ?
+                """,
+                (alias_row['id'], index - 1),
+            ).fetchone()
+
+            if row is None:
+                raise IndexError(f'Reply index out of range: {index}')
+
+            self._cache.unregister(
+                keys=('replies', alias,),
+            )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
+
+            conn.execute(
+                """
+                UPDATE replies
+                SET data        = COALESCE(?, data),
+                    weight      = COALESCE(?, weight),
+                    modified_by = ?,
+                    modified_at = ?
+                WHERE id = ?
+                """,
+                (
+                    text,
+                    weight,
+                    author,
+                    int(_time.time()),
+                    row['id'],
+                ),
+            )
+
+            return SimpleReplyData(
+                reply_type=row['type'],
+                data=row['data'],
+                weight=row['weight'],
+            )
 
     def remove_reply(self, alias: str, index: int) -> SimpleReplyData:
-        pass
+        if index < 1:
+            raise IndexError('Reply index must be at least 1.')
+
+        with self._connection() as conn:
+            alias_row = conn.execute(
+                'SELECT id FROM aliases WHERE name = ?',
+                (alias,),
+            ).fetchone()
+
+            if alias_row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            row = conn.execute(
+                """
+                SELECT id, type, data, weight
+                FROM replies
+                WHERE alias_id = ?
+                ORDER BY id LIMIT 1
+                OFFSET ?
+                """,
+                (alias_row['id'], index - 1),
+            ).fetchone()
+
+            if row is None:
+                raise IndexError(f'Reply index out of range: {index}')
+
+            self._cache.unregister(
+                keys=('replies', alias,),
+            )
+            self._cache.unregister(
+                keys=('triggers_by_alias',),
+            )
+
+            conn.execute(
+                'DELETE FROM replies WHERE id = ?',
+                (row['id'],),
+            )
+
+            return SimpleReplyData(
+                reply_type=row['type'],
+                data=row['data'],
+                weight=row['weight'],
+            )
 
     def get_reply_by_index(self, alias: str, index: int) -> SimpleReplyData:
-        pass
+        if index < 1:
+            raise IndexError('Reply index must be at least 1.')
+
+        # Caching can be registered through get_replies_by_alias
+        val = self._cache.get_cached(
+            keys=('replies', alias,),
+            out_type=list[SimpleReplyData],
+        )
+        if val is not None and len(val) >= index:
+            return val[index-1]
+
+        with self._connection() as conn:
+            alias_row = conn.execute(
+                'SELECT id FROM aliases WHERE name = ?',
+                (alias,),
+            ).fetchone()
+
+            if alias_row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            row = conn.execute(
+                """
+                SELECT type, data, weight
+                FROM replies
+                WHERE alias_id = ?
+                ORDER BY id LIMIT 1
+                OFFSET ?
+                """,
+                (alias_row['id'], index - 1),
+            ).fetchone()
+
+            if row is None:
+                raise IndexError(f'Reply index out of range: {index}')
+
+            return SimpleReplyData(
+                reply_type=row['type'],
+                data=row['data'],
+                weight=row['weight'],
+            )
 
     def get_replies_by_alias(self, alias: str) -> list[SimpleReplyData]:
-        pass
+        val = self._cache.get_cached(
+            keys=('replies', alias,),
+            out_type=list[SimpleReplyData],
+        )
+        if val is not None:
+            return val
+
+        with self._connection() as conn:
+            alias_row = conn.execute(
+                'SELECT id FROM aliases WHERE name = ?',
+                (alias,),
+            ).fetchone()
+
+            if alias_row is None:
+                raise ValueError(f'Alias not found: {alias}')
+
+            rows = conn.execute(
+                """
+                SELECT type, data, weight
+                FROM replies
+                WHERE alias_id = ?
+                ORDER BY id
+                """,
+                (alias_row['id'],),
+            ).fetchall()
+
+            val = [
+                SimpleReplyData(
+                    reply_type=row['type'],
+                    data=row['data'],
+                    weight=row['weight'],
+                )
+                for row in rows
+            ]
+
+            self._cache.register(
+                keys=('replies', alias,),
+                val=val,
+                timeout=60,
+                auto_refresh=(
+                    15,
+                    30
+                )
+            )
+
+            return val
 
     def get_reply(self, alias: str) -> SimpleReplyData | None:
         replies = self.get_replies_by_alias(alias)
@@ -249,6 +624,13 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
         raise RuntimeError('Failed to select weighted reply.')
 
     def get_triggers_by_alias(self) -> dict[SimpleAliasData, list[SimpleTriggerData]]:
+        val = self._cache.get_cached(
+            keys=('triggers_by_alias',),
+            out_type=dict[SimpleAliasData, list[SimpleTriggerData]],
+        )
+        if val is not None:
+            return val
+
         with self._connection() as conn:
             rows = conn.execute(
                 """
@@ -284,9 +666,26 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
                     )
                 )
 
+        self._cache.register(
+            keys=('triggers_by_alias',),
+            val=result,
+            timeout=60,
+            auto_refresh=(
+                15,
+                30
+            )
+        )
+
         return result
 
     def get_triggers_for_alias(self, alias: str) -> list[SimpleTriggerData]:
+        val = self._cache.get_cached(
+            keys=('triggers', alias,),
+            out_type=list[SimpleTriggerData],
+        )
+        if val is not None:
+            return val
+
         with self._connection() as conn:
             alias_row = conn.execute(
                 """
@@ -310,7 +709,7 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
                 (alias_row['id'],),
             ).fetchall()
 
-        return [
+        val = [
             SimpleTriggerData(
                 trigger_type=row['type'],
                 data=row['data'],
@@ -318,3 +717,15 @@ class AutoreplyDatabase(CachedAbstractSQLDatabase, GlobalTextAutoreplyInterface)
             )
             for row in rows
         ]
+
+        self._cache.register(
+            keys=('triggers', alias,),
+            val=val,
+            timeout=60,
+            auto_refresh=(
+                15,
+                30
+            )
+        )
+
+        return val

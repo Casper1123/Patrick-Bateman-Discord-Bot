@@ -219,8 +219,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
             return
 
         try:
-            old: SimpleTriggerData = self.repl.get_trigger_by_index(alias, index)
-            self.repl.edit_trigger(alias, index, trigger_type='regex', data=text, rate=rate)
+            old: SimpleTriggerData = self.repl.edit_trigger(alias, index, trigger_type='regex', data=text, rate=rate, author=interaction.user.id)
         except ValueError:
             await self.client.user_feedback(interaction, title='Trigger edit failed',
                                             desc='The given alias does not exist.', ephemeral=ephemeral)

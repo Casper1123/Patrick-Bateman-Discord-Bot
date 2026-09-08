@@ -254,22 +254,15 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_trigger_by_index(self, alias: str, index: int) -> SimpleTriggerData:
-        """
-        Gets the TriggerData for the trigger at the given index.
-        Raises ValueError if the Alias does not exist.
-        Raises IndexError if given index is out of range.
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
     def edit_trigger(self, alias: str, index: int, trigger_type: trigger_types, data: str | None,
-                     rate: int | None, author: int) -> None:
+                     rate: int | None, author: int) -> SimpleTriggerData:
         """
         Edits the Trigger at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
         Raises IndexError if given index is out of range.
         Raises AttributeError if no replacement data was given.
+
+        :return: Old trigger data.
         """
         raise NotImplementedError()
 
@@ -299,12 +292,13 @@ class GlobalTextAutoreplyInterface(TextAutoreplyInterface):
         raise NotImplementedError()
 
     @abstractmethod
-    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> None:
+    def edit_reply(self, alias: str, index: int, text: str | None, weight: int | None, author: int) -> SimpleReplyData:
         """
         Edits the reply at the given index, for the given Alias.
         Raises ValueError if the Alias does not exist.
         Raises IndexError if given index is out of range.
         Raises AttributeError if no replacement data was given.
+        :returns: Reply data of edited reply.
         """
         raise NotImplementedError()
 
