@@ -138,7 +138,7 @@ class LocalAdminFactInterface(FactInterface):
     def get_local_facts(self, guild_id: int) -> list[SimpleFactEditorData]:
         """
         Gets all local facts for guild.
-        Ordered on edit date.
+        Ordered on creation date.
         """
         raise NotImplementedError()
 

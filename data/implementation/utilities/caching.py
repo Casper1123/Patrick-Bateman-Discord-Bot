@@ -6,6 +6,7 @@ from time import monotonic
 from typing import TypeVar, Any
 
 _T = TypeVar('_T')
+_I = TypeVar('_I')
 
 
 # Tree-structure, nodes are RecursiveCacheHandlers, leaves are values.
@@ -177,7 +178,8 @@ class RecursiveCacheHandler:
         val: RecursiveCacheEntry | None = self._find(keys)
         if val is None:
             return None
-        if not isinstance(val.val, out_type):
+        # todo: proper typechecking for _T = list[_I] for some type _I?
+        if (not _T == list and not isinstance(val.val, out_type)) or (_T == list and not isinstance(val.val, list)):
             raise TypeError(
                 f'Return value at path {self.path_as_string}/{'/'.join(keys)} is of type {type(val.val)} (wanted {out_type})')
 
