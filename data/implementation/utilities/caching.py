@@ -185,7 +185,7 @@ class RecursiveCacheHandler:
         # todo: figure this out or let it rot?
         bad_type: bool = False
         try:
-            bad_type = not isinstance(val.val, out_type)
+            bad_type = not isinstance(val.val, out_type) and not isinstance(val.val, dict)
         except TypeError:
             bad_type = not isinstance(val.val, list) # Just kind of explicitly stating 'yeah we'll let lists pass this one'
         if bad_type:
