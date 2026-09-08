@@ -179,8 +179,16 @@ class RecursiveCacheHandler:
         val: RecursiveCacheEntry | None = self._find(keys)
         if val is None:
             return None
-        # todo: proper typechecking for _T = list[_I] for some type _I?
-        if (not _T == list and not isinstance(val.val, out_type)) or (_T == list and not isinstance(val.val, list)):
+
+        # Unfortunately, _T = list[A] crashes this because parameterised generic.
+        # Just.. ignoring for now
+        # todo: figure this out or let it rot?
+        bad_type: bool = False
+        try:
+            bad_type = not isinstance(val.val, out_type)
+        except TypeError:
+            bad_type = True
+        if bad_type:
             raise TypeError(
                 f'Return value at path {self.path_as_string}/{'/'.join(str(i) for i in keys)} is of type {type(val.val)} (wanted {out_type})')
 
