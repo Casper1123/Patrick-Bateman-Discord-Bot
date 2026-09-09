@@ -46,7 +46,6 @@ class AbstractInstructionExecutor(ABC):
 
             try:
                 # faster with a 'switch' case but is that even available.
-                # todo: make better this SMELLS it STINKS it's DOOKIE
                 if isinstance(instruction, _BuildInstruction):
                     build += await self._build(instruction)
                 elif isinstance(instruction, _PushInstruction):

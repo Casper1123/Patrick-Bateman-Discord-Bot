@@ -47,7 +47,7 @@ class InstructionExecutor(_AbstractInstructionExecutor):
             instructions=instructions,
             interaction=interaction,
             recursion_depth=-1, # Incremented by _exec to 0
-            memory=await self._create_init_memory(client, interaction), # todo: init memory
+            memory=await self._create_init_memory(client, interaction),
             push_final_build=True,
             build=''
         )

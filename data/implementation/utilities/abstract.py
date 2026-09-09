@@ -27,7 +27,6 @@ class AbstractSQLDatabase(ABC):
         self.path = db_path
 
         with _sql.connect(db_path) as conn:
-            conn.execute("PRAGMA foreign_keys = ON")  # todo: keep?
             self._ensure_metadata(conn)
             self._update_schema(
                 conn,
@@ -174,7 +173,6 @@ class AbstractSQLDatabase(ABC):
     def _connection(self) -> _sql.Connection:
         conn = _sql.connect(self.path)
         conn.row_factory = _sql.Row
-        conn.execute("PRAGMA foreign_keys = ON")  # todo: keep?
         return conn
 
 class CachedAbstractSQLDatabase(AbstractSQLDatabase, ABC):

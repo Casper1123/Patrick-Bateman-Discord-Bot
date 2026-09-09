@@ -38,7 +38,6 @@ class CustomDiscordException(Exception):
         Returns an embed for user-feedback purposes.
         """
         cause = ''
-        # todo: remake. Keep in mind it's user-feedback only.
         if self.cause:
             cause = (f'\n'
                      f'\n'
@@ -81,7 +80,7 @@ reasons: dict[UseRestriction, str] = {
 class RestrictedUseException(CustomDiscordException):
     def __init__(self, restriction: UseRestriction):
         super().__init__(message=f'Your action has been interrupted; ' + reasons[restriction],
-                         tooltip=ErrorTooltip.NONE)  # todo: write on the wiki what's going on when you see this
+                         tooltip=ErrorTooltip.NONE)
 
     def as_embed(self) -> Embed:
         embed = super().as_embed()

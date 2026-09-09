@@ -77,13 +77,6 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
         )
         return self.out
 
-    async def _exec(self, instructions: list[_Instruction], interaction: _Message | _Interaction,
-                    recursion_depth: int, memory: dict[str, _Any],
-                    push_final_build: bool,
-                    build: str) -> str:
-        build = await super()._exec(instructions, interaction, recursion_depth, memory, push_final_build, build)
-        return build
-
     async def _create_init_memory(self, client: _BotClient, interaction: _Message | _Interaction) -> dict[str, _Any]:
         now = _datetime.datetime.now()
         try:

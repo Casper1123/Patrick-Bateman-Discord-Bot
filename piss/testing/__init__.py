@@ -14,7 +14,6 @@ async def test_raw_input(client: _BotClient, interaction: _Interaction | _Messag
     If unsuccessful, automatically sends information Embed message, assuming it hasn't had any messages sent yet.
     :return: Success.
     """
-    # todo: explore complete state space because this is nonsense.
     try:
         compiled: list[_Instruction] = _parse_text(text)
         executor: _TestInstructionExecutor = _TestInstructionExecutor()

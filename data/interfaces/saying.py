@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from data.interfaces.utilities import AbstractDTO
 
 
-# todo: add Saying types just like Reply types? Maybe automatically react to things?
 class SimpleSayingEditorData(AbstractDTO):
     """
     Simplified record class for Saying Editor data.

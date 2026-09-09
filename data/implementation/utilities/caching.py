@@ -183,7 +183,6 @@ class RecursiveCacheHandler:
         # Unfortunately, _T = list[A] crashes this because parameterised generic.
         # Just.. ignoring for now
         # todo: figure this out or let it rot?
-        bad_type: bool = False
         try:
             bad_type = not isinstance(val.val, out_type)
         except TypeError:
