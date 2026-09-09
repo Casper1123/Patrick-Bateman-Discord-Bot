@@ -276,12 +276,14 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
     # region preferences
     @app_commands.command(name="autoreply_preferences",
-                          description="Leave empty to see current settings.")
+                          description="Enable or disable autoreply features.")
     @app_commands.describe(here="If false, edits general server-wide override instead.",
                            numbers="Incremental number replies.", letters='Letter-only replies.',
-                           text='Text content replies.')
-    async def guild_toggle_preference(self, interaction: Interaction, here: bool, numbers: bool = False,
-                                      letters: bool = False, text: bool = False, saying: bool = False,
+                           text='Text content replies.',
+                           saying=f'The 1/{CFG.SAYING_PROBABILITY} random sayings.',     
+                           ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    async def guild_toggle_preference(self, interaction: Interaction, here: bool, numbers: bool,
+                                      letters: bool, text: bool, saying: bool,
                                       ephemeral: bool = True) -> None:
         await interaction.response.defer(ephemeral=ephemeral, thinking=True)
 
@@ -297,40 +299,31 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         guild_id: int = interaction.guild_id
 
         channel_id: int | None = interaction.channel_id if here else None
-        pref: GuildChannelPreferenceData = self.pref.guild_channel_autoreplies_enabled(guild_id, channel_id)
+
         desc: str = 'Preferences for ' + (f'<#{channel_id}>' if channel_id else '**Server-wide override**') + '\n'
-        if not (numbers or letters or text or saying):
-            await self.client.user_feedback(interaction, title=desc.removesuffix('\n'),
-                                            desc=f'**Number:** {'Off' if not pref.number else 'On'}\n'
-                                                 f'**Letter:** {'Off' if not pref.letter else 'On'}\n'
-                                                 f'**Text:** {'Off' if not pref.text else 'On'}\n'
-                                                 f'**Saying:** {'Off' if not pref.saying else 'On'}\n')
-            return
 
         feat: set[supported_autoreply_features] = set()
         if numbers:
             feat.add('number')
-            pref.number = not pref.number
-            desc += f'**Number:** {pref.number}\n'
+            desc += f'**Number:** {numbers}\n'
         if letters:
             feat.add('letter')
-            pref.letter = not pref.letter
-            desc += f'**Letter:** {pref.letter}\n'
+            desc += f'**Letter:** {letters}\n'
         if text:
             feat.add('text')
-            pref.text = not pref.text
-            desc += f'**Text:** {pref.text}\n'
+            desc += f'**Text:** {text}\n'
         if saying:
             feat.add('saying')
-            pref.saying = not pref.saying
-            desc += f'**Saying:** {pref.saying}\n'
+            desc += f'**Saying:** {saying}\n'
 
         if not feat.__sizeof__() > 0:
             raise RuntimeError('Set of selected features is 0 even though some feature was selected.')
 
         # todo: return updated data and then use that to save a DB call.
         self.pref.set_autoreply_features(guild_id, channel_id, feat)
-        await self.local_logger.set_channel_preferences(interaction, channel, pref)
+        await self.local_logger.set_channel_preferences(interaction, channel, GuildChannelPreferenceData(
+            text=text, number=numbers, letter=letters, saying=saying
+        ))
 
         desc = desc.removesuffix('\n')
         await self.client.user_feedback(
