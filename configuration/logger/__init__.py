@@ -4,7 +4,7 @@ from utilities import write_json, load_json
 from .local import LocalLoggerConfig, loggable as local_loggable
 from .universal import GlobalLoggerConfig, loggable
 
-
+# todo: cannot auto-update itself when new things are added to be logged.
 def build_config(filepath: str):
     """
     Creates a JSON-parsable template config file at target file location.

@@ -1,6 +1,6 @@
 # File contains a bunch of universally used datapoints.
 # Leaving this here, implemented this way, until I find a better solution.
-from typing import Any
+from typing import Any, Union
 
 # Local
     # Url to where information on PISS-debugger output can be found.
@@ -21,6 +21,26 @@ from configuration.abstract import AbstractJSONConfig
 
 
 class _GlobalConfig(AbstractJSONConfig):
+    # Name: target_type, default_value
+    WANTED_KEYS: dict[str, tuple[type | Union, Any]] = {
+            'SUPER_SERVER_IDS': (list[int], []),
+            'GLOBAL_ADMIN_SERVER_ID': (int, None),  # Mandate manually setting this value.
+            'REPLY_WEIGHT_UPPER_BOUND': (int, 1024),
+
+            'FACT_COUNT_MAXIMUM': (int, 50),
+            'FACT_CHAR_LIMIT': (int, 256),
+
+            'PREVIEW_COOLDOWN_SECONDS': (int | float, 5.0),
+            'DELETE_COOLDOWN_SECONDS': (int | float, 5.0),
+            'EDIT_COOLDOWN_SECONDS': (int | float, 5.0),
+            'ADD_COOLDOWN_SECONDS': (int | float, 5.0),
+
+            'CHANNEL_PAUSE_DURATION': (int, 60),
+
+            'FACT_COOLDOWN': (int | float, 1.0),
+            'SAYING_PROBABILITY': (int, 300),  # 1 / probability listed here, per message.
+        }
+
     def __init__(self, path: str, global_admin_serverid: int, reply_weight_upper_bound: int,
                  local_fact_max: int, local_fact_charlimit: int,
                  preview_cd: float, delete_cd: float, edit_cd: float, add_cd: float,
@@ -29,36 +49,6 @@ class _GlobalConfig(AbstractJSONConfig):
                  saying_probability: int,
                  super_server_ids: list[int]):
         super().__init__(path)
-
-        if not isinstance(super_server_ids, list) or super_server_ids is None or not all(isinstance(i, int) for i in super_server_ids):
-            raise TypeError('super_server_ids must be a list[int]')
-        if not isinstance(global_admin_serverid, int) or global_admin_serverid is None:
-            raise TypeError('global_admin_serverid must be an int')
-        if not isinstance(reply_weight_upper_bound, int) or reply_weight_upper_bound is None:
-            raise TypeError('reply_weight_upper_bound must be an int')
-
-        if not isinstance(local_fact_max, int) or local_fact_max is None:
-            raise TypeError('local_fact_max must be an int')
-        if not isinstance(local_fact_charlimit, int) or local_fact_charlimit is None:
-            raise TypeError('local_fact_charlimit must be an int')
-
-        if not (isinstance(preview_cd, float) or isinstance(preview_cd, int)) or preview_cd is None:
-            raise TypeError('preview_cd must be a float or int')
-        if not (isinstance(delete_cd, float) or isinstance(delete_cd, int)) or delete_cd is None:
-            raise TypeError('delete_cd must be a float or int')
-        if not (isinstance(edit_cd, float) or isinstance(edit_cd, int)) or edit_cd is None:
-            raise TypeError('edit_cd must be a float or int')
-        if not (isinstance(add_cd, float) or isinstance(add_cd, int)) or add_cd is None:
-            raise TypeError('add_cd must be a float or int')
-
-        if not (isinstance(channel_pause_duration, float) or isinstance(channel_pause_duration,
-                                                                        int)) or channel_pause_duration is None:
-            raise TypeError('channel_pause_duration must be a float or int')
-
-        if not (isinstance(fact_cd, float) or isinstance(fact_cd, int)) or fact_cd is None:
-            raise TypeError('fact_cd must be a float or int')
-        if not isinstance(saying_probability, int) or saying_probability is None:
-            raise TypeError('saying_probability must be an int')
 
         self.SUPER_SERVER_IDS: list[int] = super_server_ids
 
@@ -108,30 +98,20 @@ class _GlobalConfig(AbstractJSONConfig):
     @staticmethod
     def build_config(path: str):
         from utilities import write_json
-        defaults: dict[str, Any] = {
-            'SUPER_SERVER_IDS': [],
-            'GLOBAL_ADMIN_SERVER_ID': None,  # Mandate manually setting this value.
-            'REPLY_WEIGHT_UPPER_BOUND': 1024,
-
-            'FACT_COUNT_MAXIMUM': 50,
-            'FACT_CHAR_LIMIT': 256,
-
-            'PREVIEW_COOLDOWN_SECONDS': 5.0,
-            'DELETE_COOLDOWN_SECONDS': 5.0,
-            'EDIT_COOLDOWN_SECONDS': 5.0,
-            'ADD_COOLDOWN_SECONDS': 5.0,
-
-            'CHANNEL_PAUSE_DURATION': 60,
-
-            'FACT_COOLDOWN': 1.0,
-            'SAYING_PROBABILITY': 300,  # 1 / probability listed here, per message.
-        }
+        defaults: dict[str, Any] = {k: v[1] for k, v in _GlobalConfig.WANTED_KEYS.items()}
         write_json(path, defaults, sort_keys=False, indent=4)
 
     @staticmethod
-    def from_json(path: str) -> '_GlobalConfig':
+    def from_json(path: str) -> '_GlobalConfig | None':
         from utilities import load_json
         cfg = load_json(path)
+        if not isinstance(cfg, dict) or not all(isinstance(k, str) for k in cfg.keys()):
+            raise TypeError(f'{path} must return a dict with only strings for keys.')
+
+        new_keys = _GlobalConfig.check_attributes(cfg, tuple(
+            (k, *v) for k, v in _GlobalConfig.WANTED_KEYS.items()
+        ))
+        if new_keys: return None
 
         gad_sid = cfg['GLOBAL_ADMIN_SERVER_ID']
         repl_w_up = cfg['REPLY_WEIGHT_UPPER_BOUND']
@@ -146,8 +126,20 @@ class _GlobalConfig(AbstractJSONConfig):
         saying_probability = cfg['SAYING_PROBABILITY']
         super_server_ids = cfg['SUPER_SERVER_IDS']
 
-        return _GlobalConfig(path, gad_sid, repl_w_up, fact_count_max, fact_char_limit, preview_cd, delete_cd, edit_cd,
-                             add_cd, channel_pause_duration, fact_cooldown, saying_probability, super_server_ids)
+        return _GlobalConfig(path,
+                             gad_sid,
+                             repl_w_up,
+                             fact_count_max,
+                             fact_char_limit,
+                             preview_cd,
+                             delete_cd,
+                             edit_cd,
+                             add_cd,
+                             channel_pause_duration,
+                             fact_cooldown,
+                             saying_probability,
+                             super_server_ids
+                         )
 
 
 import os as _os
@@ -162,4 +154,9 @@ if not _os.path.exists(_cfg_fp):
     sys.exit(0)
 
 # To be imported by other files.
-CFG: _GlobalConfig = _GlobalConfig.from_json(_cfg_fp)
+CFG = _GlobalConfig.from_json(_cfg_fp)
+if CFG is None:
+    print(f'Global config updated. Please edit accordingly.')
+    import sys
+
+    sys.exit(0)
