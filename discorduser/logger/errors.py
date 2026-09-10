@@ -127,7 +127,7 @@ class LoggableErrorContext(ABC):
         if self.error.cause:
             embed.add_field(
                 name=f'Cause',
-                value=f'**{type(self.error.cause).__name__}**\n'
+                value=f'*{type(self.error.cause).__name__}*\n'
                       f'{self.error.cause}',
                 inline=False
             )
