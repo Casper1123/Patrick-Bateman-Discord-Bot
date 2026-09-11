@@ -112,8 +112,8 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                 val = a.as_json()
                 out.append(val)
                 if include_components:
-                    val['triggers'] = [t.as_json() for t in self.repl.get_triggers_for_alias(a.name)]
-                    val['replies'] = [r.as_json() for r in self.repl.get_replies_by_alias(a.name)]
+                    val['triggers'] = [t.as_json() for t in self.repl.get_triggers_for_alias(a.name)] # todo: expand for full data.
+                    val['replies'] = [r.as_json() for r in self.repl.get_replies_by_alias(a.name)] # todo: expand for full data.
             with io.StringIO(_json.dumps(out, indent=4)) as text_stream:
                 # noinspection bad-argument-type
                 file = discord.File(
@@ -129,12 +129,12 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
                 if include_components:
                     # Triggers
                     out += f'## Triggers:\n'
-                    for t in self.repl.get_triggers_for_alias(a.name):
+                    for t in self.repl.get_triggers_for_alias(a.name): # todo: expand for full data.
                         out += f'[{t.type};{t.rate}] {t.data}\n'
 
                     # Line between each header, then replies header
                     out += f'\n## Replies:\n'
-                    for r in self.repl.get_replies_by_alias(a.name):
+                    for r in self.repl.get_replies_by_alias(a.name): # todo: expand for full data.
                         out += f'[{r.type};{r.weight}] {r.data}\n'
                     # Final seperator between each Alias to make a teeny bit more space.
                     out += '\n'
