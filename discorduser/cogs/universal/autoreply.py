@@ -1,6 +1,8 @@
 # NOTE: COMMANDS ARE NOT GLOBALLY USABLE, THEY ARE GLOBAL ADMIN
 import io
 import json as _json
+import regex as _regex  # Required for unicode grapheme cluster
+import emoji as _emoji
 
 import discord
 from discord import app_commands, Interaction, Embed, Colour
@@ -319,11 +321,18 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
             if not await input_test(self.client, interaction, text, ephemeral=ephemeral):
                 return
         elif reply_type == 'reaction':
-            # todo: check, if reply type is reaction, that it is a string of only standard unicode emojis. Added by separating them using ;?
-            await self.client.user_feedback(interaction, title='Unsupported',
-                                            desc='The given Reply type is not supported.\nIt will be in the future, but right now it is not. The setting is a placeholder.',
-                                            ephemeral=ephemeral)
-            return
+            emojis = _regex.findall(r"\X", text)
+
+            if not emojis or not all(cluster in _emoji.EMOJI_DATA for cluster in emojis):
+                await self.client.user_feedback(
+                    interaction,
+                    title='Incorrect input',
+                    desc=f'Either your input is empty, or it does not contain ONLY recognized global emojis.',
+                    ephemeral=ephemeral
+                )
+                return
+
+            text = ";".join(emojis)
         else:
             await self.client.user_feedback(interaction, title='Reply creation failed',
                                             desc=f'Reply type {reply_type} not supported.', ephemeral=ephemeral)
@@ -333,6 +342,8 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
             await self.client.user_feedback(interaction, title='Reply creation failed',
                                             desc=f'Alias {alias} does not exist.', ephemeral=ephemeral)
             return
+        if reply_type == 'reaction':
+            text = text.replace(';', '')
         await self.logger.reply_create(interaction, alias, reply_type, text, weight)
         await self.client.user_feedback(interaction, title='Reply created successfully', ephemeral=ephemeral)
 
@@ -361,10 +372,18 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
                 elif not await input_test(self.client, interaction, text, ephemeral):
                     return
             elif old.type == 'reaction':
-                await self.client.user_feedback(interaction, title='Reply edit failed',
-                                                desc='Editing this type of reply is currently unsupported.',
-                                                ephemeral=ephemeral)
-                return  # todo: gotta support this man.
+                emojis = _regex.findall(r"\X", text)
+
+                if not emojis or not all(cluster in _emoji.EMOJI_DATA for cluster in emojis):
+                    await self.client.user_feedback(
+                        interaction,
+                        title='Incorrect input',
+                        desc=f'Either your input is empty, or it does not contain ONLY recognized global emojis.',
+                        ephemeral=ephemeral
+                    )
+                    return
+
+                text = ";".join(emojis)
             else:
                 raise ValueError('Received reply with un accounted for type.')
 
