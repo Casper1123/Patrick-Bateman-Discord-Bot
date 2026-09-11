@@ -292,7 +292,9 @@ class RecursiveCacheHandler:
                     delta: float = now - old_now
                     # Log warning if >3s difference
                     if delta > ON_TIMEOUT_DTIME_WARNING:
-                        print(f'WARNING: on_timeout for entry at {path} took {delta} seconds!')
+                        print(f'WARNING: on_timeout for entry at '
+                              f'{self.path_as_string}/{'/'.join(str(i) for i in path)}'
+                              f' took {delta} seconds!')
                     del old_now, delta
 
                 self._prune_entry(path, clean_empty_nodes=clean_empty_nodes)
