@@ -9,6 +9,8 @@ _T = TypeVar('_T')
 
 _Key_Types: TypeAlias = Union[str, float, int, None]
 
+ON_TIMEOUT_DTIME_WARNING: float = 3.0
+
 
 # Tree-structure, nodes are RecursiveCacheHandlers, leaves are values.
 # Index through levels in dict by keys.
@@ -283,7 +285,15 @@ class RecursiveCacheHandler:
                     continue
 
                 if entry.on_timeout is not None:
+                    old_now = now
                     await entry.on_timeout
+                    now = monotonic()  # In case this takes long.
+
+                    delta: float = now - old_now
+                    # Log warning if >3s difference
+                    if delta > ON_TIMEOUT_DTIME_WARNING:
+                        print(f'WARNING: on_timeout for entry at {path} took {delta} seconds!')
+                    del old_now, delta
 
                 self._prune_entry(path, clean_empty_nodes=clean_empty_nodes)
 
