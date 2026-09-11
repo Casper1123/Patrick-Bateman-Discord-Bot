@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import heapq
 from time import monotonic
-from typing import TypeVar, Any, TypeAlias, Union
+from typing import TypeVar, Any, TypeAlias, Union, Coroutine
 
 _T = TypeVar('_T')
 
@@ -13,11 +13,13 @@ _Key_Types: TypeAlias = Union[str, float, int, None]
 # Tree-structure, nodes are RecursiveCacheHandlers, leaves are values.
 # Index through levels in dict by keys.
 class RecursiveCacheEntry:
-    def __init__(self, val: Any, removal: float | int, refresh_window: int | float | None, refresh_timeout: float | int | None):
+    def __init__(self, val: Any, removal: float | int, refresh_window: int | float | None, refresh_timeout: float | int | None, on_timeout: Coroutine | None = None):
         self.val = val
         self.removal = removal
         self.refresh_window = refresh_window
         self.refresh_timeout = refresh_timeout
+
+        self.on_timeout: Coroutine | None = None
 
 
 class RecursiveCacheHandler:
@@ -45,13 +47,14 @@ class RecursiveCacheHandler:
         self.path_as_string: str = '/'.join(['ROOT',] + [str(i) for i in self.path])
 
     # noinspection incorrect-docstring
-    def register(self, keys: tuple[_Key_Types, ...], val: Any, timeout: float| int, auto_refresh: tuple[int | float, int | float] | None = None) -> None:
+    def register(self, keys: tuple[_Key_Types, ...], val: Any, timeout: float| int, auto_refresh: tuple[int | float, int | float] | None = None, on_timeout: Coroutine | None = None) -> None:
         """
         Create a new cache entry leaf, creating required nodes along the way.
         If no path was given, raises an AttributeError.
         Re-registering raises an Exception.
 
         :param auto_refresh: (refresh_window, refresh_timeout) where if in last `window` seconds of timeout, extend with `refresh_timeout` when obtained through `get_cached`. Both numbers must be positive or functionality will fizzle quietly.
+        :param on_timeout: Un-awaited Coroutine to be awaited (and thus ran) once the entry times out. Does not trigger if removed any other way.
         """
         if not keys:
             raise KeyError(f'Received empty keys at path {self.path_as_string}')
@@ -67,7 +70,13 @@ class RecursiveCacheHandler:
             # Ensured child at key curr is Handler not Entry
             # noinspection bad-argument-type
             # rest may be treated as tuple.
-            self.children[curr].register(rest, val, timeout, auto_refresh)
+            self.children[curr].register(
+                keys=rest,
+                val=val,
+                timeout=timeout,
+                auto_refresh=auto_refresh,
+                on_timeout=on_timeout
+            )
         else:
             if curr in self.children.keys():
                 raise ValueError(f'{self.path_as_string}/{curr} is already registered, use Refresh instead.')
@@ -75,9 +84,9 @@ class RecursiveCacheHandler:
             timeout = monotonic() + timeout
 
             if auto_refresh:
-                val = RecursiveCacheEntry(val, timeout, auto_refresh[0], auto_refresh[1])
+                val = RecursiveCacheEntry(val, timeout, auto_refresh[0], auto_refresh[1], on_timeout)
             else:
-                val = RecursiveCacheEntry(val, timeout, None, None)
+                val = RecursiveCacheEntry(val, timeout, None, None, on_timeout)
 
             self.children[curr] = val
             heapq.heappush(self.root._timeouts, (timeout, self.path + (curr,)))
@@ -272,6 +281,9 @@ class RecursiveCacheHandler:
 
                 if entry.removal > var_timeout:  # current entry timeout is invalid
                     continue
+
+                if entry.on_timeout is not None:
+                    await entry.on_timeout
 
                 self._prune_entry(path, clean_empty_nodes=clean_empty_nodes)
 
