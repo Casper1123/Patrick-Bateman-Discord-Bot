@@ -271,7 +271,7 @@ class RecursiveCacheHandler:
                 # check first entry (min-heap moment)
                 var_timeout, path = self._timeouts[0]
                 if var_timeout > now:
-                    await asyncio.sleep(min(var_timeout - now + 1, timeout))  # wait 1 more second
+                    await asyncio.sleep(min(var_timeout - now + .1, timeout))  # wait .1 more seconds
                     break  # Try again after countdown
 
                 heapq.heappop(self._timeouts)  # pops it out, we have data in (timeout, path) anyways
