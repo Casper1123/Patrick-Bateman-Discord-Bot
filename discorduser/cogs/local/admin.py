@@ -319,7 +319,6 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not feat.__sizeof__() > 0:
             raise RuntimeError('Set of selected features is 0 even though some feature was selected.')
 
-        # todo: return updated data and then use that to save a DB call.
         self.pref.set_autoreply_features(guild_id, channel_id, feat)
         await self.local_logger.set_channel_preferences(interaction, channel, GuildChannelPreferenceData(
             text=text, number=numbers, letter=letters, saying=saying
@@ -338,7 +337,6 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            channel='Channel ID to log in. Leave empty to remove.')
-    # todo: support for local logging!
     async def set_log_channel(self, interaction: Interaction,
                               channel: Transform[int, ChannelIDTransformer] | None = None,
                               ephemeral: bool = True) -> None:

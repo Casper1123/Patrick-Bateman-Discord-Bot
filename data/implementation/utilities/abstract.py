@@ -11,8 +11,6 @@ from data.implementation.utilities.caching import RecursiveCacheHandler
 class AbstractSQLDatabase(ABC):
     _METADATA_SCHEMA_VERSION = 1
 
-    # todo: backup method
-
     def __init__(
         self,
         db_path: str,
