@@ -28,7 +28,6 @@ class LocalLogger:
         return channel
 
     # region log out
-    # todo: buffer messages for x seconds and then send one thing with multiple embeds in one go to prevent ratelimiting?
     async def _channel_log(self, guild: Guild | None, embed: Embed, act: loggable) -> None:
         if not guild:
             return

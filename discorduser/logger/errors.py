@@ -149,8 +149,6 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
         except TypeError:
             self._raw_params = []
 
-        # todo: do some postprocessing s.t. things become parsable based on input seen.
-
         self.params = f'[{'; '.join(f'{n} = {v}' for n, v in self._raw_params)}]'
 
     @property
