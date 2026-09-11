@@ -191,6 +191,8 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
         await self.logger.fact_modify(interaction, guild_id, old, text)
         guild: Guild | None = self.client.get_guild(guild_id) # used for getting the appropriate log channel.
+        if guild is None:
+            guild = await self.client.fetch_guild(guild_id)
         # If it is None it's fine
         if local_log and not delete:
             text: str
@@ -200,14 +202,13 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
         await interaction.response.send_message(
             ephemeral=ephemeral,
-            # todo: update to also display guild information
             embed=Embed(title='Success',
                         description=f'Fact {'deleted' if delete else 'edited'} {'successfully.'}'
                                     f'\n# Old:\n'
                                     f'`{old.text}`\n'
                                     f'\n'
                                     f'# New:\n'
-                                    f'`{text}`')
+                                    f'`{text}`').set_footer(text=f'{guild.name} ({guild.id})' if guild else f'{guild_id}', icon_url=None if not guild else guild.icon.url)
         )
 
     @app_commands.command(name='list', description='List the local facts of the given guild.')

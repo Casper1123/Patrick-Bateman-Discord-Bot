@@ -35,7 +35,6 @@ def _normalize_exception(error: BaseException) -> tuple[CustomDiscordException, 
         # noinspection bad-assignment
         error: Exception = error.__cause__  # Documentation specifies to do so.
 
-    # Todo: Go through and figure out which exceptions to the CDE-conversion are to be put here, just like CommandOnCooldown
     if isinstance(error, CommandOnCooldown):
         log = type(error) not in UNLOGGED_EXCEPTION_TYPES  # Leave logging to the above or not.
         error: CustomDiscordException = CustomDiscordException(

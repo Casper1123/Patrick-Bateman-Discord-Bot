@@ -172,7 +172,6 @@ class LocalLogger:
         await channel.send(embed=embed2)
 
     async def set_channel_preferences(self, interaction: Interaction, channel: TextChannel | VoiceChannel | StageChannel | Thread | None, new: GuildChannelPreferenceData) -> None:
-        # todo: implement!
         # Do not forget to figure out what kinds of channels require this; Probably just messageable channels? (See above)
         embed: Embed = Embed(
             title='Channel Autoreply preferences changed',

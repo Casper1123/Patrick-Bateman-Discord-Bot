@@ -102,30 +102,12 @@ class GlobalLogger:
         await self._channel_log(channel, 'general')
 
     async def error(self, error_context: LoggableErrorContext) -> None:
-        # todo: somehow build a cooldown into the error? As in, if the same error source has been reported recently, don't log it? (maybe based on interaction user)
-
         # WARNING: IF NOT ENABLED ALL CAUGHT EXCEPTION TYPES WILL FIZZLE
         self._console_log(error_context.as_console(), 'error')
         await self._channel_log(error_context.as_embed(), 'error')
 
     # region local-action
     # region fact
-
-    # todo: redo embeds. See below:
-    # Standard data
-    #
-    # Field: Created By
-    # Name
-    # Id
-    # < icon_url to author avatar >
-    #
-    # Field: Created In
-    # Guild name
-    # Guild Id
-
-    # Author: Guild, with icon
-    #
-
     async def local_fact_create(self, guild: Guild, interaction: Interaction, text: str) -> None:
         self._console_log(
             out=f'[ LOCAL FACT_CREATE ] in {guild.name} ({guild.id}) by {interaction.user.display_name} ({interaction.user.id}) :: {text}',
@@ -285,7 +267,9 @@ class GlobalLogger:
         await self._channel_log(embed=embed, act='fact_delete')
 
     async def fact_modify(self, interaction: Interaction, guild_id: int, old: SimpleFactEditorData, text: str | None) -> None:
-        guild = self.client.get_guild(guild_id) # todo: api call?
+        guild = self.client.get_guild(guild_id)
+        if not guild:
+            guild = await self.client.fetch_guild(guild_id)
 
         self._console_log(
             f'[ FACT MODIFY ] by {interaction.user.display_name} ({interaction.user.id}) for guild {f'{guild.name} ({guild.id})' if guild else guild_id} :: {old.text} by {old.author_id} ::to:: {text if text else 'Deleted'}',
@@ -315,7 +299,10 @@ class GlobalLogger:
             f'[ BAN USER ] by {interaction.user.display_name} ({interaction.user.id}) {'banned' if banned else 'unbanned'} {f'{user.display_name} ({user.id})' if user else user_id} {'' if not reason else f'({reason})'}',
             'ban_user')
 
-        # todo: api call for this information? Should be a rare command.
+        if user is None:
+            user = self.client.get_user(user_id)
+        if user is None:
+            user = await self.client.fetch_user(user_id)
 
         embed: Embed = Embed(
             title=f'User {'banned' if banned else 'unbanned'}',
@@ -337,7 +324,10 @@ class GlobalLogger:
             f'[ BAN GUILD ] by {interaction.user.display_name} ({interaction.user.id}) {'banned' if banned else 'unbanned'} {f'{guild.name} ({guild.id})' if guild else guild_id} {'' if not reason else f'({reason})'}',
             'ban_guild')
 
-        # todo: api call for this information? Should be a rare command.
+        if guild is None:
+            guild = self.client.get_guild(guild_id)
+        if guild is None:
+            guild = await self.client.fetch_guild(guild_id)
 
         embed: Embed = Embed(
             title=f'Guild {'banned' if banned else 'unbanned'}',
@@ -398,7 +388,7 @@ class GlobalLogger:
         embed: Embed = Embed(
             title='Alias edited',
             description=f'**Old:**\n'
-                        f'Name: {old_name}\n' # todo: fix this information properly.
+                        f'Name: {old_name}\n'
                         f'\n'
                         f'**New:**\n'
                         f'Name: {new_name}\n'
