@@ -39,6 +39,7 @@ class _GlobalConfig(AbstractJSONConfig):
 
             'FACT_COOLDOWN': (int | float, 1.0),
             'SAYING_PROBABILITY': (int, 300),  # 1 / probability listed here, per message.
+            'THROWBACK_ATTEMPTS': (int, 100)
         }
 
     def __init__(self, path: str, global_admin_serverid: int, reply_weight_upper_bound: int,
@@ -47,7 +48,8 @@ class _GlobalConfig(AbstractJSONConfig):
                  channel_pause_duration: int,
                  fact_cd: float,
                  saying_probability: int,
-                 super_server_ids: list[int]):
+                 super_server_ids: list[int],
+                 throwback_attempts: int):
         super().__init__(path)
 
         self.SUPER_SERVER_IDS: list[int] = super_server_ids
@@ -67,6 +69,7 @@ class _GlobalConfig(AbstractJSONConfig):
 
         self.FACT_COOLDOWN: float = fact_cd
         self.SAYING_PROBABILITY: int = saying_probability
+        self.THROWBACK_ATTEMPTS: int = throwback_attempts
 
         # Git synced permanent.
         self.DEBUGGER_OUTPUT_WIKI_URL = _DEBUGGER_OUTPUT_WIKI_URL
@@ -93,6 +96,7 @@ class _GlobalConfig(AbstractJSONConfig):
 
             'FACT_COOLDOWN': self.FACT_COOLDOWN,
             'SAYING_PROBABILITY': self.SAYING_PROBABILITY,
+            'THROWBACK_ATTEMPTS': self.THROWBACK_ATTEMPTS,
         }
 
     @staticmethod
@@ -125,6 +129,7 @@ class _GlobalConfig(AbstractJSONConfig):
         fact_cooldown = cfg['FACT_COOLDOWN']
         saying_probability = cfg['SAYING_PROBABILITY']
         super_server_ids = cfg['SUPER_SERVER_IDS']
+        throwback_attempts = cfg['THROWBACK_ATTEMPTS']
 
         return _GlobalConfig(path,
                              gad_sid,
@@ -138,7 +143,8 @@ class _GlobalConfig(AbstractJSONConfig):
                              channel_pause_duration,
                              fact_cooldown,
                              saying_probability,
-                             super_server_ids
+                             super_server_ids,
+                             throwback_attempts
                          )
 
 

@@ -6,6 +6,7 @@ from discord import app_commands, Interaction
 from discord.ext import commands
 
 from discorduser.user.abstract import BotClient
+from configuration.global_config import CFG
 from utilities.messagevisualisation import embedify
 
 
@@ -31,6 +32,8 @@ class MainCommandsCog(commands.Cog):
     async def _sex(self, interaction: Interaction):
         await interaction.response.send_message("Yeah, no.")
         # todo: update
+        # add an on-cooldown thing: Cmon, you JUST asked.
+        # Rare: Hah, you fuckin wish.
 
     # noinspection unresolved-references
     # purely for interaction.channel.history ngl.
@@ -59,7 +62,7 @@ class MainCommandsCog(commands.Cog):
         random_message: discord.Message | None = None
         total_seconds = int((newest - oldest).total_seconds())
         attempts: int = 0
-        while random_message is None and attempts < 100: # todo: move magic number to config
+        while random_message is None and attempts < CFG.THROWBACK_ATTEMPTS:
             # Create a new date in between based on random seconds in between.
             random_seconds = _r.randint(0, total_seconds)
             random_date = oldest + datetime.timedelta(seconds=random_seconds)
@@ -71,7 +74,7 @@ class MainCommandsCog(commands.Cog):
             else:
                 attempts += 1
 
-        if attempts >= 100:
+        if attempts >= CFG.THROWBACK_ATTEMPTS:
             await interaction.edit_original_response(content="Could not find a message within a reasonable timeframe.")
             return
 
