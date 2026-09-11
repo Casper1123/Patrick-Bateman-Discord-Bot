@@ -54,7 +54,17 @@ if __name__ == '__main__':
     saying: GlobalAdminSayingInterface = TestSayingDatabase()
 
     print('\tClient instance')
-    client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
+    client = BotClient(
+        5,
+        global_logger_config,
+        local_logger_config,
+        autoreplies,
+        fact,
+        mod,
+        db,
+        pref,
+        saying
+    )
 
     print('\tStarting')
     client.run(token=token_config.token)

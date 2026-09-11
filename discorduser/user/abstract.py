@@ -1,12 +1,14 @@
 import asyncio
 import sys
+from asyncio import Task
 
 import discord
-from discord import Colour, Interaction
+from discord import Colour, Interaction, Message
 from discord.app_commands import TransformerError, AppCommandError
 from discord.ext import commands
 
 from configuration.logger import LocalLoggerConfig, GlobalLoggerConfig
+from data.implementation.utilities.caching import RecursiveCacheHandler
 from data.interfaces.autoreplies import GlobalTextAutoreplyInterface
 from data.interfaces.fact import GlobalAdminFactInterface
 from data.interfaces.moderation import GlobalAdminModerationInterface
@@ -25,10 +27,11 @@ class BotClient(commands.Bot):
     WARNING: DOES NOT CONTAIN COGS.
     """
 
-    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig,
+    def __init__(self, error_cache_timeout: float, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig,
                  autoreplies: GlobalTextAutoreplyInterface, fact: GlobalAdminFactInterface,
                  mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface,
                  saying: GlobalAdminSayingInterface) -> None:
+        self._error_cache_timeout: float = error_cache_timeout
         self.logger: GlobalLogger = GlobalLogger(self, global_logger_config)
         self.local_logger: LocalLogger = LocalLogger(self, local_logger_config, db)
         self.autoreplies: GlobalTextAutoreplyInterface = autoreplies
@@ -58,16 +61,40 @@ class BotClient(commands.Bot):
             if not isinstance(error, Exception):
                 raise error
 
+            params: tuple[tuple[str, str], ...] = (('?', '?',),)
+
+            if event == '':
+                event = 'No event name provided'
+            elif event == 'on_message':
+                message: Message = args[0]
+                params = (
+                    ('message_id', str(message.id)),
+                    ('channel_id', str(message.channel.id)),
+                    ('author_id', str(message.author.id)),
+                    ('message_content', message.content),
+                )
+
             error_ctx = ListenerErrorContext(
                     error=error,
                     event=event,
-                    params=(('?', '?',),) # todo: parse params based on given event.
+                    params=params
                 )
-            # todo: supported events list.
             await self.handle_exception(
                 error_context=error_ctx)
 
         self.on_error = on_error
+
+        # Error logging cooldown cache.
+        self._error_cooldown_cache: RecursiveCacheHandler = RecursiveCacheHandler()
+
+    def _get_cache_task(self) -> asyncio.Task:
+        return asyncio.create_task(
+            name=f'!!! Client error cache maintenance !!!',
+            coro=self._error_cooldown_cache.maintenance_loop(
+                timeout=self._error_cache_timeout,
+                clean_empty_nodes=True,
+            )
+        )
 
     # region error-handling
     async def setup_hook(self) -> None:
@@ -75,7 +102,7 @@ class BotClient(commands.Bot):
             # noinspection broad-exception
             try:
                 await interaction.response.defer(ephemeral=True, thinking=False)
-            except Exception:  #  Shoddy attempt at hiding the error from users. todo: find better solution
+            except Exception:  #  Shoddy attempt at hiding the error from users.
                 pass
             # handle exceptions
             finally:
@@ -91,13 +118,39 @@ class BotClient(commands.Bot):
 
         self.tree.on_error = on_tree_error
 
+    async def start(self, token: str, *, reconnect: bool = True) -> None:
+        error_cache_task: asyncio.Task = self._get_cache_task()
+        error_cache_task.add_done_callback(self.handle_task_done)
+
+        try:
+            await super().start(token=token, reconnect=reconnect)
+        finally:
+            error_cache_task.cancel()
+
+            await asyncio.gather(
+                error_cache_task,
+                return_exceptions=True,
+            )
+
     async def handle_exception(self, error_context: LoggableErrorContext) -> None:
-        # TODO: Holy shit holy fucking shitty shit do NOT log Autocomplete errors they will SPAM EVERYTHING
         if isinstance(error_context, AutocompleteErrorContext):
             error_context.log = False  # FUUUUUCK I gotta find a timeout for this or a reason to mute it. Cool the tech exists, but now what.
 
         if error_context.log:
-            await self.logger.error(error_context)
+            if not self._error_cooldown_cache.is_cached(
+                keys=(
+                        type(error_context).__name__,
+                        error_context.error.__class__.__name__,
+                )
+            ):
+
+                self._error_cooldown_cache.register(
+                    keys=(type(error_context).__name__, error_context.error.__class__.__name__,),
+                    timeout=10,
+                    val=True
+                )
+
+                await self.logger.error(error_context)
 
         if isinstance(error_context, AppCommandErrorContext):
             await error_context.interaction.edit_original_response(embed=error_context.error.as_embed())
@@ -115,12 +168,19 @@ class BotClient(commands.Bot):
         if error is None:
             return
 
-        asyncio.create_task(
-            self.handle_exception(
+        async def handle_exception():
+            await self.handle_exception(
                 TaskErrorContext(error, task)
             )
+            import sys
+            print(f'Closing application due to task error in task {task.get_name()}')
+            asyncio.get_event_loop().stop()
+            sys.exit(1)
+
+        asyncio.create_task(
+            handle_exception()
         )
-        # todo: terminate?
+
     # endregion
 
     # noinspection method-may-be-static

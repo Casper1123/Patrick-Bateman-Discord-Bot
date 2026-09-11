@@ -60,7 +60,17 @@ if __name__ == '__main__':
     saying = SayingDatabase(db_data_path)
 
     print('\tClient instance')
-    client = BotClient(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
+    client = BotClient(
+        5,
+        global_logger_config,
+        local_logger_config,
+        autoreplies,
+        fact,
+        mod,
+        db,
+        pref,
+        saying
+    )
 
     import asyncio
     async def main():

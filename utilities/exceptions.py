@@ -57,7 +57,6 @@ class CustomDiscordException(Exception):
         return embed
 
 
-# todo: make Literal TypeAlias?
 class UseRestriction(Enum):
     NONE = 0,
     GUILD = 1,

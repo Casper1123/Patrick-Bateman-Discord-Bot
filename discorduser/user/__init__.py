@@ -25,11 +25,11 @@ from ..cogs.regular.ask import AskPatrick
 
 
 class BotClient(_AbstractClient):
-    def __init__(self, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig,
+    def __init__(self, error_cache_timeout: float, global_logger_config: GlobalLoggerConfig, local_logger_config: LocalLoggerConfig,
                  autoreplies: GlobalTextAutoreplyInterface, fact: GlobalAdminFactInterface,
                  mod: GlobalAdminModerationInterface, db: LocalAdminDataInterface, pref: PreferencesInterface,
                  saying: GlobalAdminSayingInterface) -> None:
-        super().__init__(global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
+        super().__init__(error_cache_timeout, global_logger_config, local_logger_config, autoreplies, fact, mod, db, pref, saying)
 
     async def setup_hook(self) -> None:
         # Util
