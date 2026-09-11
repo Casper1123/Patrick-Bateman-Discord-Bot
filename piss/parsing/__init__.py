@@ -197,7 +197,6 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
 
 def parse_instructions_from_string(txt: str, ) -> list[_Instruction]:
     # Parse input string with default values.
-    # todo: post-check?
     return _parse_top_level(
         parse_string=txt,
         recursion_depth=0,

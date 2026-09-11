@@ -195,7 +195,7 @@ class LoggableInteractionErrorContext(LoggableErrorContext, ABC):
 class ListenerErrorContext(LoggableErrorContext):
     @property
     def embed_context(self) -> str:
-        return f'{self.event} listener'
+        return f'`{self.event}` listener'
 
     @property
     def cmd_context(self) -> str:
