@@ -163,6 +163,8 @@ class RecursiveCacheHandler:
             if clean_empty_nodes and not self.children[curr].children:
                 del self.children[curr]
         else:
+            if not curr in self.children.keys():
+                return
             del self.children[curr]
 
     def is_cached(self, keys: tuple[_Key_Types, ...]) -> bool:
