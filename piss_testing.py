@@ -8,8 +8,7 @@ if __name__ != '__main__':
     raise ImportError('Do not import this file, only run it.')
     # Do not want to trigger the input statement below and halting the process.
 
-# txt: str = input('Enter PISS data: ')
-txt = "Taking blood from the heart to the cells and back.\\nDealing with all things vascular and cardiac.\\nCapillaries, arteries and veins.\\nAll I'm sa'in is circulation is the name of the game oh."
+txt: str = input('Enter PISS data: ')
 parsed: list[Instruction] = parse_instructions_from_string(txt)
 print('Compiled')
 print(parsed)
