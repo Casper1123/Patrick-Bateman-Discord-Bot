@@ -44,7 +44,7 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
         char: str = parse_string[i]
         if char == '\\':
             # Special case: newline character support
-            if i + 1 < n and parse_string[i + 1] == 'n':
+            if i + 1 < n and parse_string[i + 1] == 'n' and not escaped:
                 build += '\n'
                 i+= 1
             # Opened clause to preserve escape symbols until their required layer.

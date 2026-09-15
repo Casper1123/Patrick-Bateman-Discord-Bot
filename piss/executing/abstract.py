@@ -65,6 +65,8 @@ class AbstractInstructionExecutor(ABC):
                 else:
                     raise NotImplementedError(f'Instruction of type {type(instruction).__name__} is not supported.')
 
+                i += 1
+                
             except _CustomDiscordException as e:
                 raise e
             except Exception as e:
