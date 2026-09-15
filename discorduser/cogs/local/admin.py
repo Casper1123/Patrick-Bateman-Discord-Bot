@@ -18,7 +18,7 @@ from discorduser.user.custom_cog import CustomGroupCog
 from discorduser.user.transformers.channel import ChannelIDTransformer
 from piss.old import parse_variables, Instruction
 from piss.old.instructionexecutor import DebugInstructionExecutor
-from piss.old.testing import test_raw_input as input_test
+from piss.testing import test_raw_input as input_test
 from utilities.exceptions import CustomDiscordException, ErrorTooltip, UseRestriction, RestrictedUseException, \
     IncompatibleTargetChannel
 from utilities.selection_window import selection_window
