@@ -1,10 +1,11 @@
 from re import Match as _Match
-from typing import TypeAlias as _TypeAlias, Literal as _Literal
+from typing import TypeAlias as _TypeAlias, Literal as _Literal, get_args
 
 from piss.exceptions import InstructionParseError as _InstructionParseError
 from piss.instructions.abstract import Instruction as _Instruction
 
-UserAttributeOptions: _TypeAlias = _Literal['id', 'name', 'account', 'created_at', 'roles', 'mutual_guilds']
+UserAttributeOptions = _Literal['id', 'name', 'account', 'created_at', 'roles', 'mutual_guilds']
+_checkable_options: set[str] = set(get_args(UserAttributeOptions))
 
 
 class RandomUserInstruction(_Instruction):
@@ -14,6 +15,7 @@ class RandomUserInstruction(_Instruction):
     @staticmethod
     def signatures() -> tuple[tuple[str, int], ...]:
         return (r'^tru\((?P<num>-?\d+)(?:,\s*(?P<attr>\w+))?\)$', 0),
+        # todo: support suffixing with .attrib as opposed to just (id, attrib)
 
     @staticmethod
     def from_match(match: _Match, ident: int, memory: dict[str, type], recursion_depth: int,
@@ -30,8 +32,8 @@ class RandomUserInstruction(_Instruction):
             raise _InstructionParseError(match.group(0), f'**{num}** is not a Python recognized integer.')
 
         if not attr:
-            attr = 'account'
-        if attr not in UserAttributeOptions:
+            attr = 'name'
+        if attr not in _checkable_options:
             raise _InstructionParseError(match.group(0), f'Incompatible attribute.\n'
                                                     f'Received: **{attr}**.\n'
                                                     f'Expected: Element in **{UserAttributeOptions}**.')
