@@ -24,7 +24,10 @@ class ChoiceInstruction(_Instruction):
         # Tldr; choice(str, str*, str) where str* is any number >= 0 str input, each bounded with either ' or "
         # Need to individually parse the choices given the parsing function _parse_top_level
         # _ast.literal_eval should perform this function, but double check if that is true through testing.
-        opt_raw = _ast.literal_eval(f'({match.group('options')})')
+        try:
+            opt_raw = _ast.literal_eval(f'({match.group('options')})')
+        except (ValueError, SyntaxError):
+            raise ValueError('Could not parse input choices. They are not a python-compatible string tuple.')
 
         if not isinstance(opt_raw, tuple):
             raise ValueError('Match not parsed as tuple. Probably a non-user error.')
