@@ -139,7 +139,7 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
 
     # region instructions
     async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
-
+        # todo: max character limit on build?
         self.pure_out += '{PUSH}' + build
 
         self.out += ('{PUSH;' +

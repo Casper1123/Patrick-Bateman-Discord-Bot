@@ -5,7 +5,7 @@ from re import Match as _Match
 class Instruction(ABC):
     @staticmethod
     @abstractmethod
-    def signatures() -> tuple[tuple[str, int], ...]:
+    def signatures() -> tuple[tuple[str, int], ...]:  # todo: bool to incidate signature might return build string.
         """
         RegEx signatures to match on for this Instruction type.
         Comes paired with an identifier for from_match staticmethod.
