@@ -1,6 +1,6 @@
 # Just for making memory stack usage easier.
 import datetime as _datetime
-from typing import TypeVar
+from typing import TypeVar, Any
 
 INITIAL_MEMORY_TYPES: dict[str, type] = {
     '\\n': str,
@@ -92,3 +92,20 @@ def reshape(m1: dict[str, _T], m2: dict[str, _T]) -> None:
         if not t1 == t2 and not k in new:
             raise TypeError(f'm1 key {k} of type {t1} not of type {t2}.')
         m1[k] = m2[k]
+
+
+async def memory_integrity(memory: dict[str, Any]):
+    """
+    Raises Exception if the initial memory is not up to code.
+    """
+    missing_keys: set[str] = set()
+    bad_types: set[tuple[str, type, type]] = set()
+    for k, v in INITIAL_MEMORY_TYPES.items():
+        if k not in memory:
+            missing_keys.add(k)
+            continue
+        if type(memory[k]) != v:
+            bad_types.add((k, v, type(memory[k])))
+    if missing_keys or bad_types:
+        raise TypeError(
+            f'Initial memory has not been constructed correctly; Missing: {missing_keys}. Incorrect types: {','.join(f'{i[0]}: {i[1].__name__} (wanted {i[2].__name__})' for i in bad_types)}')
