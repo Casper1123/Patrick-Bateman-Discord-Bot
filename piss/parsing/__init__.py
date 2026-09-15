@@ -39,7 +39,7 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
 
     while i < n:
         # Is this character escaped?
-        escaped: bool = i > 0 and build[i - 1] == '\\'
+        escaped: bool = i > 0 and parse_string[i - 1] == '\\'
 
         char: str = parse_string[i]
         if char == '\\':
