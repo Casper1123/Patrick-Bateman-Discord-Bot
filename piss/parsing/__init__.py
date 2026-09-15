@@ -105,7 +105,12 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
         char: str = parse_string[i]
 
         if char == '\\':
-            if escaped and not layer_stack:
+            # If in string, disappears here.
+            # Can be used for next character to be escaped and thus appended.
+            # Except for when in string, at which point it may be needed later.
+            if not escaped and top_stack not in ['"', "'"]:
+                pass
+            else: # todo: double check logic?
                 build += char
 
         elif escaped:
