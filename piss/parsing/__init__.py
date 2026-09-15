@@ -119,7 +119,10 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
                 build = ''
 
         elif char in _doubles:
-            if char == top_stack:
+            # Special case: If directly inside of a string, the opposite string bound is treated like a character.
+            if (char == "'" and top_stack == '"') or (char == '"' and top_stack == "'"):
+                pass
+            elif char == top_stack:
                 layer_stack.pop()
             else:
                 layer_stack.append(char)
