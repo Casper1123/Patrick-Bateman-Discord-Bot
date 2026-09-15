@@ -8,8 +8,9 @@ from discord.ext import commands
 from data.interfaces.autoreplies import TextAutoreplyInterface, SimpleAliasData, SimpleReplyData
 from data.interfaces.pref import PreferencesInterface
 from discorduser.user.abstract import BotClient
-from piss.old import Instruction, parse_variables
-from piss.old.instructionexecutor import InstructionExecutor
+from piss.instructions.abstract import Instruction
+from piss.parsing import parse_instructions_from_string
+from piss.executing import InstructionExecutor
 
 
 @app_commands.guild_only()
@@ -68,9 +69,9 @@ class MessageContentAutoreplyCog(commands.Cog):
             # also do not be a dumbo and put a cooldown on that log pretty please.
 
         if reply.type == 'text':
-            instructions: list[Instruction] = parse_variables(reply.data)
-            executor: InstructionExecutor = InstructionExecutor(self.client)
-            await executor.run(instructions, message)
+            instructions: list[Instruction] = parse_instructions_from_string(reply.data)
+            executor: InstructionExecutor = InstructionExecutor()
+            await executor.run(self.client, instructions, message)
         elif reply.type == 'reaction':
             reactions: list[str] = reply.data.split(';')
             for reaction in reactions:

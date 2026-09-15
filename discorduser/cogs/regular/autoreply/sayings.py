@@ -8,8 +8,9 @@ from configuration.global_config import CFG
 from data.interfaces.pref import PreferencesInterface
 from data.interfaces.saying import SayingInterface
 from discorduser.user.abstract import BotClient
-from piss.old import Instruction, parse_variables
-from piss.old.instructionexecutor import InstructionExecutor
+from piss.instructions.abstract import Instruction
+from piss.parsing import parse_instructions_from_string
+from piss.executing import InstructionExecutor
 
 
 @app_commands.guild_only()
@@ -38,6 +39,6 @@ class RandomAutoreplyCog(commands.Cog):
             return
 
         line_raw: str = self.say.get_saying()
-        line: list[Instruction] = parse_variables(line_raw)
-        executor: InstructionExecutor = InstructionExecutor(self.client)
-        await executor.run(line, interaction=message)
+        line: list[Instruction] = parse_instructions_from_string(line_raw)
+        executor: InstructionExecutor = InstructionExecutor()
+        await executor.run(self.client, line, interaction=message)
