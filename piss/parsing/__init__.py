@@ -42,10 +42,13 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
         escaped: bool = i > 0 and build[i - 1] == '\\'
 
         char: str = parse_string[i]
-
         if char == '\\':
+            # Special case: newline character support
+            if i + 1 < n and parse_string[i + 1] == 'n':
+                build += '\n'
+                i+= 1
             # Opened clause to preserve escape symbols until their required layer.
-            if escaped or opened > 0:
+            elif escaped or opened > 0:
                 build += char
         elif escaped:
             build += char
