@@ -29,7 +29,7 @@ class AbstractJSONConfig(ABC):
         cfg = load_json(self.update_filepath)
         for k, v in js.items():
             cfg[k] = v
-        write_json(self.update_filepath, cfg)
+        write_json(self.update_filepath, cfg, indent=4, sort_keys=False)
 
     @staticmethod
     def check_attributes(d: dict[str, Any], wanted: tuple[tuple[str, type, Any], ...]) -> bool:
