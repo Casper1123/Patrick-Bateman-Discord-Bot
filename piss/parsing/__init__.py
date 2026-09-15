@@ -186,7 +186,7 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
             # 1. If not at the end, cannot perform a memory call for an instruction block
             # 2. See if the key exists
             # 3. See if resulting type is compatible for output.
-            if i < n:
+            if i < n - 1:
                 raise _InstructionParseError(parse_string, reason=f'Found memory print instruction **{subsection}** at section {i} before end of input.')
             res_type: type | None = _fetch(memory, subsection)
             if res_type is None:
