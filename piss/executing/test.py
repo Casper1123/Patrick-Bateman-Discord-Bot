@@ -183,13 +183,13 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
 
 
         # 4. Pick a random one for visualization feedback for users.
-        index: int = 1 + _r.randint(0, len(branch_results) - 1)
+        index: int = _r.randint(0, len(branch_results) - 1)
         ex, branch_build, mem = branch_results[index]
         _reshape(memory, mem) # Mutate memory into mem
 
         # Take corresponding data and shape around it.
         self.pure_out += ex.pure_out
-        self.out += '{CHOICE[' + str(index) + ']; ' + ex.out + '}'
+        self.out += '{CHOICE[' + str(index + 1) + ']; ' + ex.out + '}'
 
         return branch_build
 
