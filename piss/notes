@@ -4,4 +4,5 @@ todo: How to make memory easier? Stack with scopes not as needed, but need to ma
     INITIAL MEMORY TYPES.keys() is a large register of things that just cannot be overwritten. That fixes it.
 
 todo: loop[length](block)
+todo: clear() --> clears out Build.
 todo: documentation on usage
