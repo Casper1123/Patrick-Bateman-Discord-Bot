@@ -1,8 +1,11 @@
 import asyncio
 
-from piss.executing.test import TestInstructionExecutor
+# noinspection unused-imports
+from discorduser.user.abstract import BotClient # DO NOT REMOVE WILL OTHERWISE BREAK ITSELF IDK WHY
+
 from piss.instructions.abstract import Instruction
 from piss.parsing import parse_instructions_from_string
+from piss.executing.test import TestInstructionExecutor
 
 if __name__ != '__main__':
     raise ImportError('Do not import this file, only run it.')
