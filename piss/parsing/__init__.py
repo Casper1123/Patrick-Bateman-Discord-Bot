@@ -5,7 +5,7 @@ from re import Match as _Match
 from piss._utils.mem_tools import fetch as _fetch, INITIAL_MEMORY_TYPES as _INITIAL_MEMORY_TYPES
 # noinspection protected-member
 from piss._utils.symbols import be_map as _be_map, bounds as _bounds, doubles as _doubles, escapes as _escapes, \
-    terminator as _terminator
+    terminator as _terminator, str_bounds as _str_bounds
 from piss.exceptions import InstructionParseError as _InstructionParseError
 from piss.instructions.abstract import Instruction as _Instruction
 from piss.instructions.build import BuildInstruction as _BuildInstruction
@@ -16,6 +16,12 @@ from utilities.exceptions import CustomDiscordException as _CustomDiscordExcepti
 MAX_RECURSION_DEPTH: int = 5 # todo: config
 
 # todo: improve feedback information
+
+# Notes to self:
+# escaped characters only important in-string. If an escape character is found outside of it, throw an error.
+# Escape character in string: if applied to an \ (escape character), keep it there. If applied to a { or }, keep the character there.
+
+# Top level string should be the only one to consume escape characters. If it's not top level, just keep it there.
 
 def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, type], writing: bool) -> list[_Instruction]:
     """
@@ -38,7 +44,6 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
     opened: int = 0  # { Count scope; Decrease when } found
 
     while i < n:
-        # Is this character escaped?
         escaped: bool = i > 0 and parse_string[i - 1] == '\\'
 
         char: str = parse_string[i]
@@ -47,10 +52,9 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
             if i + 1 < n and parse_string[i + 1] == 'n' and not escaped:
                 build += '\n'
                 i+= 1
-            # Opened clause to preserve escape symbols until their required layer.
-            elif escaped or opened > 0:
+            elif escaped or opened > 0: # Not top level (other levels handled then) or escaped (character should remain here)
                 build += char
-        elif escaped:
+        elif escaped: # Only applicable to { and } as they are the only cases below.
             build += char
         elif char == '{':
             if opened == 0 and build:
@@ -99,19 +103,19 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
     n: int = len(parse_string)
 
     while i < n:
-        escaped: bool = i > 0 and parse_string[i - 1] == '\\'
-        top_stack: str = '' if not layer_stack else layer_stack[-1]
-
         char: str = parse_string[i]
 
+        escaped: bool = i > 0 and parse_string[i - 1] == '\\'
+        top_stack: str = '' if not layer_stack else layer_stack[-1]
+        in_string: bool = top_stack in _str_bounds
+
+
         if char == '\\':
-            # If in string, disappears here.
-            # Can be used for next character to be escaped and thus appended.
-            # Except for when in string, at which point it may be needed later.
-            if not escaped and top_stack not in ['"', "'"]:
-                pass
-            else: # todo: double check logic?
-                build += char
+            # If not in a string, throw an error (escape character found outside string)
+            # Otherwise, just append it.
+            if not in_string:
+                raise _InstructionParseError(build, f'Unexpected \\ found outside of string. Characters outside of strings cannot be escaped.')
+            build += char
 
         elif escaped:
             build += char
@@ -125,7 +129,7 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
 
         elif char in _doubles:
             # Special case: If directly inside of a string, the opposite string bound is treated like a character.
-            if (char == "'" and top_stack == '"') or (char == '"' and top_stack == "'"):
+            if in_string and char != top_stack:
                 pass
             elif char == top_stack:
                 layer_stack.pop()
