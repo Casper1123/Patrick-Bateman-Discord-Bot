@@ -332,9 +332,8 @@ class GlobalLogger:
         embed: Embed = Embed(
             title=f'Guild {'banned' if banned else 'unbanned'}',
             description=f'**{'Banned' if banned else 'Unbanned'}**\n'
-                        f'{f'{guild.name} ({guild.id})' if guild else guild_id}\n'
-                        f'\n'
-                        f'{'' if not reason else f'\nReason: *{reason}*'}',
+                        f'{f'{guild.name} ({guild.id})' if guild else guild_id}'
+                        f'{'' if not reason else f'\n\n\nReason: *{reason}*'}',
             colour=Colour.red() if banned else Colour.green()
         )
 
@@ -391,8 +390,8 @@ class GlobalLogger:
                         f'Name: {old_name}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'Name: {new_name}\n'
-                        f'Rate: {rate}',
+                        f'Name: {new_name if new_name else '*not changed*'}\n'
+                        f'Rate: {rate if rate else '*not changed*'}',
             colour=Colour.yellow()
         )
 
@@ -428,7 +427,7 @@ class GlobalLogger:
             description=f'**Alias:** {alias}\n'
                         f'**New:**\n'
                         f'Type: {trigger_type}\n'
-                        f'Rate: {rate}\n'
+                        f'Rate: {rate if rate else '*Alias rate*'}\n'
                         f'Data: {data}',
             colour=Colour.green()
         )
@@ -451,8 +450,8 @@ class GlobalLogger:
                         f'Rate: {old.rate}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'Data: {data if data is not None else '[ Not changed ]'}\n'
-                        f'Rate: {rate if rate is not None else '[ Not changed ]'}',
+                        f'Data: {data if data is not None else '*not changed*'}\n'
+                        f'Rate: {rate if rate is not None else '*not changed*'}',
             colour=Colour.yellow()
         )
 
@@ -490,8 +489,8 @@ class GlobalLogger:
             description=f'**Alias:** {alias}\n'
                         f'**New:**\n'
                         f'Type: {reply_type}'
-                        f'Data: {data if data is not None else '[ Not changed ]'}\n'
-                        f'Weight: {weight if weight is not None else '[ Not changed ]'}',
+                        f'Data: {data if data is not None else '*not changed*'}\n'
+                        f'Weight: {weight if weight is not None else '*not changed*'}',
             colour=Colour.yellow()
         )
 
@@ -514,8 +513,8 @@ class GlobalLogger:
                         f'Weight: {old.weight}\n'
                         f'\n'
                         f'**New:**\n'
-                        f'Data: {data}\n'
-                        f'Weight: {weight}',
+                        f'Data: {data if data else '*not changed*'}\n'
+                        f'Weight: {weight if weight else '*not changed*'}',
             colour=Colour.yellow()
         )
 
