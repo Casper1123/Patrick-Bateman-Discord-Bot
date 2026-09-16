@@ -36,7 +36,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.command(name='add', description='Add a new global fact. Will be test-compiled, but not in detail.')
     @app_commands.describe(text='The fact to add. Will be tested',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def add(self, interaction: Interaction, text: str, ephemeral: bool = False) -> None:
+    async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         self.fact.create_global_fact(interaction.user.id, text)
@@ -48,7 +48,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.describe(index='The index of the fact you\'re editing.',
                            text='The replacement fact.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = False) -> None:
+    async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = True) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         try:
@@ -63,7 +63,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
     @app_commands.command(name='delete', description='Delete a global fact.')
     @app_commands.describe(index='The index of the fact to delete', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
+    async def delete(self, interaction: Interaction, index: int, ephemeral: bool = True) -> None:
         try:
             old: SimpleFactEditorData = self.fact.delete_global_fact(index)
         except IndexError:
@@ -112,7 +112,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 files.append(
                     discord.File(
                         fp=text_stream,
-                        filename=f"global_fact_data_{iguild.id}.txt"
+                        filename=f"global_fact_data.txt"
                     )
                 )
 
@@ -215,8 +215,15 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export the facts to an attached JSON file instead.',
                            guild_id='The ID of the guild you wish to index from.', )
-    async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False,
+    async def index_local(self, interaction: Interaction, guild_id: str, ephemeral: bool = False,
                           json: bool = False) -> None:
+        try:
+            guild_id = int(guild_id)
+        except ValueError:
+            await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                            desc=f'{guild_id} is not a Python-recognized integer.')
+            return
+
         local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
             await interaction.response.send_message(
