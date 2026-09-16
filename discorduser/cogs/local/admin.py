@@ -380,18 +380,20 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     # endregion
 
     # region autocomplete
-    async def _local_fact_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _local_fact_index_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         # Always instance available as this is a guild_only command.
         # noinspection bad-assignment
         guild: Guild = interaction.guild
 
-        if not current:
+        if current == '':
             current = 0
         else:
             try:
                 current: int = int(current) - 1 # indexing by 1 offset.
             except ValueError:
                 return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
 
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild.id)
         if not facts:
@@ -406,6 +408,6 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
 
     @edit.autocomplete('index')
     @delete.autocomplete('index')
-    async def _local_fact_index_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _local_fact_index_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(interaction, current, self._local_fact_index_autocomplete_impl, 'index')
     # endregion

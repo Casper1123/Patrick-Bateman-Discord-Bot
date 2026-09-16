@@ -276,13 +276,15 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
         if alias is None:
             return [Choice[int](name='Bad alias.', value=-1)]
 
-        if not current:
+        if current == '':
             current = 0
         else:
             try:
                 current: int = int(current) - 1  # indexing by 1 offset.
             except ValueError:
                 return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
 
         try:
             triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
@@ -455,13 +457,15 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
         if alias is None:
             return [Choice[int](name='Bad alias.', value=-1)]
 
-        if not current:
+        if current == '':
             current = 0
         else:
             try:
                 current: int = int(current) - 1  # indexing by 1 offset.
             except ValueError:
                 return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
 
         try:
             replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
