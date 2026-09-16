@@ -44,7 +44,7 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
         char: str = parse_string[i]
         if char == '\\':
             # Special case: newline character support
-            if i + 1 < n and parse_string[i + 1] == 'n':
+            if i + 1 < n and parse_string[i + 1] == 'n' and not escaped:
                 build += '\n'
                 i+= 1
             # Opened clause to preserve escape symbols until their required layer.
@@ -105,7 +105,12 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
         char: str = parse_string[i]
 
         if char == '\\':
-            if escaped and not layer_stack:
+            # If in string, disappears here.
+            # Can be used for next character to be escaped and thus appended.
+            # Except for when in string, at which point it may be needed later.
+            if not escaped and top_stack not in ['"', "'"]:
+                pass
+            else: # todo: double check logic?
                 build += char
 
         elif escaped:

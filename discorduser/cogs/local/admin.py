@@ -16,9 +16,10 @@ from discorduser.logger.local import LocalLogger
 from discorduser.user.abstract import BotClient
 from discorduser.user.custom_cog import CustomGroupCog
 from discorduser.user.transformers.channel import ChannelIDTransformer
-from piss.old import parse_variables, Instruction
-from piss.old.instructionexecutor import DebugInstructionExecutor
-from piss.old.testing import test_raw_input as input_test
+from piss.executing.test import TestInstructionExecutor
+from piss.instructions.abstract import Instruction
+from piss.parsing import parse_instructions_from_string
+from piss.testing import test_raw_input as input_test
 from utilities.exceptions import CustomDiscordException, ErrorTooltip, UseRestriction, RestrictedUseException, \
     IncompatibleTargetChannel
 from utilities.selection_window import selection_window
@@ -166,9 +167,9 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
                                              f'**Old:**\n{old.text}')
 
     @app_commands.command(name='preview', description='Allows you to test and preview fact input (runs on P.I.S.S.!)')
-    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    @app_commands.describe(text='The Sequence you\'d like to test.', ephemeral=CFG.EPHEMERAL_DESCRIPTION, detailed='Extra output-related details.')
     @app_commands.checks.cooldown(1, CFG.PREVIEW_COOLDOWN_SECONDS, key=lambda i: (i.guild_id, i.user.id))
-    async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
+    async def preview(self, interaction: Interaction, text: str, ephemeral: bool = True, detailed: bool = False) -> None:
         await interaction.response.defer(ephemeral=ephemeral, thinking=True)
         await interaction.edit_original_response(
             embed=discord.Embed(description='Performing PISS test.')
@@ -176,17 +177,17 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         exception: CustomDiscordException | None = None
         description: str = 'If you see this, something went so wrong it executed neither the test nor the exception handler.'
         try:
-            compiled: list[Instruction] = parse_variables(text)
-            executor: DebugInstructionExecutor = DebugInstructionExecutor(self.client)
-            await executor.run(compiled, interaction)
+            compiled: list[Instruction] = parse_instructions_from_string(text)
+            executor: TestInstructionExecutor = TestInstructionExecutor()
+            await executor.run(compiled)
             description = (f'**Taken input:**\n'
                            f'{text}\n'
                            f'\n'
                            f'**Chat output:**\n'
-                           f'{executor.output}\n'
+                           f'{executor.pure_out if not detailed else executor.out}\n'
                            f'\n'
                            f'**Compiled and executed Instructions:**\n'
-                           f'{'\n'.join(f'`{i}`'.replace('InstructionType.', '') for i in compiled)}')
+                           f'{compiled}')
         except CustomDiscordException as e:
             exception = e
         except Exception as e:

@@ -16,7 +16,6 @@ from piss.instructions.randnum import RandomNumberInstruction as _RandomNumberIn
 from piss.instructions.randuser import RandomUserInstruction as _RandomUserInstruction
 from piss.instructions.sleep import SleepInstruction as _SleepInstruction
 from piss.instructions.writing import WritingInstruction as _WritingInstruction
-from piss.old import INITIAL_MEMORY_TYPES as _INITIAL_MEMORY_TYPES
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException, ErrorTooltip as _ErrorTooltip
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
@@ -66,6 +65,8 @@ class AbstractInstructionExecutor(ABC):
                 else:
                     raise NotImplementedError(f'Instruction of type {type(instruction).__name__} is not supported.')
 
+                i += 1
+
             except _CustomDiscordException as e:
                 raise e
             except Exception as e:
@@ -76,23 +77,6 @@ class AbstractInstructionExecutor(ABC):
             build = ''
 
         return build
-
-    # noinspection method-may-be-static
-    async def __memory_integrity(self, memory: dict[str, _Any]):
-        """
-        Raises Exception if the initial memory is not up to code.
-        """
-        missing_keys: set[str] = set()
-        bad_types: set[tuple[str, type, type]] = set()
-        for k, v in _INITIAL_MEMORY_TYPES.items():
-            if k not in memory:
-                missing_keys.add(k)
-                continue
-            if type(memory[k]) != v:
-                bad_types.add((k, v, type(memory[k])))
-        if missing_keys or bad_types:
-            raise TypeError(
-                f'Initial memory has not been constructed correctly; Missing: {missing_keys}. Incorrect types: {','.join(f'{i[0]}: {i[1].__name__} (wanted {i[2].__name__})' for i in bad_types)}')
 
     @abstractmethod
     async def _build(self, instruction: _BuildInstruction) -> str:

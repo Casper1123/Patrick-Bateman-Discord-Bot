@@ -19,6 +19,7 @@ from piss.instructions.sleep import SleepInstruction as _SleepInstruction
 from piss.instructions.writing import WritingInstruction as _WritingInstruction
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException, \
     IncompatibleTargetChannel as _IncompatibleTargetChannel
+from piss._utils.mem_tools import memory_integrity
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
 
@@ -233,7 +234,7 @@ class InstructionExecutor(_AbstractInstructionExecutor):
                 'total_facts': total_facts,
             }
             # check for safety if all keys from parser specification are present.
-            await self.__memory_integrity(out)
+            await memory_integrity(out)
             return out
         except _CustomDiscordException as e:
             raise e  # Pass pre-constructed Exceptions up to user layer.

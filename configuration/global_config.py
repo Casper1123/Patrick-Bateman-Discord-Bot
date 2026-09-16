@@ -112,7 +112,7 @@ class _GlobalConfig(AbstractJSONConfig):
         if not isinstance(cfg, dict) or not all(isinstance(k, str) for k in cfg.keys()):
             raise TypeError(f'{path} must return a dict with only strings for keys.')
 
-        new_keys = _GlobalConfig.check_attributes(cfg, tuple(
+        new_keys = _GlobalConfig.check_attributes(path, cfg, tuple(
             (k, *v) for k, v in _GlobalConfig.WANTED_KEYS.items()
         ))
         if new_keys: return None

@@ -4,8 +4,9 @@ from discord.ext import commands
 from configuration.global_config import CFG
 from data.interfaces.fact import FactInterface
 from discorduser.user.abstract import BotClient
-from piss.old import parse_variables, Instruction
-from piss.old.instructionexecutor import InstructionExecutor
+from piss.instructions.abstract import Instruction
+from piss.parsing import parse_instructions_from_string
+from piss.executing import InstructionExecutor
 
 
 @app_commands.guild_only()
@@ -24,9 +25,9 @@ class FactsCog(commands.Cog):
             await self.client.user_feedback(interaction, ephemeral=True, desc=f'Index {index} is out of range.')
             return
 
-        fact: list[Instruction] = parse_variables(fact_raw)
-        executor: InstructionExecutor = InstructionExecutor(self.client)
-        await executor.run(fact, interaction=interaction)
+        fact: list[Instruction] = parse_instructions_from_string(fact_raw)
+        executor: InstructionExecutor = InstructionExecutor()
+        await executor.run(self.client, fact, interaction=interaction)
 
     @app_commands.command(name="fact_index", description="Gives the number of stored facts.")
     @app_commands.checks.cooldown(1, 10, key=lambda i: (i.guild_id, i.user.id))

@@ -32,10 +32,11 @@ class AbstractJSONConfig(ABC):
         write_json(self.update_filepath, cfg, indent=4, sort_keys=False)
 
     @staticmethod
-    def check_attributes(d: dict[str, Any], wanted: tuple[tuple[str, type, Any], ...]) -> bool:
+    def check_attributes(path: str, d: dict[str, Any], wanted: tuple[tuple[str, type, Any], ...]) -> bool:
         """
         Checks input dict d for wanted keys and typechecks corresponding values.
         Mutates d if a key is missing.
+        :param path: Target path of file, to save to if updated.
         :param d: input dict, will be mutated.
         :param wanted: tuple of (name, target_type (can be generic), default)
         :return: Have new entries been made?
@@ -91,5 +92,8 @@ class AbstractJSONConfig(ABC):
 
             if not matches_type(val, target_type):
                 raise TypeError(f'{name} of type {type(val).__name__} does not match {target_type} (or did not match generics)')
+
+        if new_entries:
+            write_json(path, d, sort_keys=False, indent=4)
 
         return new_entries

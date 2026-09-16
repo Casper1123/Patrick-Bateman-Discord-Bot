@@ -26,5 +26,8 @@ class Instruction(ABC):
     def __str__(self) -> str:
         return type(self).__name__.removesuffix('Instruction') + ': '
 
+    def __repr__(self) -> str:
+        return self.__str__()
+
     def __hash__(self) -> int:
         return hash(str(type(self).__name__))

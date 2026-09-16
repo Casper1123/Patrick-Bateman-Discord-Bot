@@ -7,7 +7,7 @@ from typing import Any as _Any
 from discord import Message as _Message, Interaction as _Interaction
 
 from discorduser.user.abstract import BotClient as _BotClient
-from piss._utils.mem_tools import reshape as _reshape
+from piss._utils.mem_tools import reshape as _reshape, memory_integrity as _memory_integrity
 from piss.exceptions import InstructionExecutionError as _InstructionExecutionError
 from piss.executing.abstract import AbstractInstructionExecutor as _AbstractInstructionExecutor
 from piss.instructions.abstract import Instruction as _Instruction
@@ -129,7 +129,7 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
                 'total_facts': 0,
             }
             # check for safety if all keys from parser specification are present.
-            await self.__memory_integrity(out)
+            await _memory_integrity(out)
             return out
         except _CustomDiscordException as e:
             raise e  # Pass pre-constructed Exceptions up to user layer.
@@ -183,13 +183,13 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
 
 
         # 4. Pick a random one for visualization feedback for users.
-        index: int = 1 + _r.randint(0, len(branch_results) - 1)
+        index: int = _r.randint(0, len(branch_results) - 1)
         ex, branch_build, mem = branch_results[index]
         _reshape(memory, mem) # Mutate memory into mem
 
         # Take corresponding data and shape around it.
         self.pure_out += ex.pure_out
-        self.out += '{CHOICE[' + str(index) + ']; ' + ex.out + '}'
+        self.out += '{CHOICE[' + str(index + 1) + ']; ' + ex.out + '}'
 
         return branch_build
 

@@ -6,8 +6,9 @@ from discord.ext import commands
 
 from data.interfaces.saying import SayingInterface
 from discorduser.user.abstract import BotClient
-from piss.old import Instruction, parse_variables
-from piss.old.instructionexecutor import InstructionExecutor
+from piss.instructions.abstract import Instruction
+from piss.parsing import parse_instructions_from_string
+from piss.executing import InstructionExecutor
 
 _ask_command_name: str = 'ask'
 
@@ -85,9 +86,9 @@ class AskPatrick(commands.Cog):
             await ask_reply(message, "No")
         elif number <= 951:
             saying: str = self.saying.get_saying()
-            parsed: list[Instruction] = parse_variables(saying)
-            executor: InstructionExecutor = InstructionExecutor(self.client)
-            executor.fresh = False if isinstance(message, Message) else True # So we can reply to it if it is a message.
-            await executor.run(parsed, message)
+            parsed: list[Instruction] = parse_instructions_from_string(saying)
+            executor: InstructionExecutor = InstructionExecutor()
+            executor._first_reply = False if isinstance(message, Message) else True # So we can reply to it if it is a message.
+            await executor.run(self.client, parsed, message)
         else:
             await ask_reply(message, 'Haha I am immune to this question because I am queer')
