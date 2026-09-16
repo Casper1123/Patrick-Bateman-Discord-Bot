@@ -48,6 +48,14 @@ class GeneralDatabase(CachedAbstractSQLDatabase, LocalAdminDataInterface):
                 )
 
     def get_log_channel(self, guild_id: int) -> int | None:
+        if self._cache.is_cached(
+                keys=('log_channel', guild_id),
+        ):
+            return self._cache.get_cached(
+                keys=('log_channel', guild_id),
+                out_type=int | None
+            )
+        
         with self._connection() as conn:
             row = conn.execute(
                 """
@@ -73,3 +81,4 @@ class GeneralDatabase(CachedAbstractSQLDatabase, LocalAdminDataInterface):
             )
         )
 
+        return val

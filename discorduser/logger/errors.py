@@ -4,7 +4,7 @@ from asyncio import Task
 from pathlib import Path
 from typing import Literal, TypeAlias, Any
 
-from discord import Embed, Interaction, Colour, Member, User, Guild
+from discord import Embed, Interaction, Colour, Member, User, Guild, Forbidden
 from discord.app_commands import CommandOnCooldown, CommandInvokeError, TransformerError
 
 from piss.old import InstructionParseError
@@ -16,7 +16,8 @@ UNLOGGED_EXCEPTION_TYPES: tuple[type, ...] = (
     CommandOnCooldown,
     RestrictedUseException,
     IncompatibleTargetChannel,
-    BadTransformerInput
+    BadTransformerInput,
+    Forbidden, # Cannot access channel.
 )
 
 ErrorSource: TypeAlias = Literal['app_command', 'listener', 'task', 'autocomplete', 'transformer']  # just putting
