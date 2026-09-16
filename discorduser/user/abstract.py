@@ -133,8 +133,7 @@ class BotClient(commands.Bot):
             )
 
     async def handle_exception(self, error_context: LoggableErrorContext) -> None:
-        if isinstance(error_context, AutocompleteErrorContext):
-            error_context.log = False  # FUUUUUCK I gotta find a timeout for this or a reason to mute it. Cool the tech exists, but now what.
+        
 
         if error_context.log:
             if not self._error_cooldown_cache.is_cached(
