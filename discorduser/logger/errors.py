@@ -36,19 +36,17 @@ def _normalize_exception(error: BaseException) -> tuple[CustomDiscordException, 
         # noinspection bad-assignment
         error: Exception = error.__cause__  # Documentation specifies to do so.
 
+    log = type(error) not in UNLOGGED_EXCEPTION_TYPES
     if isinstance(error, CommandOnCooldown):
-        log = type(error) not in UNLOGGED_EXCEPTION_TYPES  # Leave logging to the above or not.
         error: CustomDiscordException = CustomDiscordException(
             message=f'Command on cooldown ({error.cooldown}s), try again in **{error.retry_after}s**.',
             error_type='Command on cooldown.', tooltip=ErrorTooltip.NONE)
     elif isinstance(error, Forbidden):
-        log = type(error) not in UNLOGGED_EXCEPTION_TYPES
         error: CustomDiscordException = CustomDiscordException(
             message=f'Cannot access target.',
             error_type=f'No access', tooltip=ErrorTooltip.NONE
         )
     elif not isinstance(error, CustomDiscordException):
-        log = type(error) not in UNLOGGED_EXCEPTION_TYPES
         error: CustomDiscordException = CustomDiscordException(cause=error, error_type=type(error).__name__)
     else:
         error: CustomDiscordException  # True by invariant above.
