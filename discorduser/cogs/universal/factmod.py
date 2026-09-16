@@ -262,9 +262,15 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         ))
 
     # region autocomplete
-    async def _gfact_index_autocomplete_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfact_index_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[int]]:
+        try:
+            current: int = int(current) - 1 # indexing by 1 offset.
+        except ValueError:
+            return [Choice[int](name='Please enter positive number > 0', value=-1)]
+
         if not current:
             current = 0
+
         facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
 
@@ -275,13 +281,19 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
     @edit.autocomplete('index')
     @delete.autocomplete('index')
-    async def _gfact_index_autocomplete_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfact_index_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(_, current, self._gfact_index_autocomplete_impl, 'index')
 
-    async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         guild_id: int = interaction.namespace.guild_id
         if not guild_id:
             return [Choice[int](name='Bad guild ID', value=-1)]
+
+        try:
+            current: int = int(current) - 1 # indexing by 1 offset.
+        except ValueError:
+            return [Choice[int](name='Please enter positive number > 0', value=-1)]
+
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not facts:
             return [Choice[int](name='No local facts', value=-1)]
@@ -295,7 +307,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         ]
 
     @modify.autocomplete('index')
-    async def _gfactmod_index_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfactmod_index_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(interaction, current, self._gfactmod_index_autocomplete_impl, 'index')
     # endregion
     # endregion

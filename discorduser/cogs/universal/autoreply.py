@@ -268,13 +268,18 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
     async def _alias_options_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
         return await self.autocomplete_guard(_, current, self._alias_options_autocomplete_impl, 'alias')
 
-    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         try:
             alias: str | None = interaction.namespace.alias
         except AttributeError:
             alias = None
         if alias is None:
             return [Choice[int](name='Bad alias.', value=-1)]
+
+        try:
+            current: int = int(current) - 1 # indexing by 1 offset.
+        except ValueError:
+            return [Choice[int](name='Please enter positive number > 0', value=-1)]
 
         try:
             triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
@@ -291,7 +296,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
 
     @edit_trigger.autocomplete('index')
     @delete_trigger.autocomplete('index')
-    async def _index_options_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _index_options_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(interaction, current, self._index_options_autocomplete_impl, 'index')
     # endregion
 
@@ -439,13 +444,18 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
     async def _alias_options_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
         return await self.autocomplete_guard(_, current, self._alias_options_autocomplete_impl, 'alias')
 
-    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         try:
             alias: str | None = interaction.namespace.alias
         except AttributeError:
             alias = None
         if alias is None:
             return [Choice[int](name='Bad alias.', value=-1)]
+
+        try:
+            current: int = int(current) - 1 # indexing by 1 offset.
+        except ValueError:
+            return [Choice[int](name='Please enter positive number > 0', value=-1)]
 
         try:
             replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
