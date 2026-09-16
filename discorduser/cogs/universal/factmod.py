@@ -263,13 +263,13 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
     # region autocomplete
     async def _gfact_index_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[int]]:
-        try:
-            current: int = int(current) - 1 # indexing by 1 offset.
-        except ValueError:
-            return [Choice[int](name='Please enter positive number > 0', value=-1)]
-
         if not current:
             current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
 
         facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
@@ -292,17 +292,18 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         if not guild_id:
             return [Choice[int](name='Bad guild ID', value=-1)]
 
-        try:
-            current: int = int(current) - 1 # indexing by 1 offset.
-        except ValueError:
-            return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if not current:
+            current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
 
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not facts:
             return [Choice[int](name='No local facts', value=-1)]
 
-        if not current:
-            current = 0
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
             Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)

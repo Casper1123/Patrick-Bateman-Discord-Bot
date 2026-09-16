@@ -385,17 +385,19 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         # noinspection bad-assignment
         guild: Guild = interaction.guild
 
-        try:
-            current: int = int(current) - 1 # indexing by 1 offset.
-        except ValueError:
-            return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if not current:
+            current = 0
+        else:
+            try:
+                current: int = int(current) - 1 # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
 
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild.id)
         if not facts:
             return [Choice[int](name='No local facts', value=-1)]
 
-        if not current:
-            current = 0
+
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
             Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)

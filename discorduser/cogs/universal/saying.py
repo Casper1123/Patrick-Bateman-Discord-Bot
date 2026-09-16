@@ -100,13 +100,14 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
 
     # region autocomplete
     async def _index_autocomplete_callback_impl(self, _: Interaction, current: str) -> list[Choice[int]]:
-        try:
-            current: int = int(current) - 1 # indexing by 1 offset.
-        except ValueError:
-            return [Choice[int](name='Please enter positive number > 0', value=-1)]
-
         if not current:
             current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
+            
         sayings: list[SimpleSayingEditorData] = self.saying.get_sayings()
         lower, upper = selection_window(len(sayings), current, 10, favour='higher')
 
