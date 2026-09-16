@@ -285,7 +285,10 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         return await self.autocomplete_guard(_, current, self._gfact_index_autocomplete_impl, 'index')
 
     async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
-        guild_id: int = interaction.namespace.guild_id
+        try:
+            guild_id: int | None = interaction.namespace.guild_id
+        except AttributeError:
+            guild_id = None
         if not guild_id:
             return [Choice[int](name='Bad guild ID', value=-1)]
 
