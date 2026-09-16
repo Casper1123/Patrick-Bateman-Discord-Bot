@@ -295,7 +295,7 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
         lower, upper = selection_window(len(triggers), current, 10, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
-            Choice[int](name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
             for offset, trigger in enumerate(triggers[lower:upper])
         ]
 
@@ -475,7 +475,7 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
         lower, upper = selection_window(len(replies), current, 10, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
-            Choice[int](name=f'{offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)
             for offset, reply in enumerate(replies[lower:upper])
         ]
 

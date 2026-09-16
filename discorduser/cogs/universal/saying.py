@@ -112,7 +112,7 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         lower, upper = selection_window(len(sayings), current, 10, favour='higher')
 
         return [
-            Choice[int](name=f'{offset + 1}: {saying.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1}: {saying.text[:80]}', value=offset + 1)
             for offset, saying in enumerate(sayings[lower:upper])
         ]
 
