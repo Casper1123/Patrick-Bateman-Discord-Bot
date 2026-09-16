@@ -171,8 +171,15 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                            text='Replacement text. Leave empty to remove entirely.',
                            local_log='Log to the given server\'s local log channel. Author will be denoted as the bot.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str | None = None,
+    async def modify(self, interaction: Interaction, guild_id: str, index: int, text: str | None = None,
                      local_log: bool = True, ephemeral: bool = False) -> None:
+        try:
+            guild_id = int(guild_id)
+        except ValueError:
+            await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                            desc=f'{guild_id} is not a Python-recognized integer.')
+            return
+
         delete: bool = text is None
         if not delete:
             text: str
@@ -324,6 +331,17 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @modify.autocomplete('index')
     async def _gfactmod_index_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(interaction, current, self._gfactmod_index_autocomplete_impl, 'index')
+
+    async def _gfactmod_guildid_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
+        target = current.lower()  # Prevent repeat transformation
+        guilds: list[Guild] = [i for i in self.client.guilds if target in i.name]
+        guilds.sort(key=lambda x: x.name)
+        return [Choice[str](name=f'{i.name} ({i.id})', value=str(i.id)) for i in guilds[:10]]
+
+    @modify.autocomplete('guild_id')
+    @index_local.autocomplete('guild_id')
+    async def _gfactmod_guildid_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[str]]:
+        return await self.autocomplete_guard(interaction, current, self._gfactmod_guildid_autocomplete_impl, 'guild_id')
     # endregion
     # endregion
 
