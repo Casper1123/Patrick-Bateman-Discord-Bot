@@ -99,19 +99,25 @@ class GlobalAdminSayingCog(CustomGroupCog, group_name='saying'):
         )
 
     # region autocomplete
-    async def _index_autocomplete_callback_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
-        if not current:
+    async def _index_autocomplete_callback_impl(self, _: Interaction, current: str) -> list[Choice[int]]:
+        if current == '':
             current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
+
         sayings: list[SimpleSayingEditorData] = self.saying.get_sayings()
-        lower, upper = selection_window(len(sayings), current, 4, favour='higher')
+        lower, upper = selection_window(len(sayings), current, 10, favour='higher')
 
         return [
-            Choice[int](name=f'{offset + 1}: {saying.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1}: {saying.text[:80]}', value=lower + offset + 1)
             for offset, saying in enumerate(sayings[lower:upper])
         ]
 
     @saying_edit.autocomplete('index')
     @saying_delete.autocomplete('index')
-    async def _index_autocomplete_callback_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
+    async def _index_autocomplete_callback_guard(self, _: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(_, current, self._index_autocomplete_callback_impl, 'index')
     # endregion

@@ -160,9 +160,9 @@ class _AliasGlobalAdminCog(CustomGroupCog, group_name='alias'):
     # region autocomplete
     async def _alias_options_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
         target = current.lower()  # Prevent repeat transformation
-        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
+        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if target in i.name]
         aliases.sort(key=lambda x: x.name)
-        return [Choice[str](name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+        return [Choice[str](name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:10]]
 
     @edit_alias.autocomplete('alias')
     @delete_alias.autocomplete('alias')
@@ -258,9 +258,9 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
     # region autocomplete
     async def _alias_options_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
         target = current.lower()  # Prevent repeat transformation
-        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
+        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if target in i.name]
         aliases.sort(key=lambda x: x.name)
-        return [Choice[str](name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+        return [Choice[str](name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:10]]
 
     @create_trigger.autocomplete('alias')
     @edit_trigger.autocomplete('alias')
@@ -268,10 +268,23 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
     async def _alias_options_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
         return await self.autocomplete_guard(_, current, self._alias_options_autocomplete_impl, 'alias')
 
-    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        alias = interaction.namespace.alias
-        if not alias:
+    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
+        try:
+            alias: str | None = interaction.namespace.alias
+        except AttributeError:
+            alias = None
+        if alias is None:
             return [Choice[int](name='Bad alias.', value=-1)]
+
+        if current == '':
+            current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
 
         try:
             triggers: list[SimpleTriggerData] = self.repl.get_triggers_for_alias(alias)
@@ -279,16 +292,16 @@ class _TriggerGlobalAdminCog(CustomGroupCog, group_name='trigger'):
             return [Choice[int](name='Bad alias.', value=-1)]
 
         # Time to compress this stuff.
-        lower, upper = selection_window(len(triggers), current, 5, favour='higher')
+        lower, upper = selection_window(len(triggers), current, 10, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
-            Choice[int](name=f'{offset + 1} ({trigger.type}): {trigger.data[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1} ({trigger.type}): {trigger.data[:80]}', value=lower + offset + 1)
             for offset, trigger in enumerate(triggers[lower:upper])
         ]
 
     @edit_trigger.autocomplete('index')
     @delete_trigger.autocomplete('index')
-    async def _index_options_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _index_options_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(interaction, current, self._index_options_autocomplete_impl, 'index')
     # endregion
 
@@ -424,33 +437,52 @@ class _ReplyGlobalAdminCog(CustomGroupCog, group_name='reply'):
     # endregion
 
     # region autocomplete
+    async def _alias_options_autocomplete_impl(self, _: Interaction, current: str):
+        target = current.lower()  # Prevent repeat transformation
+        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if target in i.name]
+        aliases.sort(key=lambda x: x.name)
+        return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:10]]
+
     @create_reply.autocomplete('alias')
     @edit_reply.autocomplete('alias')
     @delete_reply.autocomplete('alias')
-    async def _alias_options_autocomplete(self, _: Interaction, current: str):
-        target = current.lower()  # Prevent repeat transformation
-        aliases: list[SimpleAliasData] = [i for i in self.repl.get_aliases() if i.name.startswith(target)]
-        aliases.sort(key=lambda x: x.name)
-        return [Choice(name=f'{i.name} ({i.rate})', value=i.name) for i in aliases[:4]]
+    async def _alias_options_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
+        return await self.autocomplete_guard(_, current, self._alias_options_autocomplete_impl, 'alias')
 
-    @edit_reply.autocomplete('index')
-    @delete_reply.autocomplete('index')
-    async def _index_options_autocomplete(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        alias = interaction.namespace.alias
-        if not alias:
+    async def _index_options_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
+        try:
+            alias: str | None = interaction.namespace.alias
+        except AttributeError:
+            alias = None
+        if alias is None:
             return [Choice[int](name='Bad alias.', value=-1)]
+
+        if current == '':
+            current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
 
         try:
             replies: list[SimpleReplyData] = self.repl.get_replies_by_alias(alias)
         except IndexError:
             return [Choice[int](name='Bad alias.', value=-1)]
         # Time to compress this stuff.
-        lower, upper = selection_window(len(replies), current, 5, favour='higher')
+        lower, upper = selection_window(len(replies), current, 10, favour='higher')
         return [
             # Offset like this because indexing is by 1 for users.
-            Choice[int](name=f'{offset + 1} ({reply.type}): {reply.data[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1} ({reply.type}): {reply.data[:80]}', value=lower + offset + 1)
             for offset, reply in enumerate(replies[lower:upper])
         ]
+
+    @edit_reply.autocomplete('index')
+    @delete_reply.autocomplete('index')
+    async def _index_options_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[str]]:
+        return await self.autocomplete_guard(_, current, self._index_options_autocomplete_impl, 'index')
     # endregion
 
 

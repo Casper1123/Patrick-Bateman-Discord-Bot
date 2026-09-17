@@ -167,8 +167,8 @@ class LocalLogger:
                 icon_url=interaction.user.display_avatar.url
             )
 
-        await self._channel_log(interaction.guild, embed=embed1, act='set_log_channel')
         await channel.send(embed=embed2)
+        await self._channel_log(interaction.guild, embed=embed1, act='set_log_channel')
 
     async def set_channel_preferences(self, interaction: Interaction, channel: TextChannel | VoiceChannel | StageChannel | Thread | None, new: GuildChannelPreferenceData) -> None:
         # Do not forget to figure out what kinds of channels require this; Probably just messageable channels? (See above)

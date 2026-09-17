@@ -357,9 +357,15 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
         if not isinstance(log_channel, Messageable):
             raise IncompatibleTargetChannel(log_channel, Messageable.__name__)
 
-        self.db.set_log_output(guild.id, log_channel.id)
-        await self.logger.local_set_log_channel(guild, interaction, log_channel)
+        # Log to old and new channel before updating.
+        # If inaccessible this will raise an Error.
         await self.local_logger.set_log_channel(interaction, log_channel)
+
+        # Now change the channel, as local_logger.set_log_channel will have tried to post a message to that channel.
+        self.db.set_log_output(guild.id, log_channel.id)
+
+        # It's complete so let's finalize logging.
+        await self.logger.local_set_log_channel(guild, interaction, log_channel)
         await self.client.user_feedback(interaction, ephemeral=ephemeral,
                                         desc=f'Log output channel set to <#{log_channel.id}>')
 
@@ -380,25 +386,34 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     # endregion
 
     # region autocomplete
-    async def _local_fact_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _local_fact_index_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         # Always instance available as this is a guild_only command.
         # noinspection bad-assignment
         guild: Guild = interaction.guild
+
+        if current == '':
+            current = 0
+        else:
+            try:
+                current: int = int(current) - 1 # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
 
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild.id)
         if not facts:
             return [Choice[int](name='No local facts', value=-1)]
 
-        if not current:
-            current = 0
+
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1}: {fact.text[:80]}', value=lower + offset + 1)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
     @edit.autocomplete('index')
     @delete.autocomplete('index')
-    async def _local_fact_index_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _local_fact_index_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(interaction, current, self._local_fact_index_autocomplete_impl, 'index')
     # endregion

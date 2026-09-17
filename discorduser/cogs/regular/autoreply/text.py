@@ -49,7 +49,7 @@ class MessageContentAutoreplyCog(commands.Cog):
 
                 # For each trigger type, try to match. Raising exception if not to enforce compatibility of types.
                 if trigger.type == 'regex':
-                    match = _re.match(trigger.data, message.content)
+                    match = _re.match(trigger.data, message.content, flags=_re.IGNORECASE)
                     if match:
                         triggering_aliases.append(alias)
                         break  # Prevent repeated entries of same Alias

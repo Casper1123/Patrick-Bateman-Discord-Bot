@@ -36,7 +36,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.command(name='add', description='Add a new global fact. Will be test-compiled, but not in detail.')
     @app_commands.describe(text='The fact to add. Will be tested',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def add(self, interaction: Interaction, text: str, ephemeral: bool = False) -> None:
+    async def add(self, interaction: Interaction, text: str, ephemeral: bool = True) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         self.fact.create_global_fact(interaction.user.id, text)
@@ -48,7 +48,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.describe(index='The index of the fact you\'re editing.',
                            text='The replacement fact.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = False) -> None:
+    async def edit(self, interaction: Interaction, index: int, text: str, ephemeral: bool = True) -> None:
         if not await input_test(self.client, interaction, text, ephemeral):
             return
         try:
@@ -63,7 +63,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
 
     @app_commands.command(name='delete', description='Delete a global fact.')
     @app_commands.describe(index='The index of the fact to delete', ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def delete(self, interaction: Interaction, index: int, ephemeral: bool = False) -> None:
+    async def delete(self, interaction: Interaction, index: int, ephemeral: bool = True) -> None:
         try:
             old: SimpleFactEditorData = self.fact.delete_global_fact(index)
         except IndexError:
@@ -112,7 +112,7 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                 files.append(
                     discord.File(
                         fp=text_stream,
-                        filename=f"global_fact_data_{iguild.id}.txt"
+                        filename=f"global_fact_data.txt"
                     )
                 )
 
@@ -171,8 +171,15 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
                            text='Replacement text. Leave empty to remove entirely.',
                            local_log='Log to the given server\'s local log channel. Author will be denoted as the bot.',
                            ephemeral=CFG.EPHEMERAL_DESCRIPTION)
-    async def modify(self, interaction: Interaction, guild_id: int, index: int, text: str | None = None,
+    async def modify(self, interaction: Interaction, guild_id: str, index: int, text: str | None = None,
                      local_log: bool = True, ephemeral: bool = False) -> None:
+        try:
+            guild_id = int(guild_id)
+        except ValueError:
+            await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                            desc=f'{guild_id} is not a Python-recognized integer.')
+            return
+
         delete: bool = text is None
         if not delete:
             text: str
@@ -215,8 +222,15 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            json='Export the facts to an attached JSON file instead.',
                            guild_id='The ID of the guild you wish to index from.', )
-    async def index_local(self, interaction: Interaction, guild_id: int, ephemeral: bool = False,
+    async def index_local(self, interaction: Interaction, guild_id: str, ephemeral: bool = False,
                           json: bool = False) -> None:
+        try:
+            guild_id = int(guild_id)
+        except ValueError:
+            await self.client.user_feedback(interaction, ephemeral=ephemeral,
+                                            desc=f'{guild_id} is not a Python-recognized integer.')
+            return
+
         local_facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not local_facts:
             await interaction.response.send_message(
@@ -262,41 +276,72 @@ class GlobalFactAdminCog(CustomGroupCog, group_name='gfact'):
         ))
 
     # region autocomplete
-    async def _gfact_index_autocomplete_impl(self, _: Interaction, current: int) -> list[Choice[int]]:
-        if not current:
+    async def _gfact_index_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[int]]:
+        if current == '':
             current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
+
         facts: list[SimpleFactEditorData] = self.fact.get_global_facts()
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
 
         return [
-            Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1}: {fact.text[:80]}', value=lower + offset + 1)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
     @edit.autocomplete('index')
     @delete.autocomplete('index')
-    async def _gfact_index_autocomplete_guard(self, _: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfact_index_autocomplete_guard(self, _: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(_, current, self._gfact_index_autocomplete_impl, 'index')
 
-    async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: int) -> list[Choice[int]]:
-        guild_id: int = interaction.namespace.guild_id
+    async def _gfactmod_index_autocomplete_impl(self, interaction: Interaction, current: str) -> list[Choice[int]]:
+        try:
+            guild_id: int | None = interaction.namespace.guild_id
+        except AttributeError:
+            guild_id = None
         if not guild_id:
             return [Choice[int](name='Bad guild ID', value=-1)]
+
+        if current == '':
+            current = 0
+        else:
+            try:
+                current: int = int(current) - 1  # indexing by 1 offset.
+            except ValueError:
+                return [Choice[int](name='Please enter positive number > 0', value=-1)]
+        if current < 0:
+            current = 0
+
         facts: list[SimpleFactEditorData] = self.fact.get_local_facts(guild_id)
         if not facts:
             return [Choice[int](name='No local facts', value=-1)]
 
-        if not current:
-            current = 0
         lower, upper = selection_window(len(facts), current, 11, favour='higher')
         return [
-            Choice[int](name=f'{offset + 1}: {fact.text[:80]}', value=offset + 1)
+            Choice[int](name=f'{lower + offset + 1}: {fact.text[:80]}', value=lower + offset + 1)
             for offset, fact in enumerate(facts[lower:upper])
         ]
 
     @modify.autocomplete('index')
-    async def _gfactmod_index_autocomplete_guard(self, interaction: Interaction, current: int) -> list[Choice[int]]:
+    async def _gfactmod_index_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[int]]:
         return await self.autocomplete_guard(interaction, current, self._gfactmod_index_autocomplete_impl, 'index')
+
+    async def _gfactmod_guildid_autocomplete_impl(self, _: Interaction, current: str) -> list[Choice[str]]:
+        target = current.lower()  # Prevent repeat transformation
+        guilds: list[Guild] = [i for i in self.client.guilds if target in i.name]
+        guilds.sort(key=lambda x: x.name)
+        return [Choice[str](name=f'{i.name} ({i.id})', value=str(i.id)) for i in guilds[:10]]
+
+    @modify.autocomplete('guild_id')
+    @index_local.autocomplete('guild_id')
+    async def _gfactmod_guildid_autocomplete_guard(self, interaction: Interaction, current: str) -> list[Choice[str]]:
+        return await self.autocomplete_guard(interaction, current, self._gfactmod_guildid_autocomplete_impl, 'guild_id')
     # endregion
     # endregion
 
