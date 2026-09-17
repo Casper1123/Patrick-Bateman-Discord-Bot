@@ -36,7 +36,7 @@ class SleepInstruction(_Instruction):
 
     @staticmethod
     def signatures() -> tuple[tuple[str, int], ...]:
-        return (r'^sleep\((?P<time>(\d{1,4}(\.\d{1,2})?)?)\)$', 0),
+        return (r'^sleep\((?P<time>(\d{0,4}(\.\d{1,2})?)?)\)$', 0), # todo: .5 instead of 0.5
 
     def __init__(self, time: float | int = 1):
         self.time = time
