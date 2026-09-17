@@ -6,3 +6,4 @@ todo: How to make memory easier? Stack with scopes not as needed, but need to ma
 todo: loop[length](block)
 todo: clear() --> clears out Build.
 todo: documentation on usage
+todo: writing() can construct text --> multiple push() calls in same writing()
