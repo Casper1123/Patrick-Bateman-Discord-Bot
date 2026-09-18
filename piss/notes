@@ -5,3 +5,4 @@ todo: How to make memory easier? Stack with scopes not as needed, but need to ma
 
 todo: loop[length](text)
 todo: documentation on usage
+todo: clear(int, int) for n,m characters removed (n: front, m: back), and clear(int) for back-only.
