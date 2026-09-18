@@ -24,9 +24,9 @@ class WritingInstruction(_Instruction):
         content = match.group('instr')
 
         # noinspection protected-member
-        from piss.parsing import _parse_instruction_block
+        from piss.parsing import _parse_top_level
 
-        content_instr: list[_Instruction] = _parse_instruction_block(content, memory, recursion_depth + 1, writing=True)
+        content_instr: list[_Instruction] = _parse_top_level(content, recursion_depth + 1, memory, writing=True)
         if not content_instr:
             raise _InstructionParseError(match.group(0),
                                         f'Writing Instruction did not receive any Instructions (received **{content}**).')
