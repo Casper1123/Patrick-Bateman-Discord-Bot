@@ -1,4 +1,5 @@
-from discord import Interaction, TextChannel, Guild, Embed, Colour, VoiceChannel, StageChannel, Thread, Member
+from discord import Interaction, TextChannel, Guild, Embed, Colour, VoiceChannel, StageChannel, Thread, Member, \
+    Forbidden
 from discord.abc import Messageable
 from discord.ext import commands
 
@@ -35,7 +36,11 @@ class LocalLogger:
         if self.config.actively_logging[act]:
             channel: Messageable | None = self._get_log_channel(guild)
             if channel:
-                await channel.send(embed=embed)
+                try:
+                    await channel.send(embed=embed)
+                except Forbidden:
+                    # Channel not available.
+                    self.db.set_log_output(guild.id, None)
 
     # endregion
 
