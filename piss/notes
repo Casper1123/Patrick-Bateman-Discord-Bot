@@ -4,5 +4,12 @@ todo: How to make memory easier? Stack with scopes not as needed, but need to ma
     INITIAL MEMORY TYPES.keys() is a large register of things that just cannot be overwritten. That fixes it.
 
 todo: loop[length](text)
+    How to bound?
+    for loop[i](text):
+    if i < 0 raise an error.
+    if i > 10, raise an error; arbitrary upper bound for now.
+    Wait.. 1-digit number as a start is pretty nice.
+    Always returns a string, as it's a text block. --> modified build, as it may contain Push instructions.
+
 todo: documentation on usage
 todo: clear(int, int) for n,m characters removed (n: front, m: back), and clear(int) for back-only.

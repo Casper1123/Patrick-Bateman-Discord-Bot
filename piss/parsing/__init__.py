@@ -171,6 +171,9 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
 
     # Go over each subsection and determine containing Instruction based on Signature.
     for i, subsection in enumerate(subsections):
+        if subsection == '':
+            continue
+
         found: bool = False # Keep track of if an Instruction was found.
         for inst_type in _parse_order:
             for sig, ident in inst_type.signatures():
