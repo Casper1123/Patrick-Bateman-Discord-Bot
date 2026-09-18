@@ -27,6 +27,11 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
     Used for running test input. Discard after use.
     """
 
+    async def _clear(self, memory: dict[str, _Any], build: str) -> str:
+        self.out += '{CLEAR}'
+        return ''
+
+
     async def _build(self, instruction: _BuildInstruction) -> str:
         return instruction.text
 
@@ -46,8 +51,9 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
         else:
             raise _InstructionExecutionError(instruction, reason=f'Unsupported random user attribute {instruction.attribute}')
 
-    async def _sleep(self, instruction: _SleepInstruction) -> None:
+    async def _sleep(self, instruction: _SleepInstruction) -> str:
         self.out += '{SLEEP; ' + f'{instruction.time}' + '}'
+        return ''
 
     async def _writing(self, instruction: _WritingInstruction, interaction: _Interaction | _Message,
                        recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
@@ -138,7 +144,7 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
                                          error_type='InstructionMemoryError') from e
 
     # region instructions
-    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
+    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> str:
         # todo: max character limit on build?
         self.pure_out += '{PUSH}' + build
 
@@ -153,6 +159,8 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
                      + ';' + build + '}')
 
         self._first_reply = False
+
+        return ''
 
     async def _choice(self, instruction: _ChoiceInstruction, interaction: _Message | _Interaction,
                       recursion_depth: int, memory: dict[str, _Any], build: str) -> str:

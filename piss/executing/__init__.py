@@ -24,6 +24,9 @@ from piss._utils.mem_tools import memory_integrity
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
 
 class InstructionExecutor(_AbstractInstructionExecutor):
+    async def _clear(self, memory: dict[str, _Any], build: str) -> str:
+        return ''
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -62,7 +65,7 @@ class InstructionExecutor(_AbstractInstructionExecutor):
         """
         return instruction.text
 
-    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
+    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> str:
         """
         Push given build into target channel.
         Note that if no `build` is passed in, `interaction` may be a malformed object as it is never checked.
@@ -82,6 +85,7 @@ class InstructionExecutor(_AbstractInstructionExecutor):
             await interaction.channel.send(content=build, allowed_mentions=instruction.pingable)
 
         self._first_reply = False
+        return ''
 
     async def _choice(self, instruction: _ChoiceInstruction, interaction: _Message | _Interaction, recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         """
@@ -128,11 +132,12 @@ class InstructionExecutor(_AbstractInstructionExecutor):
 
     # noinspection PyMethodMayBeStatic
     # this way to make testing framework easier to implement.
-    async def _sleep(self, instruction: _SleepInstruction) -> None:
+    async def _sleep(self, instruction: _SleepInstruction) -> str:
         """
         Asynchronously sleeps for given time interval.
         """
         await _asyncio.sleep(instruction.time)
+        return ''
 
     async def _writing(self, instruction: _WritingInstruction, interaction: _Interaction | _Message, recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
         """

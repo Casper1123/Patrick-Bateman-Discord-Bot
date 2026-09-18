@@ -5,6 +5,7 @@ from piss.instructions.randnum import RandomNumberInstruction as _RandomNumberIn
 from piss.instructions.randuser import RandomUserInstruction as _RandomUserInstruction
 from piss.instructions.sleep import SleepInstruction as _SleepInstruction
 from piss.instructions.writing import WritingInstruction as _WritingInstruction
+from piss.instructions.clear import ClearInstruction as _ClearInstruction
 
 parse_order: tuple[type[_Instruction], ...] = (
     _PushInstruction,
@@ -13,4 +14,5 @@ parse_order: tuple[type[_Instruction], ...] = (
     _SleepInstruction,
     _WritingInstruction,
     _ChoiceInstruction,
+    _ClearInstruction
 )

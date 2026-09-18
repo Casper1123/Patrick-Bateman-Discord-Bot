@@ -16,6 +16,7 @@ from piss.instructions.randnum import RandomNumberInstruction as _RandomNumberIn
 from piss.instructions.randuser import RandomUserInstruction as _RandomUserInstruction
 from piss.instructions.sleep import SleepInstruction as _SleepInstruction
 from piss.instructions.writing import WritingInstruction as _WritingInstruction
+from piss.instructions.clear import ClearInstruction as _ClearInstruction
 from utilities.exceptions import CustomDiscordException as _CustomDiscordException, ErrorTooltip as _ErrorTooltip
 
 MAX_EXECUTION_RECURSION_DEPTH = 5  # todo: into config file you go.
@@ -48,8 +49,7 @@ class AbstractInstructionExecutor(ABC):
                 if isinstance(instruction, _BuildInstruction):
                     build += await self._build(instruction)
                 elif isinstance(instruction, _PushInstruction):
-                    await self._push(instruction, build, interaction)
-                    build = ''
+                    build = await self._push(instruction, build, interaction)
                 elif isinstance(instruction, _ChoiceInstruction):
                     build = await self._choice(instruction, interaction, recursion_depth, memory, build)
                 elif isinstance(instruction, _MemoryInstruction):
@@ -59,9 +59,11 @@ class AbstractInstructionExecutor(ABC):
                 elif isinstance(instruction, _RandomUserInstruction):
                     build += await self._rnd_usr(instruction, interaction)
                 elif isinstance(instruction, _SleepInstruction):
-                    await self._sleep(instruction)
+                    build += await self._sleep(instruction)
                 elif isinstance(instruction, _WritingInstruction):
                     build = await self._writing(instruction, interaction, recursion_depth, memory, build)
+                elif isinstance(instruction, _ClearInstruction):
+                    build = await self._clear(memory, build)
                 else:
                     raise NotImplementedError(f'Instruction of type {type(instruction).__name__} is not supported.')
 
@@ -79,16 +81,32 @@ class AbstractInstructionExecutor(ABC):
         return build
 
     @abstractmethod
-    async def _build(self, instruction: _BuildInstruction) -> str:
+    async def _clear(self, memory: dict[str, _Any], build: str) -> str:
+        """
+        Should return new build value.
+        """
         raise NotImplementedError()
 
     @abstractmethod
-    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> None:
+    async def _build(self, instruction: _BuildInstruction) -> str:
+        """
+        Should return build extension.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def _push(self, instruction: _PushInstruction, build: str, interaction: _Interaction | _Message) -> str:
+        """
+        Should return new build value.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     async def _choice(self, instruction: _ChoiceInstruction, interaction: _Message | _Interaction,
                       recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
+        """
+        Should return new build value.
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -96,12 +114,18 @@ class AbstractInstructionExecutor(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    async def _sleep(self, instruction: _SleepInstruction) -> None:
+    async def _sleep(self, instruction: _SleepInstruction) -> str:
+        """
+        Should return build extension.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     async def _writing(self, instruction: _WritingInstruction, interaction: _Interaction | _Message,
                        recursion_depth: int, memory: dict[str, _Any], build: str) -> str:
+        """
+        Should return new build value.
+        """
         raise NotImplementedError()
 
     @abstractmethod
