@@ -73,7 +73,7 @@ class InstructionExecutor(_AbstractInstructionExecutor):
         """
         if not build:
             self._first_reply = False
-            return
+            return ''
 
         if isinstance(interaction, _Message) and self._first_reply:
             await interaction.reply(content=build, allowed_mentions=instruction.pingable)

@@ -38,6 +38,9 @@ class ChoiceInstruction(_Instruction):
 
         opt_raw: tuple[str, ...]
 
+        if len(opt_raw) < 2:
+            raise IndexError(f'Not enough options (got {len(opt_raw)}, expected at least 2)')
+
         # noinspection PyProtectedMember
         from piss.parsing import _parse_top_level
 
