@@ -31,7 +31,6 @@ class TestInstructionExecutor(_AbstractInstructionExecutor):
         self.out += '{CLEAR}'
         return ''
 
-
     async def _build(self, instruction: _BuildInstruction) -> str:
         return instruction.text
 
