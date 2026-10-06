@@ -60,6 +60,9 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
             if opened == 0 and build:
                 instructions.append(_BuildInstruction(text=build))
                 build = ''
+            elif opened > 0: # I mean, build emptiness requirement should not apply here.
+                # Without this present, will accidentally remove { for deeper recursion levels.
+                build += '{'
             opened += 1
         elif char == '}':
             if opened > 0:
@@ -68,6 +71,8 @@ def _parse_top_level(parse_string: str, recursion_depth: int, memory: dict[str, 
                     # Insert build into parser
                     instructions += _parse_instruction_block(build, memory, recursion_depth, writing)
                     build = ''
+                else:
+                    build += '}' # Maintain character into further recursive layer.
             else:
                 raise _InstructionParseError(parse_string, reason=f'Found block-closing symbol at pos {i} before a block-opening symbol.')
         else:
@@ -161,7 +166,7 @@ def _parse_instruction_block(parse_string: str, memory: dict[str, type], recursi
     subsections = [s.strip() for s in subsections]
 
     # Memory cleanup to not fudge references
-    del build, layer_stack, char, escaped, i, n
+    del build, layer_stack, char, escaped, i, n, top_stack, in_string
     # endregion
 
     # region Step 2: Instruction recognition
