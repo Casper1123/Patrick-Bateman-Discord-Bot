@@ -21,7 +21,7 @@ class RecursiveCacheEntry:
         self.refresh_window = refresh_window
         self.refresh_timeout = refresh_timeout
 
-        self.on_timeout: Coroutine | None = None
+        self.on_timeout: Coroutine | None = on_timeout
 
 
 class RecursiveCacheHandler:
