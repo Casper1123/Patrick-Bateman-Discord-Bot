@@ -455,3 +455,60 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
 
     # todo: backup command, creating a host-side backup of the db. Keep up to 3 backups.
     # endregion
+
+    @app_commands.command(name="announcement",
+                          description='Post an announcement to every local-server patrick logging channel',)
+    @app_commands.describe(title="Announcement title", announcement="Text to send as announcement.", ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    async def global_announcement(self, interaction: Interaction, announcement: str, ephemeral: bool = False):
+        success: int = 0 # nmr of successful hits.
+        for guild in self.client.guilds:
+            log_channel_id: int | None = self.db.get_log_channel(guild.id)
+            if log_channel_id is None:
+                continue
+            log_channel = guild.get_channel(log_channel_id)
+            if not log_channel:
+                log_channel = await guild.fetch_channel(log_channel_id)
+            if not log_channel:
+                continue # bummer
+            if not isinstance(log_channel, Messageable):
+                continue # Huh?
+
+            message = await log_channel.send(
+                embed=Embed(
+                    title="Announcement",
+                    description=announcement,
+                    color=Colour.blue()
+                ).set_author(name="Global administrators", icon_url=self.client.user.display_avatar.url)
+            )
+            if message: success += 1
+
+        log_embed: Embed = Embed(
+                title="Global announcement",
+                description=announcement,
+                colour=Colour.blue()
+            ).add_field(
+                name="Statistics",
+                value=f"Servers tried: {len(self.client.guilds)}\n"
+                      f"Servers reached: {success}"
+            )
+
+        try:
+            # noinspection unresolved-references
+            log_embed.set_author(name=f'{interaction.user.name} ({interaction.user.id})', icon_url=interaction.user.avatar.url)
+        except AttributeError:
+            log_embed.set_author(name=f'{interaction.user.name} ({interaction.user.id})')
+
+        await self.logger.log_general(
+            console=f'[[ GLOBAL ANNOUNCEMENT ]] :: By {interaction.user.name} ({interaction.user.id}): {announcement}',
+            channel=log_embed
+        )
+        await self.client.user_feedback(
+            interaction=interaction,
+            title="Announcement sent",
+            desc=f"Servers tried: {len(self.client.guilds)}\n"
+                 f"Servers reached: {success}\n"
+                 f"\n"
+                 f"Message:\n"
+                 f"{announcement}",
+            ephemeral=ephemeral
+        )
