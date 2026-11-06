@@ -460,6 +460,8 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
                           description='Post an announcement to every local-server patrick logging channel',)
     @app_commands.describe(announcement="Text to send as announcement.", ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def global_announcement(self, interaction: Interaction, announcement: str, ephemeral: bool = False):
+        announcement = announcement.replace("\\n", "\n")
+
         success: int = 0 # nmr of successful hits.
         for guild in self.client.guilds:
             log_channel_id: int | None = self.db.get_log_channel(guild.id)
@@ -499,7 +501,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
             log_embed.set_author(name=f'{interaction.user.name} ({interaction.user.id})')
 
         await self.logger.log_general(
-            console=f'[[ GLOBAL ANNOUNCEMENT ]] :: By {interaction.user.name} ({interaction.user.id}): {announcement}',
+            console=f'[[ GLOBAL ANNOUNCEMENT ]] :: By {interaction.user.name} ({interaction.user.id}): {announcement.replace("\n", "\\n")}',
             channel=log_embed
         )
         await self.client.user_feedback(

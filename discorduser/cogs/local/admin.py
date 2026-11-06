@@ -335,7 +335,7 @@ class LocalAdminCog(CustomGroupCog, group_name='admin'):
     # endregion
 
     # region other
-    @app_commands.command(name='log', description='Logs administrative usage of the bot to a given channel.')
+    @app_commands.command(name='log', description='Subscribes a channel to announcements and fact-mod output.')
     @app_commands.describe(ephemeral=CFG.EPHEMERAL_DESCRIPTION,
                            channel='Channel ID to log in. Leave empty to remove.')
     async def set_log_channel(self, interaction: Interaction,
