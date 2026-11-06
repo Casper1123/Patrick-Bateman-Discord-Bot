@@ -458,7 +458,7 @@ class GlobalAdminCog(CustomGroupCog, group_name='global'):
 
     @app_commands.command(name="announcement",
                           description='Post an announcement to every local-server patrick logging channel',)
-    @app_commands.describe(title="Announcement title", announcement="Text to send as announcement.", ephemeral=CFG.EPHEMERAL_DESCRIPTION)
+    @app_commands.describe(announcement="Text to send as announcement.", ephemeral=CFG.EPHEMERAL_DESCRIPTION)
     async def global_announcement(self, interaction: Interaction, announcement: str, ephemeral: bool = False):
         success: int = 0 # nmr of successful hits.
         for guild in self.client.guilds:
